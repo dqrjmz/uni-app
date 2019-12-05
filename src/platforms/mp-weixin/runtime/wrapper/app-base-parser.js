@@ -16,12 +16,14 @@ export default function parseBaseApp (vm, {
   mocks,
   initRefs
 }) {
+  // 状态容器
   if (vm.$options.store) {
     Vue.prototype.$store = vm.$options.store
   }
 
   Vue.prototype.mpHost = __PLATFORM__
 
+  // 混合全局
   Vue.mixin({
     beforeCreate () {
       if (!this.$options.mpType) {
@@ -58,6 +60,7 @@ export default function parseBaseApp (vm, {
         }
       }
 
+      // 组件实例
       this.$vm = vm
 
       this.$vm.$mp = {

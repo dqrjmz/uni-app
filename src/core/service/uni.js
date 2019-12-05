@@ -11,6 +11,7 @@ import api from 'uni-service-api'
 
 export const uni = Object.create(null)
 
+// api promise 化
 apis.forEach(name => {
   if (api[name]) {
     uni[name] = promisify(name, wrapper(name, api[name]))

@@ -62,9 +62,12 @@ function processReturnValue (methodName, res, returnValue, keepReturnValue = fal
 }
 
 export default function wrapper (methodName, method) {
+  // protocols 对象是否存在实例属性 methodName
   if (hasOwn(protocols, methodName)) {
+    // 获取这个实例属性
     const protocol = protocols[methodName]
-    if (!protocol) { // 暂不支持的 api
+    // 暂不支持的 api
+    if (!protocol) {
       return function () {
         console.error(`__PLATFORM_TITLE__ 暂不支持${methodName}`)
       }
@@ -75,6 +78,7 @@ export default function wrapper (methodName, method) {
         options = protocol(arg1)
       }
 
+      // 处理函数参数
       arg1 = processArgs(methodName, arg1, options.args, options.returnValue)
 
       const args = [arg1]

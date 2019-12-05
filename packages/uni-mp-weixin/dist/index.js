@@ -3,18 +3,22 @@ import Vue from 'vue';
 const _toString = Object.prototype.toString;
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
+// 是否是函数
 function isFn (fn) {
   return typeof fn === 'function'
 }
 
+// 是否是字符串
 function isStr (str) {
   return typeof str === 'string'
 }
 
+// 是否是原生对象{}
 function isPlainObject (obj) {
   return _toString.call(obj) === '[object Object]'
 }
 
+// 是否有自己属性
 function hasOwn (obj, key) {
   return hasOwnProperty.call(obj, key)
 }
@@ -126,6 +130,7 @@ function wrapperHook (hook) {
 }
 
 function isPromise (obj) {
+  // 存在 函数或者对象 有then函数
   return !!obj && (typeof obj === 'object' || typeof obj === 'function') && typeof obj.then === 'function'
 }
 
@@ -255,6 +260,8 @@ function handlePromise (promise) {
     .catch(err => [err])
 }
 
+
+// 不能promise化的api
 function shouldPromise (name) {
   if (
     isContextApi(name) ||
@@ -318,15 +325,20 @@ function upx2px (number, newDeviceWidth) {
     checkDeviceWidth();
   }
 
+  // 数据类型转换
   number = Number(number);
   if (number === 0) {
     return 0
   }
+  // 转换后的尺寸 （新设备尺寸/基础设备尺寸 === result/number (缩放比例)
   let result = (number / BASE_DEVICE_WIDTH) * (newDeviceWidth || deviceWidth);
+  // 不能为负值
   if (result < 0) {
     result = -result;
   }
+  // 
   result = Math.floor(result + EPS);
+  // 750设备宽
   if (result === 0) {
     if (deviceDPR === 1 || !isIOS) {
       return 1
@@ -344,6 +356,7 @@ const interceptors = {
 
 
 var baseApi = /*#__PURE__*/Object.freeze({
+  __proto__: null,
   upx2px: upx2px,
   interceptors: interceptors,
   addInterceptor: addInterceptor,
@@ -442,9 +455,12 @@ function processReturnValue (methodName, res, returnValue, keepReturnValue = fal
 }
 
 function wrapper (methodName, method) {
+  // protocols 对象是否存在实例属性 methodName
   if (hasOwn(protocols, methodName)) {
+    // 获取这个实例属性
     const protocol = protocols[methodName];
-    if (!protocol) { // 暂不支持的 api
+    // 暂不支持的 api
+    if (!protocol) {
       return function () {
         console.error(`微信小程序 暂不支持${methodName}`);
       }
@@ -455,6 +471,7 @@ function wrapper (methodName, method) {
         options = protocol(arg1);
       }
 
+      // 处理函数参数
       arg1 = processArgs(methodName, arg1, options.args, options.returnValue);
 
       const args = [arg1];
@@ -470,6 +487,10 @@ function wrapper (methodName, method) {
   }
   return method
 }
+
+/**
+ * 待实现的api uni.xxx
+ */
 
 const todoApis = Object.create(null);
 
@@ -499,6 +520,9 @@ TODOS.forEach(function (name) {
   todoApis[name] = createTodoApi(name);
 });
 
+/**
+ * 不同平台下的提供的不同服务
+ */
 var providers = {
   oauth: ['weixin'],
   share: ['weixin'],
@@ -521,6 +545,7 @@ function getProvider ({
     };
     isFn(success) && success(res);
   } else {
+    // 在服务提供者那里找不到这个服务
     res = {
       errMsg: 'getProvider:fail:服务[' + service + ']不存在'
     };
@@ -530,9 +555,11 @@ function getProvider ({
 }
 
 var extraApi = /*#__PURE__*/Object.freeze({
+  __proto__: null,
   getProvider: getProvider
 });
 
+// 单例，IIFE
 const getEmitter = (function () {
   if (typeof getUniEmitter === 'function') {
     /* eslint-disable no-undef */
@@ -565,6 +592,7 @@ function $emit () {
 }
 
 var eventApi = /*#__PURE__*/Object.freeze({
+  __proto__: null,
   $on: $on,
   $off: $off,
   $once: $once,
@@ -574,9 +602,10 @@ var eventApi = /*#__PURE__*/Object.freeze({
 
 
 var api = /*#__PURE__*/Object.freeze({
-
+  __proto__: null
 });
 
+// 小程序中的全局变量
 const MPPage = Page;
 const MPComponent = Component;
 
@@ -1118,12 +1147,14 @@ function parseBaseApp (vm, {
   mocks,
   initRefs
 }) {
+  // 状态容器
   if (vm.$options.store) {
     Vue.prototype.$store = vm.$options.store;
   }
 
   Vue.prototype.mpHost = "mp-weixin";
 
+  // 混合全局
   Vue.mixin({
     beforeCreate () {
       if (!this.$options.mpType) {
@@ -1160,6 +1191,7 @@ function parseBaseApp (vm, {
         }
       }
 
+      // 组件实例
       this.$vm = vm;
 
       this.$vm.$mp = {
@@ -1185,6 +1217,7 @@ function parseBaseApp (vm, {
   return appOptions
 }
 
+// 
 const mocks = ['__route__', '__wxExparserNodeId__', '__wxWebviewId__'];
 
 function findVmByVueId (vm, vuePid) {
@@ -1417,9 +1450,11 @@ todos.forEach(todoApi => {
   protocols[todoApi] = false;
 });
 
+
 canIUses.forEach(canIUseApi => {
   const apiName = protocols[canIUseApi] && protocols[canIUseApi].name ? protocols[canIUseApi].name
     : canIUseApi;
+    // 全局没有这个api
   if (!wx.canIUse(apiName)) {
     protocols[canIUseApi] = false;
   }

@@ -89,6 +89,7 @@ function wrapperHook (hook) {
 }
 
 function isPromise (obj) {
+  // 存在 函数或者对象 有then函数
   return !!obj && (typeof obj === 'object' || typeof obj === 'function') && typeof obj.then === 'function'
 }
 

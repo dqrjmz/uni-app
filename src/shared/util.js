@@ -5,18 +5,22 @@ const _completeValue = value => {
   return value > 9 ? value : ('0' + value)
 }
 
+// 是否是函数
 export function isFn (fn) {
   return typeof fn === 'function'
 }
 
+// 是否是字符串
 export function isStr (str) {
   return typeof str === 'string'
 }
 
+// 是否是原生对象{}
 export function isPlainObject (obj) {
   return _toString.call(obj) === '[object Object]'
 }
 
+// 是否有自己属性
 export function hasOwn (obj, key) {
   return hasOwnProperty.call(obj, key)
 }

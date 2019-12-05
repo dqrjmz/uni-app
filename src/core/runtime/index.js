@@ -28,6 +28,7 @@ import createApp from './wrapper/create-app'
 import createPage from './wrapper/create-page'
 import createComponent from './wrapper/create-component'
 
+// 将todo api设置为false
 todos.forEach(todoApi => {
   protocols[todoApi] = false
 })
@@ -35,6 +36,7 @@ todos.forEach(todoApi => {
 canIUses.forEach(canIUseApi => {
   const apiName = protocols[canIUseApi] && protocols[canIUseApi].name ? protocols[canIUseApi].name
     : canIUseApi
+  // 不能使用的api就是
   if (!__GLOBAL__.canIUse(apiName)) {
     protocols[canIUseApi] = false
   }
@@ -43,6 +45,9 @@ canIUses.forEach(canIUseApi => {
 let uni = {}
 
 if (typeof Proxy !== 'undefined' && __PLATFORM__ !== 'app-plus') {
+  /**
+   * 将api代理到uni全局对象上
+   */
   uni = new Proxy({}, {
     get (target, name) {
       if (target[name]) {
@@ -76,6 +81,9 @@ if (typeof Proxy !== 'undefined' && __PLATFORM__ !== 'app-plus') {
     }
   })
 } else {
+  /**
+   * 将api添加到uni全局对象上
+   */
   Object.keys(baseApi).forEach(name => {
     uni[name] = baseApi[name]
   })
@@ -111,6 +119,7 @@ if (__PLATFORM__ === 'app-plus') {
   }
 }
 
+// wx
 __GLOBAL__.createApp = createApp
 __GLOBAL__.createPage = createPage
 __GLOBAL__.createComponent = createComponent

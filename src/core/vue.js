@@ -9,6 +9,7 @@ Vue.config.isReservedTag = function (tag) {
   return tags.indexOf(tag) !== -1 || oldIsReservedTag(tag)
 }
 
+// 被忽略元素
 Vue.config.ignoredElements = tags
 
 const oldGetTagNamespace = Vue.config.getTagNamespace

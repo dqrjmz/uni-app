@@ -38,6 +38,8 @@ function handlePromise (promise) {
     .catch(err => [err])
 }
 
+
+// 不能promise化的api
 export function shouldPromise (name) {
   if (
     isContextApi(name) ||

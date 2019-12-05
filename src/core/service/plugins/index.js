@@ -56,6 +56,7 @@ export default {
   install (Vue, {
     routes
   } = {}) {
+    // 生命周期混入
     lifecycleMixin(Vue)
 
     const minId = getMinId(routes)

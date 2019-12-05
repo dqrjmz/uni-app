@@ -3,6 +3,7 @@ import {
   camelize
 } from 'uni-shared'
 
+// 小程序中的全局变量
 const MPPage = Page
 const MPComponent = Component
 

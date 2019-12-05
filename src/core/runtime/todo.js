@@ -1,3 +1,7 @@
+/**
+ * 待实现的api uni.xxx
+ */
+
 import {
   isFn
 } from 'uni-shared'

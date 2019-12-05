@@ -19,6 +19,7 @@ export function getProvider ({
     }
     isFn(success) && success(res)
   } else {
+    // 在服务提供者那里找不到这个服务
     res = {
       errMsg: 'getProvider:fail:服务[' + service + ']不存在'
     }
