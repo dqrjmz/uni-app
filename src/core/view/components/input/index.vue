@@ -33,13 +33,14 @@
 </template>
 <script>
 import {
-  emitter
+  emitter,
+  keyboard
 } from 'uni-mixins'
 const INPUT_TYPES = ['text', 'number', 'idcard', 'digit', 'password']
 const NUMBER_TYPES = ['number', 'digit']
 export default {
   name: 'Input',
-  mixins: [emitter],
+  mixins: [emitter, keyboard],
   model: {
     prop: 'value',
     event: 'update:value'
@@ -165,6 +166,8 @@ export default {
       $vm = $vm.$parent
     }
 
+    this.initKeyboard(this.$refs.input)
+
     this.focus && this._focusInput()
   },
   beforeDestroy () {
@@ -279,10 +282,12 @@ uni-input[hidden] {
 
 .uni-input-wrapper,
 .uni-input-form {
-  display: block;
+  display: flex;
   position: relative;
   width: 100%;
   height: 100%;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .uni-input-placeholder,
@@ -292,15 +297,15 @@ uni-input[hidden] {
 
 .uni-input-placeholder {
   position: absolute;
-  top: 50%;
+  top: auto !important;
   left: 0;
-  transform: translateY(-50%);
   color: gray;
   overflow: hidden;
   text-overflow: clip;
   white-space: pre;
   word-break: keep-all;
   pointer-events: none;
+  line-height: inherit;
 }
 
 .uni-input-input {

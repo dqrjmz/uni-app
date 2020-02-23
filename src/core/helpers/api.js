@@ -139,7 +139,6 @@ function createApiCallback (apiName, params = {}, extras = {}) {
     const extra = extras[name]
     if (isFn(extra)) {
       wrapperCallbacks[name] = tryCatchFramework(extra)
-      delete extras[name]
     }
   }
 
@@ -165,7 +164,7 @@ function createApiCallback (apiName, params = {}, extras = {}) {
     } else if (res.errMsg.indexOf(':cancel') !== -1) {
       res.errMsg = apiName + ':cancel'
     } else if (res.errMsg.indexOf(':fail') !== -1) {
-      res.errMsg = apiName + ':fail'
+      res.errMsg = apiName + ':fail' + res.errMsg.substr(res.errMsg.indexOf(' '))
     }
 
     const errMsg = res.errMsg
@@ -248,10 +247,18 @@ export function wrapperUnimplemented (name) {
   }
 }
 
-export function wrapper (name, invokeMethod, extras) {
+function wrapperExtras (name, extras) {
+  const protocolOptions = protocol[name]
+  if (protocolOptions) {
+    isFn(protocolOptions.beforeSuccess) && (extras.beforeSuccess = protocolOptions.beforeSuccess)
+  }
+}
+
+export function wrapper (name, invokeMethod, extras = {}) {
   if (!isFn(invokeMethod)) {
     return invokeMethod
   }
+  wrapperExtras(name, extras)
   return function (...args) {
     if (isSyncApi(name)) {
       if (validateParams(name, args, -1)) {

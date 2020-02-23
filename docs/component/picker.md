@@ -64,8 +64,8 @@
 |属性名|类型|默认值|说明|平台差异说明|
 |:-|:-|:-|:-|:-|
 |value|String||表示选中的时间，格式为"hh:mm"||
-|start|String||表示有效时间范围的开始，字符串格式为"hh:mm"|5+App 不支持|
-|end|String||表示有效时间范围的结束，字符串格式为"hh:mm"|5+App 不支持|
+|start|String||表示有效时间范围的开始，字符串格式为"hh:mm"|App 不支持|
+|end|String||表示有效时间范围的结束，字符串格式为"hh:mm"|App 不支持|
 |@change|EventHandle||value 改变时触发 change 事件，event.detail = {value: value}||
 |@cancel|EventHandle||取消选择时触发||
 |disabled|Boolean|false|是否禁用|&nbsp;|
@@ -112,7 +112,7 @@
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 |x|x|√|x|√|√|√|
 
-- 因省市区选择器包含大量数据，占用体积，并非所有应用都需要，且很多城市数据有自维护需求，所以在App和H5平台没有内置。可以基于多列picker或picker-view，自行填充城市数据，插件市场有较多类似插件，[详见](https://ext.dcloud.net.cn/search?q=%E5%9F%8E%E5%B8%82%E9%80%89%E6%8B%A9)。注意基于多列picker方式的地区选择不能运行在支付宝小程序上，只有基于picker-view的可以全端运行。已知mpvue-picker插件是基于picker-view的。
+- 因省市区选择器包含大量数据，占用体积，并非所有应用都需要，且很多城市数据有自维护需求，所以在App和H5平台没有内置。可以基于多列picker或picker-view，自行填充城市数据，插件市场有较多类似插件，[详见](https://ext.dcloud.net.cn/search?q=%E5%9F%8E%E5%B8%82%E9%80%89%E6%8B%A9)。注意基于多列picker方式的地区选择不能运行在支付宝小程序上，只有基于picker-view的可以全端运行。这些插件中，比较推荐的是[SimpleJalon的地址联动选择插件](https://ext.dcloud.net.cn/plugin?id=1084)，它可以同时兼容app-nvue、app-vue、h5、及各端小程序。
 
 |属性名|类型|默认值|说明|
 |:-|:-|:-|:-|
