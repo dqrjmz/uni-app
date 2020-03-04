@@ -1,8 +1,6 @@
 ### uni.chooseImage(OBJECT)
 从本地相册选择图片或使用相机拍照。
 
-另外选择和上传非图像、视频文件参考：[https://ask.dcloud.net.cn/article/35547](https://ask.dcloud.net.cn/article/35547)。
-
 App端如需要更丰富的相机拍照API（如直接调用前置摄像头），参考[plus.camera](https://www.html5plus.org/doc/zh_cn/camera.html)
 
 **OBJECT 参数说明**
@@ -10,16 +8,19 @@ App端如需要更丰富的相机拍照API（如直接调用前置摄像头）�
 |参数名|类型|必填|说明|平台差异说明|
 |:-|:-|:-|:-|:-|
 |count|Number|否|最多可以选择的图片张数，默认9|见下方说明|
-|sizeType|Array&lt;String&gt;|否|original 原图，compressed 压缩图，默认二者都有|5+App、微信小程序、支付宝小程序、百度小程序|
+|sizeType|Array&lt;String&gt;|否|original 原图，compressed 压缩图，默认二者都有|App、微信小程序、支付宝小程序、百度小程序|
 |sourceType|Array&lt;String&gt;|否|album 从相册选图，camera 使用相机，默认二者都有。如需直接开相机或直接选相册，请只使用一个选项||
 |success|Function|是|成功则返回图片的本地文件路径列表 tempFilePaths||
-|fail|Function|否|接口调用失败的回调函数|小程序、5+App|
+|fail|Function|否|接口调用失败的回调函数|小程序、App|
 |complete|Function|否|接口调用结束的回调函数（调用成功、失败都会执行）|&nbsp;|
 
 **Tips**
 
 - count 值在 H5 平台的表现，基于浏览器本身的规范。目前测试的结果来看，只能限制单选/多选，并不能限制数量。并且，在实际的手机浏览器很少有能够支持多选的。
+- sourceType 在H5端对应`input`的`capture`属性，设置为`['album']`无效，依然可以使用相机。
 - 可以通过用户授权API来判断用户是否给应用授予相册或摄像头的访问权限[https://uniapp.dcloud.io/api/other/authorize](https://uniapp.dcloud.io/api/other/authorize)
+- App端如需选择非媒体文件，可在插件市场搜索[文件选择](https://ext.dcloud.net.cn/search?q=文件选择)，其中Android端可以使用Native.js，无需原生插件，而iOS端需要原生插件。
+
 
 **注：文件的临时路径，在应用本次启动期间可以正常使用，如需持久保存，需在主动调用 [uni.saveFile](api/file/file?id=savefile)，在应用下次启动时才能访问得到。**
 
@@ -36,6 +37,7 @@ App端如需要更丰富的相机拍照API（如直接调用前置摄像头）�
 |:-|:-|:-|
 |path|String|本地文件路径|
 |size|Number|本地文件大小，单位：B|
+|name|String|包含扩展名的文件名称，仅H5支持|
 
 **示例**
 
@@ -59,9 +61,9 @@ uni.chooseImage({
 |:-|:-|:-|:-|:-|
 |current|String/Number|详见下方说明|详见下方说明||
 |urls|Array&lt;String&gt;|是|需要预览的图片链接列表||
-|indicator|String|否|图片指示器样式，可取值："default" - 底部圆点指示器； "number" - 顶部数字指示器； "none" - 不显示指示器。|5+App|
-|loop|Boolean|否|是否可循环预览，默认值为 false|5+App|
-|longPressActions|Object|否|长按图片显示操作菜单，如不填默认为**保存相册**，1.9.5 起支持。|5+App|
+|indicator|String|否|图片指示器样式，可取值："default" - 底部圆点指示器； "number" - 顶部数字指示器； "none" - 不显示指示器。|App|
+|loop|Boolean|否|是否可循环预览，默认值为 false|App|
+|longPressActions|Object|否|长按图片显示操作菜单，如不填默认为**保存相册**|App 1.9.5+|
 |success|Function|否|接口调用成功的回调函数||
 |fail|Function|否|接口调用失败的回调函数||
 |complete|Function|否|接口调用结束的回调函数（调用成功、失败都会执行）|&nbsp;|
@@ -133,7 +135,7 @@ uni.chooseImage({
 
 **平台差异说明**
 
-|5+App|H5|微信小程序|支付宝小程序|百度小程序|头条小程序|
+|App|H5|微信小程序|支付宝小程序|百度小程序|头条小程序|
 |:-:|:-:|:-:|:-:|:-:|:-:|
 |√|√|√|√|√|√|
 
@@ -192,9 +194,9 @@ uni.chooseImage({
 
 **平台差异说明**
 
-|5+App|H5|微信小程序|支付宝小程序|百度小程序|头条小程序
+|App|H5|微信小程序|支付宝小程序|百度小程序|头条小程序
 |:-:|:-:|:-:|:-:|:-:|:-:|
-|√|x|√|x|√|√|
+|√|x|√|√|√|√|
 
 **OBJECT 参数说明**
 
@@ -238,9 +240,9 @@ uni.chooseImage({
 
 **平台差异说明**
 
-|5+App|H5|微信小程序|支付宝小程序|百度小程序|头条小程序
+|App|H5|微信小程序|支付宝小程序|百度小程序|头条小程序
 |:-:|:-:|:-:|:-:|:-:|:-:|
-|1.9.7+ [自定义组件编译模式](https://ask.dcloud.net.cn/article/35843)|x|√|√|x|√|
+|1.9.7+ [自定义组件编译模式](https://ask.dcloud.net.cn/article/35843)|x|√|√|√(基础库版本>=3.110.3)|√|
 
 **OBJECT 参数说明**
 

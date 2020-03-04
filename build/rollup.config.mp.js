@@ -32,13 +32,20 @@ const PLATFORMS = {
 // 获取平台类型
 const platform = PLATFORMS[process.env.UNI_PLATFORM]
 
+let input = 'src/core/runtime/index.js'
+const output = {
+  file: `packages/uni-${process.env.UNI_PLATFORM}/dist/index.js`,
+  format: 'es'
+}
+// 输出平台相关路径
+if (process.env.UNI_MP) {
+  input = 'src/core/runtime/mp/index.js'
+  output.file = `packages/uni-${process.env.UNI_PLATFORM}/dist/mp.js`
+}
+
 module.exports = {
-  input: 'src/core/runtime/index.js',
-  // 输出平台相关路径
-  output: {
-    file: `packages/uni-${process.env.UNI_PLATFORM}/dist/index.js`,
-    format: 'es'
-  },
+  input,
+  output,
   plugins: [
     alias({
       'uni-shared': path.resolve(__dirname, '../src/shared/util.js'),

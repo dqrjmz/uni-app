@@ -6,12 +6,12 @@
 
 # uni-app的特点
 
-- 开发者和案例更多：HBuilder装机量380万台，开发者社区月活百万，70多个QQ微信群承载10万人。案例众多（[详见](https://uniapp.dcloud.io/case)）
+- 开发者和案例更多：HBuilder装机量420万台，开发者社区月活百万，70多个QQ微信群承载10万人。案例众多，uni统计月活4.5亿（[详见](https://uniapp.dcloud.io/case)）
 - 性能更高（见[评测](https://juejin.im/post/5ca1736af265da30ae314248)）
-- 更丰富的周边生态（见[插件市场](https://ext.dcloud.net.cn/)近千款插件）
-- 提供比小程序原生开发更好的开发体验和更高的工程化效率
+- 更丰富的周边生态，[插件市场](https://ext.dcloud.net.cn/)数千款插件
+- 提供比小程序原生开发更好的开发体验、更高的工程化效率
 - 跨端抹平度更完善，且各端特色发挥更灵活，可真正实现一套代码多端覆盖，无需各端多头维护升级
-- 权威认可：被阿里小程序官方工具内置（[详见](https://docs.alipay.com/mini/ide/0.70-stable)）
+- 权威认可：阿里小程序官方工具内置uni-app（[详见](https://docs.alipay.com/mini/ide/0.70-stable)）、腾讯课堂官方自制uni-app培训视频（[详见](https://ask.dcloud.net.cn/article/35640)）
 
 ## 扫码体验
 
@@ -48,7 +48,9 @@
 
 ## 插件市场
 
-`uni-app`有丰富的插件生态，众多开发者提交了各种组件、sdk、项目模板，详见：[https://ext.dcloud.net.cn/](https://ext.dcloud.net.cn/)
+`uni-app`有丰富的插件生态，众多开发者提交了数千款组件、sdk、项目模板，详见：[https://ext.dcloud.net.cn/](https://ext.dcloud.net.cn/)
+
+除了众多三方ui库，官方还提供了uni-ui，在性能和跨端兼容方面有更强的优势。详见：[https://ext.dcloud.net.cn/plugin?id=55](https://ext.dcloud.net.cn/plugin?id=55)
 
 ## 现有项目如何迁移到uni-app体系
 
@@ -71,7 +73,7 @@
 - 答：不是。大量开发者用uni-app只做一个端，详见[案例](https://uniapp.dcloud.io/case)。对于开发者而言，一个优秀工具在手，做什么都不愁。
 
 - 问：uni-app以后会不会变更开源协议，转向收费？
-- 答：官方承诺永远不会变更开源协议。无论HBuilderX、uni-app、5+app，面向中国人永久免费。
+- 答：官方承诺永远不会变更开源协议。无论HBuilderX、uni-app、App，面向中国人永久免费。
 
 ## 更多资料
 

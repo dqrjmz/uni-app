@@ -39,8 +39,9 @@
   * [canvas](component/canvas.md)
 * webview
   * [web-view](component/web-view.md)
-* 小程序开放能力组件
+* 广告
   * [ad](component/ad.md)
+* 小程序开放能力组件
   * [official-account](component/official-account.md)
   * [open-data](component/open-data.md)
 * App nvue专用组件
@@ -56,6 +57,7 @@
   * [Calendar 日历](https://ext.dcloud.net.cn/plugin?id=56)
   * [Card 卡片](https://ext.dcloud.net.cn/plugin?id=22)
   * [Collapse 折叠面板](https://ext.dcloud.net.cn/plugin?id=23)
+  * [Combox 可选择输入框](https://ext.dcloud.net.cn/plugin?id=1261)
   * [CountDown 倒计时](https://ext.dcloud.net.cn/plugin?id=25)
   * [Drawer 抽屉](https://ext.dcloud.net.cn/plugin?id=26)
   * [Fab 悬浮按钮](https://ext.dcloud.net.cn/plugin?id=144)

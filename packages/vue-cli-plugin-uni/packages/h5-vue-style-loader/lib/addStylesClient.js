@@ -265,6 +265,7 @@ function getWindowOffset() {
 	if (app && app.$route && app.$route.meta && app.$route.meta.name) {
 		return {
 			top: app.$route.meta.windowTop,
+			// TODO 可配置 TabBar 高度
 			bottom: app.$route.meta.isTabBar ? 50 : 0
 		}
 	}
