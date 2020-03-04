@@ -29,10 +29,12 @@ const PLATFORMS = {
   }
 }
 
+// 获取平台类型
 const platform = PLATFORMS[process.env.UNI_PLATFORM]
 
 module.exports = {
   input: 'src/core/runtime/index.js',
+  // 输出平台相关路径
   output: {
     file: `packages/uni-${process.env.UNI_PLATFORM}/dist/index.js`,
     format: 'es'
