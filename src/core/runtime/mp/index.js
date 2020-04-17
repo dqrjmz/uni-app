@@ -19,7 +19,10 @@ global['__wxComponents'] = Object.create(null)
 global['__wxVueOptions'] = Object.create(null)
 
 export function Page (options) {
+  // 解析页面的配置对像
   const pageOptions = parsePage(options)
+  // 给mixins添加腻子脚本
+  // vue组件生命周期
   pageOptions.mixins.unshift(polyfill)
   pageOptions.mpOptions.path = global['__wxRoute']
   global['__wxComponents'][global['__wxRoute']] = pageOptions

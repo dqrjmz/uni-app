@@ -260,8 +260,11 @@ const v3 = {
     webpackConfig.plugins.delete('prefetch')
   }
 }
+// node 进程环境配置v3标识
 if (process.env.UNI_USING_V3) {
+  // v3 编译模式
   module.exports = v3
 } else {
+  // 自定义组件 编译模式
   module.exports = require('../mp')
 }

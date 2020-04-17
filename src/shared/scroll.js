@@ -23,11 +23,14 @@ export function disableScrollBounce ({
     }
   }
 
+  // 准备事件
   plusReady(() => {
+    // 开始执行
     if (plus.os.name === 'iOS') {
       // 延迟执行避免iOS13触摸卡死
       setTimeout(exec, 20)
     } else {
+      // 
       exec()
     }
   })

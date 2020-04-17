@@ -1,5 +1,6 @@
-﻿import Vue from 'vue';
+import Vue from 'vue';
 
+// 保存函数引用，使用时避免原型链查找
 const _toString = Object.prototype.toString;
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
@@ -13,7 +14,6 @@ function isStr (str) {
   return typeof str === 'string'
 }
 
-// 是否是原生对象{}
 function isPlainObject (obj) {
   return _toString.call(obj) === '[object Object]'
 }
@@ -1489,15 +1489,15 @@ function createComponent (vueOptions) {
   }
 }
 
+// 将todo api设置为false
 todos.forEach(todoApi => {
   protocols[todoApi] = false;
 });
 
-
 canIUses.forEach(canIUseApi => {
   const apiName = protocols[canIUseApi] && protocols[canIUseApi].name ? protocols[canIUseApi].name
     : canIUseApi;
-    // 全局没有这个api
+  // 不能使用的api就是
   if (!wx.canIUse(apiName)) {
     protocols[canIUseApi] = false;
   }
@@ -1506,6 +1506,9 @@ canIUses.forEach(canIUseApi => {
 let uni = {};
 
 if (typeof Proxy !== 'undefined' && "mp-weixin" !== 'app-plus') {
+  /**
+   * 将api代理到uni全局对象上
+   */
   uni = new Proxy({}, {
     get (target, name) {
       if (target[name]) {
@@ -1539,6 +1542,9 @@ if (typeof Proxy !== 'undefined' && "mp-weixin" !== 'app-plus') {
     }
   });
 } else {
+  /**
+   * 将api添加到uni全局对象上
+   */
   Object.keys(baseApi).forEach(name => {
     uni[name] = baseApi[name];
   });
@@ -1567,6 +1573,7 @@ if (typeof Proxy !== 'undefined' && "mp-weixin" !== 'app-plus') {
   });
 }
 
+// wx
 wx.createApp = createApp;
 wx.createPage = createPage;
 wx.createComponent = createComponent;

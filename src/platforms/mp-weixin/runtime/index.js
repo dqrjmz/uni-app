@@ -3,6 +3,7 @@ import {
   camelize
 } from 'uni-shared'
 
+// 装饰者模式，保存对象
 // 小程序中的全局变量
 const MPPage = Page
 const MPComponent = Component
@@ -39,6 +40,10 @@ function initHook (name, options) {
   }
 }
 
+/**
+ * options 页面中的参数
+ * 修改对象
+ */
 Page = function (options = {}) {
   initHook('onLoad', options)
   return MPPage(options)

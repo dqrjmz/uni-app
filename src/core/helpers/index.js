@@ -9,7 +9,13 @@ export function isPage (vm) {
   return false
 }
 
+/**
+ * 是否存在当前的钩子函数
+ * @param {object} vueOptions 组件的配置对象
+ * @param {string} hook 钩子函数
+ */
 export function hasLifecycleHook (vueOptions = {}, hook) {
+  // 此钩子函数是否存在任务列表 长度不能为0
   return Array.isArray(vueOptions[hook]) && vueOptions[hook].length
 }
 
@@ -35,10 +41,17 @@ export function normalizeDataset (dataset = {}) {
   return result
 }
 
+/**
+ * 将upx 转换到px
+ * @param {} str 
+ */
 export function upx2px (str) {
   str = str + ''
+  // 字符串中找到upx
   if (str.indexOf('upx') !== -1) { // upx转换
+    // 转换为整型，只转换从开始位置找到的数值
     return uni.upx2px(parseInt(str) || 0)
   }
+  // 没有带着upx后缀，将字符串直接进行转换
   return parseInt(str) || 0
 }

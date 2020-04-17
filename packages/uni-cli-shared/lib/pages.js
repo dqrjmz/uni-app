@@ -33,6 +33,7 @@ function getNVueMainEntry () {
   return nvueMainEntry
 }
 
+// 解析pages.json文件内容
 function getPagesJson () {
   return processPagesJson(getJson('pages.json', true))
 }
@@ -55,6 +56,7 @@ const pagesJsonJsFileName = 'pages.js'
 function processPagesJson (pagesJson, loader = {
   addDependency: function () {}
 }) {
+  // 获取page.js
   const pagesJsonJsPath = path.resolve(process.env.UNI_INPUT_DIR, pagesJsonJsFileName)
   if (fs.existsSync(pagesJsonJsPath)) {
     delete require.cache[pagesJsonJsPath]

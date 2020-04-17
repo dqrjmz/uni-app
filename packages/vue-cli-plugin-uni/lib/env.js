@@ -3,6 +3,9 @@ const path = require('path')
 const mkdirp = require('mkdirp')
 const loaderUtils = require('loader-utils')
 
+// 配置node进程参数
+// 检测node进程参数
+
 process.UNI_CLOUD = false
 process.UNI_CLOUD_TCB = false
 process.UNI_CLOUD_ALIYUN = false
@@ -87,6 +90,7 @@ const {
   getManifestJson
 } = require('@dcloudio/uni-cli-shared')
 
+// 获取 项目路由配置 pages.json文件配置
 const pagesJsonObj = getPagesJson()
 // 读取分包
 process.UNI_SUBPACKAGES = {}
@@ -107,16 +111,22 @@ if (Array.isArray(pagesJsonObj.subPackages)) {
   })
 }
 
+// 获取 项目元信息 manifest文件配置
 const manifestJsonObj = getManifestJson()
+// 获取不同平台下的配置
 const platformOptions = manifestJsonObj[process.env.UNI_PLATFORM] || {}
 
+// uniapp项目下的pages.json
 process.UNI_PAGES = pagesJsonObj
+// manifest.json
 process.UNI_MANIFEST = manifestJsonObj
 
+// 是否开启调试
 if (manifestJsonObj.debug) {
   process.env.VUE_APP_DEBUG = true
 }
 
+// 获取小程序id
 process.UNI_STAT_CONFIG = {
   appid: manifestJsonObj.appid
 }
@@ -124,9 +134,11 @@ process.UNI_STAT_CONFIG = {
 // 默认启用 自定义组件模式
 // if (isInHBuilderXAlpha) {
 let usingComponentsAbsent = false
+// 平台没有配置自定义组件 false
 if (!platformOptions.hasOwnProperty('usingComponents')) {
   usingComponentsAbsent = true
 }
+// 自动开启自定义组件模式
 platformOptions.usingComponents = true
 // }
 
@@ -169,9 +181,11 @@ if (process.env.UNI_PLATFORM === 'mp-qq') { // QQ小程序 强制自定义组件
 
 let isNVueCompiler = true
 if (process.env.UNI_PLATFORM === 'app-plus') {
+  // app 平台的nvue页面的编译模式  'weex' 'uniapp'
   if (platformOptions.nvueCompiler === 'weex') {
     isNVueCompiler = false
   }
+  // app 平台页面的渲染器，非原生的 编译器版本为v3
   if (platformOptions.renderer !== 'native' && // 非 native
     (
       platformOptions.compilerVersion === '3' ||
@@ -184,6 +198,7 @@ if (process.env.UNI_PLATFORM === 'app-plus') {
     process.env.UNI_OUTPUT_TMP_DIR = ''
     isNVueCompiler = true // v3 目前仅支持 uni-app 模式
   }
+  // 原生渲染器
   if (platformOptions.renderer === 'native') {
     // 纯原生目前不提供 cache
     delete process.env.UNI_USING_CACHE
@@ -215,10 +230,12 @@ if (process.env.UNI_PLATFORM === 'app-plus') {
   }
 }
 
+// nvue页面的编译器  weex uniapp
 if (isNVueCompiler) {
   process.env.UNI_USING_NVUE_COMPILER = true
 }
 
+// 平台使用自定组件模式
 if (platformOptions.usingComponents === true) {
   if (process.env.UNI_PLATFORM !== 'h5') {
     process.env.UNI_USING_COMPONENTS = true
@@ -247,6 +264,7 @@ if (
   }
 }
 
+// 使用自定义组件模式
 if (process.env.UNI_USING_COMPONENTS) { // 是否启用分包优化
   if (platformOptions.optimization) {
     if (
@@ -259,17 +277,21 @@ if (process.env.UNI_USING_COMPONENTS) { // 是否启用分包优化
   }
 }
 
+// 自动会开启自定义组件模式（小程序
 const warningMsg =
   usingComponentsAbsent
     ? `该应用之前可能是非自定义组件模式，目前以自定义组件模式运行。非自定义组件已于2019年11月1日起停止支持。详见：https://ask.dcloud.net.cn/article/36385`
     : `uni-app已于2019年11月1日起停止支持非自定义组件模式 [详情](https://ask.dcloud.net.cn/article/36385)`
 
+    // 没有使用自定义组件模式
 const needWarning = !platformOptions.usingComponents || usingComponentsAbsent
 let hasNVue = false
 // 输出编译器版本等信息
 if (process.env.UNI_USING_NATIVE) {
+  // nvue文件的当前编译模式
   console.log('当前nvue编译模式：' + (isNVueCompiler ? 'uni-app' : 'weex') +
     ' 。编译模式差异见：https://ask.dcloud.net.cn/article/36074')
+    // 
 } else if (process.env.UNI_PLATFORM !== 'h5' && process.env.UNI_PLATFORM !== 'quickapp') {
   try {
     let info = ''

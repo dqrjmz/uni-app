@@ -24,6 +24,7 @@ const networkTimeout = {
   downloadFile: 60000
 }
 
+// 读取manifest.json文件的内容
 function getManifestJson () {
   return getJson('manifest.json')
 }
