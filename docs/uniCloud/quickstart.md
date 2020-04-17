@@ -8,17 +8,17 @@
   - 对于老的uni-app项目，也可以对项目点右键，菜单中选择“创建uniCloud云开发环境”
   - 新建uni-app项目的模板中，有一个`Hello uniCloud`项目模板，演示了各种云函数的使用。
   
-  uniCloud云开发环境创建成功后，项目下会有一个带有云图标的特殊目录，名为“cloudfunctions”。
+  uniCloud云开发环境创建成功后，项目根目录下会有一个带有云图标的特殊目录，名为“cloudfunctions”。（即便是cli创建的项目，云函数目录也在项目的根目录下，而不是src下）
 
 ## 创建和绑定服务空间
 
-项目环境建好后，需要为这个项目选择一个服务空间。如果开发者账户没有实名认证，首先需要实名认证。
+项目环境建好后，需要为这个项目选择一个服务空间。如果开发者账户没有实名认证，首先需要实名认证（这是法定要求，也是阿里云、腾讯云等云服务商的要求）。
 
 一个开发者可以拥有多个服务空间，每个服务空间都是一个独立的serverless云环境，不同服务空间之间的云函数、数据库、存储都是隔离的。
 
 服务空间和手机端项目是多对多绑定关系。同账号下，一个项目可以关联到多个服务空间。一个服务空间也可以被多个项目访问。
 
-  - 在云函数目录`cloudfunctions`右键菜单创建服务空间，会打开web控制台进行创建
+  - 在云函数目录`cloudfunctions`右键菜单创建服务空间，会打开web控制台[https://unicloud.dcloud.net.cn](https://unicloud.dcloud.net.cn) 进行创建
 
 ![创建服务空间](https://img.cdn.aliyun.dcloud.net.cn/uni-app/uniCloud/create-space.png)
 
@@ -62,15 +62,102 @@ exports.main = async (event, context) => {
 
 ```
 
+<span id="common"></span>
+## 云函数公用模块
+
+自`HBuilderX 2.6.6-alpha`起，uniCloud提供了云函数模块公用方案。以下面的目录结构为例，介绍一下如何使用。
+
+```
+|--cloudfunctions
+  |--common // 云函数公用模块目录
+    |--hello-common // 云函数公用模块
+      |--package.json // 在 hello-common 目录执行 npm init -y 生成
+      |--index.js // 公用模块代码，可以不使用index.js，修改 package.json 内的 main 字段可以指定此文件名
+  |--useCommon // 使用公用模块的云函数
+    |--package.json // 在 useCommon 目录执行 npm init -y 生成
+    |--index.js // 云函数入口文件
+```
+
+**创建并引入公用模块**
+
+1. 在`cloudfunctions`目录下创建`common`目录
+2. 在`common`目录下创建公用模块目录（本例中为`hello-common`），创建入口`js`文件
+3. 在`hello-common`目录下执行`npm init -y`，此时会生成`package.json`文件，可以修改`main`字段指定`hello-common`模块入口文件名，**不要修改此package.json的name字段**
+4. 在`hello-common`右键上传公用模块
+4. 在要引入公用模块的云函数目录（本例中为`useCommon`）执行`npm init -y`生成`package.json`文件
+5. 在`useCommon`目录执行`npm install ../common/hello-common`引入`hello-common`模块
+
+**注意事项**
+
+- 如需修改公用模块需要在`common`目录下修改，修改之后不需要重新执行`npm install`。
+- 如果要更新所有依赖某公用模块的云函数，可以在`common`目录下的公用模块目录（本例中为`hello-common`）右键选择`更新依赖本模块的云函数`
+
+**使用公用模块**
+
+仍以上面的目录为例，在公用模块内`exports`，在云函数内`require`即可。示例代码如下：
+
+```js
+// common/hello-common/index.js
+function getVersion() {
+  return '0.0.1'
+}
+module.exports = {
+  getVersion,
+  secret: 'your secret'
+}
+```
+
+```js
+// useCommon/index.js
+'use strict';
+const {
+  secret,
+  getVersion
+} = require('hello-common')
+exports.main = async (event, context) => {
+  let version = getVersion()
+  return {
+    secret,
+    version
+  }
+}
+```
+
+如果仅需要导出一个function还可以使用以下写法
+
+```js
+// common/hello-common/index.js
+module.exports = function(e){
+  return e
+}
+```
+
+```js
+// useCommon/index.js
+'use strict';
+const echo = require('hello-common')
+exports.main = async (event, context) => {
+  let eventEcho = echo(event)
+  return {
+    eventEcho
+  }
+}
+```
+
 ## 运行和调试云函数
+
 编写云函数后，在项目管理器里右键点击该云函数的目录，在弹出菜单中可选择“上传部署云函数”、“上传并运行测试云函数”。如下图所示：
 
 
 前者仅完成部署，后者会在部署后同时运行，并打印日志出来。
 
+在云函数对应的目录右键可以配置运行测试参数，如下图，选择之后会生成一个形如`${函数名}.param.json`的文件，此文件内容会在云函数`上传并运行`时作为参数传入云函数内。
+
 在云函数编辑器里，按`Ctrl+r`运行快捷键，或点工具栏的运行，还会直接看到上传并运行云函数的快捷指令。`Ctrl+r`然后回车或选`0`，即可高效的在控制台看到运行结果和日志输出。
 
 云函数目前无法断点debug，只能打印`console.log`看日志。
+
+![](https://img.cdn.aliyun.dcloud.net.cn/uni-app/uniCloud/uniCloud-run-function-1.png)
 
 ![](https://img.cdn.aliyun.dcloud.net.cn/uni-app/uniCloud/uniCloud-run-function.png)
 
@@ -129,7 +216,11 @@ exports.main = async (event, context) => {
 
 ## 小程序中使用uniCloud
 
-小程序中使用uniCloud需要在相应的小程序管理后台设置request合法域名、uploadFile合法域名。这些域名均为阿里云或腾讯云自有域名，并非DCloud所属域名。
+各家小程序平台，均要求在小程序管理后台配置小程序应用的联网服务器域名，否则无法联网。
+
+使用uniCloud后，开发者将不再需要自己购买、备案域名，直接将uniCloud的域名填写在小程序管理后台即可。
+
+根据下表，在小程序管理后台设置request合法域名、uploadFile合法域名（如没有上传文件业务，可不设置）。下表的域名均为阿里云或腾讯云自有域名，并非DCloud所属域名。
 
 |服务提供商	|request合法域名|uploadFile合法域名									|
 |:-:				|:-:						|:-:																|
@@ -166,6 +257,8 @@ H5前端js访问云函数，涉及跨域问题，导致前端js无法连接云�
 
 若为新冠抗疫需紧急上线H5，来不及注册域名，可申请使用DCloud提供的m3w.cn的二级域名，示例：[hellounicloud.m3w.cn](https://hellounicloud.m3w.cn) 。此时请使用你注册DCloud账户的邮箱向service@dcloud.io发邮件申请，提供你的appid、计划使用的二级域名名称、解析的ip地址、应用的使用用途。
 
+如果不发布H5，使用uniCloud不需要自己申请或准备域名。App和小程序里直接调用云函数即可。
+
 ## 使用db_init.json初始化项目数据库
 
 自`HBuilderX 2.5.11`起`uniCloud`提供了`db_init.json`来方便开发者快速进行数据库的初始化操作。
@@ -201,7 +294,7 @@ H5前端js访问云函数，涉及跨域问题，导致前端js无法连接云�
 ```
 
 **Bug&Tips**
-- 早期阿里云的云函数的初次冷启动较慢，表现为某个云函数第一次被调用时联网时间较长，可能要5秒左右。第二次即可正常。此问题阿里云已修复，需重新上传部署云函数后生效。
+- 早期阿里云的云函数的初次冷启动较慢，表现为某个云函数第一次被调用时联网时间较长，可能要5秒左右。第二次即可正常。此问题阿里云已优化，重新上传部署云函数后生效。
 - web控制台网址：[http://unicloud.dcloud.net.cn](http://unicloud.dcloud.net.cn)，在HX中对云函数目录点右键，或者在帮助菜单中，均有入口链接。
 
 <!-- **注意**

@@ -5,26 +5,33 @@
 
 **平台差异说明**
 
-|App|H5|微信小程序|支付宝小程序|百度小程序|头条小程序|QQ小程序|
+|App|H5|微信小程序|支付宝小程序|百度小程序|字节跳动小程序|QQ小程序|
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 |√|√|√|√|√|x|√|
 
 支持的事件：`click`
+
+|属性名|类型|默认值|说明|平台差异说明|
+|:-|:-|:-|:-|:-|
+|scroll-top|number/string||设置顶部滚动偏移量，仅在设置了 overflow-y: scroll 成为滚动元素后生效|微信小程序2.1.0|
+
 
 #### cover-image
 覆盖在原生组件上的图片视图。
 
 **平台差异说明**
 
-|App|H5|微信小程序|支付宝小程序|百度小程序|头条小程序|QQ小程序|
+|App|H5|微信小程序|支付宝小程序|百度小程序|字节跳动小程序|QQ小程序|
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 |√|√|√|√|√|x|√|
 
 **属性说明**
 
-|属性名|类型|默认值|说明|
-|:-|:-|:-|:-|
+|属性名|类型|默认值|说明|平台差异说明|
+|:-|:-|:-|:-|:-|
 |src|String||图标路径。支持本地路径、网络路径。不支持 base64 格式。|
+|@load|eventhandle||图片加载成功时触发|微信小程序 2.1.0|
+|@error|eventhandle||图片加载失败时触发|微信小程序 2.1.0|
 
 
 可覆盖的原生组件：`<video>`、`<map>`
@@ -74,7 +81,7 @@
 <template>
 	<view class="page">
 		<video class="video" id="demoVideo" :controls="disable" :show-fullscreen-btn="disable" :show-play-btn="disable"
-		 :show-center-play-btn="disable" :enable-progress-gesture="disable" @fullscreenchange="fullscreenchange" src="https://dcloud-img.oss-cn-hangzhou.aliyuncs.com/guide/uniapp/%E7%AC%AC1%E8%AE%B2%EF%BC%88uni-app%E4%BA%A7%E5%93%81%E4%BB%8B%E7%BB%8D%EF%BC%89-%20DCloud%E5%AE%98%E6%96%B9%E8%A7%86%E9%A2%91%E6%95%99%E7%A8%8B@20181126.mp4">
+		 :show-center-play-btn="disable" :enable-progress-gesture="disable" @fullscreenchange="fullscreenchange" src="https://img.cdn.aliyun.dcloud.net.cn/guide/uniapp/%E7%AC%AC1%E8%AE%B2%EF%BC%88uni-app%E4%BA%A7%E5%93%81%E4%BB%8B%E7%BB%8D%EF%BC%89-%20DCloud%E5%AE%98%E6%96%B9%E8%A7%86%E9%A2%91%E6%95%99%E7%A8%8B@20181126.mp4">
 			<cover-view class="controls-title">简单的自定义 controls</cover-view>
 			<cover-image class="controls-play img" @click="play" src="../../../static/play.png"></cover-image>
 			<cover-image class="controls-pause img" @click="pause" src="../../../static/pause.png"></cover-image>
