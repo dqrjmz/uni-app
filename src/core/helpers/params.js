@@ -5,6 +5,12 @@ import {
   isPlainObject
 } from 'uni-shared'
 
+/**
+ * 验证参数
+ * @param {*} key 
+ * @param {*} paramTypes 
+ * @param {*} paramsData 
+ */
 export default function validateParam (key, paramTypes, paramsData) {
   const paramOptions = paramTypes[key]
   const absent = !hasOwn(paramsData, key)
