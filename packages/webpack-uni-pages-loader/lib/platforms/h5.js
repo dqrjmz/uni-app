@@ -2,6 +2,7 @@ const fs = require('fs')
 const path = require('path')
 
 const {
+  hasOwn,
   getPlatforms,
   getH5Options,
   getFlexDirection,
@@ -63,8 +64,12 @@ const getPageComponents = function (inputDir, pagesJson) {
   Object.assign(
     globalStyle,
     globalStyle['app-plus'] || {},
-    globalStyle['h5'] || {}
+    globalStyle.h5 || {}
   )
+
+  if (process.env.UNI_SUB_PLATFORM) {
+    Object.assign(globalStyle, globalStyle[process.env.UNI_SUB_PLATFORM] || {})
+  }
 
   process.UNI_H5_PAGES_JSON = {
     pages: {},
@@ -88,23 +93,28 @@ const getPageComponents = function (inputDir, pagesJson) {
       }
     }
     // 解析 titleNView，pullToRefresh
-    const h5Options = Object.assign({}, props['app-plus'] || {}, props['h5'] || {})
+    const h5Options = Object.assign({}, props['app-plus'] || {}, props.h5 || {})
+
+    if (process.env.UNI_SUB_PLATFORM) {
+      Object.assign(h5Options, props[process.env.UNI_SUB_PLATFORM] || {})
+      Object.assign(props, props[process.env.UNI_SUB_PLATFORM] || {})
+    }
 
     removePlatformStyle(h5Options)
 
-    if (h5Options.hasOwnProperty('titleNView')) {
+    if (hasOwn(h5Options, 'titleNView')) {
       props.titleNView = h5Options.titleNView
     }
-    if (h5Options.hasOwnProperty('pullToRefresh')) {
+    if (hasOwn(h5Options, 'pullToRefresh')) {
       props.pullToRefresh = h5Options.pullToRefresh
     }
 
     let windowTop = 44
     const pageStyle = Object.assign({}, globalStyle, props)
     const titleNViewTypeList = {
-      'none': 'default',
-      'auto': 'transparent',
-      'always': 'float'
+      none: 'default',
+      auto: 'transparent',
+      always: 'float'
     }
     let titleNView = pageStyle.titleNView
     titleNView = Object.assign({}, {
@@ -121,7 +131,11 @@ const getPageComponents = function (inputDir, pagesJson) {
 
     // 删除 app-plus 平台配置
     delete props['app-plus']
-    delete props['h5']
+    delete props.h5
+
+    if (process.env.UNI_SUB_PLATFORM) {
+      delete props[process.env.UNI_SUB_PLATFORM]
+    }
 
     process.UNI_H5_PAGES_JSON.pages[page.path] = props
 
@@ -313,8 +327,53 @@ meta:{
   ]
 }
 
-module.exports = function (pagesJson, manifestJson) {
+function filterPages (pagesJson, includes) {
+  const pages = []
+  let subPackages = pagesJson.subPackages || []
+  if (!Array.isArray(subPackages)) {
+    subPackages = []
+  }
+  includes.forEach(includePagePath => {
+    let page = pagesJson.pages.find(page => page.path === includePagePath)
+    if (!page) {
+      for (let i = 0; i < subPackages.length; i++) {
+        const {
+          root,
+          pages: subPages
+        } = subPackages[i]
+        page = subPages.find(subPage => normalizePath(path.join(root, subPage.path)) === includePagePath)
+        if (page) {
+          break
+        }
+      }
+    }
+    if (!page) {
+      console.error(`${includePagePath} is not found`)
+    }
+    pages.push(page)
+  })
+  pagesJson.pages = pages
+}
+
+module.exports = function (pagesJson, manifestJson, loader) {
   const inputDir = process.env.UNI_INPUT_DIR
+
+  global.uniPlugin.configurePages.forEach(configurePages => {
+    configurePages(pagesJson, manifestJson, loader)
+  })
+
+  if (loader.resourceQuery) {
+    const loaderUtils = require('loader-utils')
+    const params = loaderUtils.parseQuery(loader.resourceQuery)
+    if (params.pages) {
+      try {
+        const pages = JSON.parse(params.pages)
+        if (Array.isArray(pages)) {
+          filterPages(pagesJson, pages)
+        }
+      } catch (e) {}
+    }
+  }
 
   const pageComponents = getPageComponents(inputDir, pagesJson)
 
@@ -343,7 +402,8 @@ global['____${h5.appid}____'] = true;
 delete global['____${h5.appid}____'];
 global.__uniConfig = ${JSON.stringify(pagesJson)};
 global.__uniConfig.router = ${JSON.stringify(h5.router)};
-global.__uniConfig['async'] = ${JSON.stringify(h5['async'])};
+global.__uniConfig.publicPath = ${JSON.stringify(h5.publicPath)};
+global.__uniConfig['async'] = ${JSON.stringify(h5.async)};
 global.__uniConfig.debug = ${manifestJson.debug === true};
 global.__uniConfig.networkTimeout = ${JSON.stringify(networkTimeoutConfig)};
 global.__uniConfig.sdkConfigs = ${JSON.stringify(sdkConfigs)};

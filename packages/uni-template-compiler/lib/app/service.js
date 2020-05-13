@@ -17,6 +17,7 @@ const {
 
 const {
   parseIs,
+  parseRef,
   parseIf,
   parseFor,
   parseText,
@@ -105,6 +106,8 @@ function checkAutoFill (el) {
 
 function transformNode (el, parent, state, isScopedSlot) {
   if (el.type === 3) {
+    // fixed by xxxxxx 注意：保持平台一致性，trim 一下，理论上service不需要，保险起见也处理一遍
+    el.text = el.text.trim()
     return
   }
   parseBlock(el, parent)
@@ -130,6 +133,7 @@ function transformNode (el, parent, state, isScopedSlot) {
   const genVar = createGenVar(el.attrsMap[ID], isScopedSlot)
 
   parseIs(el, genVar)
+  parseRef(el, genVar)
   parseFor(el, createGenVar, isScopedSlot, checkAutoFill(el))
   parseKey(el, isScopedSlot)
 
@@ -163,6 +167,7 @@ function postTransformNode (el, options) {
       options.root = el
     }
     traverseNode(el, false, {
+      createGenVar,
       forIteratorId: 0,
       transformNode,
       filterModules: options.filterModules

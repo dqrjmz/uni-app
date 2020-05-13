@@ -146,6 +146,113 @@ rewardedVideoAd.onClose(res => {
 })
 ```
 
+
+### 服务器回调(App平台 HBuilderX 2.6.8，仅穿山甲支持)
+
+激励视频广告可以支持广告服务器到业务服务器的回调，用于业务系统判断是否提供奖励给观看广告的用户。配置服务器回调后，当用户成功看完广告时，广告服务器会访问配置的回调链接，通知用户完成观看激励视频。
+
+相对来讲服务器回调将更加安全，可以依赖广告平台的反作弊机制来避免用户模拟观看广告完成的事件。
+
+如何使用
+1. 申请激励视频广告位时开启服务器回调
+2. 创建激励视频广告时传入回调参数
+
+
+urlCallback示例
+
+```
+rewardedVideoAd = uni.createRewardedVideoAd({
+  adpid: '',
+  urlCallback: {
+    amount: '6',
+    name: 'RewardVideoAD1',
+    userId: 'testuser',
+    extra: 'testdata'
+  }
+});
+```
+
+### 服务器回调事件
+- HBuilderX 2.6.8+
+
+```
+rewardedVideoAd.onVerify(e => {
+  // 广告商调用开发者服务器返回结果
+  console.log(e.isValid);
+})
+```
+
+### 服务器回调数据说明
+
+当最终用户观看激励视频广告完成后，广告服务器会以GET方式请求业务服务器的回调链接，并拼接以下参数回传：
+`user_id=%s&trans_id=%s&reward_name=%s&reward_amount=%d&extra=%s&sign=%s`
+
+字段名称|说明|字段类型|备注|
+:-|:-|:-|:-|
+sign|签名|String|签名信息|
+user_id|用户id|String	|调用API传入的userId|
+trans_id|交易id|String	|广告平台生成的唯一交易ID|
+reward_amount|奖励数量|String	|广告后台配置或调用API传入的amount|
+reward_name|奖励名称|String|广告后台配置或调用API传入的name|
+extra|自定义数据，可以为空|String|透传给回调服务器的数据，调用API传入的extra|
+
+#### 签名信息
+
+在uni-AD广告平台申请激励视频广告位通过后，如果开启服务器回调则会生成appSecurityKey。
+appSecurityKey用于签名校验服务器回调请求的合法性（请务必保管好），sign字段值生成规则为：sign=sha256(appSecurityKey,trans_id)
+Python示例：
+
+```
+import hashlib
+
+if __name__ == "__main__":
+    trans_id = "6FEB23ACB0374985A2A52D282EDD5361u6643"
+    app_security_key = "7ca31ab0a59d69a42dd8abc7cf2d8fbd"
+    check_sign_raw = "%s:%s" % (app_security_key, trans_id)
+    sign = hashlib.sha256(check_sign_raw).hexdigest()
+```
+
+#### 回调请求返回数据约定
+
+返回json数据，字段如下：
+
+字段名称|说明|字段类型|备注|
+:-|:-|:-|:-|
+isValid|校验结果|Blean|判定结果，是否发放奖励|
+
+示例
+```
+{
+  "isValid": true
+}
+```
+
+#### 获取广告商名称
+- HBuilderX 2.6.8+
+
+```
+var rewardedVideoAd = uni.createRewardedVideoAd({
+  adpid: ''
+});
+var provider = rewardedVideoAd.getProvider();
+// csj gdt
+```
+
+
+### app平台错误码
+
+code|message|
+:-|:-|
+-5001|广告位标识adpid为空，请传入有效的adpid
+-5002|无效的广告位标识adpid，请使用正确的adpid
+-5003|未开通广告，请在广告平台申请并确保已审核通过
+-5004|无广告模块，打包时请配置要使用的广告模块
+-5005|广告加载失败，请尝试重新加载
+-5006|广告未加载完成无法播放，请加载完成后再调show播放
+-5007|无法获取广告配置数据，请尝试重试
+-5100|其他错误，聚合广告商内部错误
+
+
 **注意事项**
 - 多次调用 `RewardedVideoAd.onLoad()`、`RewardedVideoAd.onError()`、`RewardedVideoAd.onClose()` 等方法监听广告事件会产生多次事件回调，建议在创建广告后监听一次即可，或者先取消原有的监听事件再重新监听。
 - 仅 V3 编译支持，参考 manifest.json 配置

@@ -21,7 +21,7 @@
 |cursor|Number||指定focus时的光标位置||
 |selection-start|Number|-1|光标起始位置，自动聚集时有效，需与selection-end搭配使用||
 |selection-end|Number|-1|光标结束位置，自动聚集时有效，需与selection-start搭配使用||
-|adjust-position|Boolean|true|键盘弹起时，是否自动上推页面|App（softinputMode 为 adjustResize 时无效）、微信小程序、百度小程序、QQ小程序|
+|adjust-position|Boolean|true|键盘弹起时，是否自动上推页面|App-Android（softinputMode 为 adjustResize 时无效）、微信小程序、百度小程序、QQ小程序|
 |hold-keyboard|boolean|false|focus时，点击页面的时候不收起键盘|微信小程序2.8.2|
 |@input|EventHandle||当键盘输入时，触发input事件，event.detail = {value}|差异见下方 Tips|
 |@focus|EventHandle||输入框聚焦时触发，event.detail = { value, height }，height 为键盘高度|仅微信小程序、App（2.2.3+） 、QQ小程序支持 height|
@@ -83,9 +83,10 @@ App平台在iOS上，webview中的软键盘弹出时，默认在软键盘上方�
 
 - 如需使用js动态设置softinputNavBar
 ```javascript
-this.$mp.page.$getAppWebview().setStyle({
+this.$scope.$getAppWebview().setStyle({
 	softinputNavBar: 'none'
 })
+//this.$scope.$getAppWebview()相当于html5plus里的plus.webview.currentWebview()。在uni-app里vue页面直接使用plus.webview.currentWebview()无效，非v3编译模式使用this.$mp.page.$getAppWebview()
 ```
 
 如果是nvue页面，默认就没有键盘上方的横条，无需任何设置。
@@ -110,6 +111,7 @@ App平台软键盘弹出有 adjustResize|adjustPan 两种模式，默认为 adju
 - 小程序端在 input 聚焦期间，避免使用 css 动画。
 - H5平台只能在用户交互时修改 focus 生效。
 - 如果遇到 focus 属性设置不生效的问题参考：[组件属性设置不生效解决办法](/use?id=%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98)
+- 如需禁止点击其他位置收起键盘的默认行为，可以监听`touch`事件并使用`prevent`修饰符（仅支持App-v3、H5，其他平台可以通过设置`focus`来使输入框重新获取焦点），例如在确认按钮上使用：```@touchend.prevent="onTap"```
 
 
 #### 关于软键盘收起的逻辑说明

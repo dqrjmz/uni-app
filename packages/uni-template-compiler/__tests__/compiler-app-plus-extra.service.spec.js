@@ -147,5 +147,119 @@ describe('codegen', () => {
       `with(this){return (_$s(0,'i',a))?_c('text'):(_$s(1,'e',b))?_c('text'):(_$s(2,'e',c))?_c('text'):_c('text')}`
     )
   })
+  it('generate dynamic slot', () => {
+    assertCodegen(
+      '<base-layout><template v-slot:[dynamicSlotName]></template></base-layout>',
+      `with(this){return _c('base-layout',{attrs:{"_i":0},scopedSlots:_u([{key:_$s(1,'st',dynamicSlotName),fn:function(_empty_, _svm, _si){return undefined}}],null,true)})}`
+    )
+  })
+
+  it('generate ref', () => {
+    assertCodegen(
+      '<p :ref="component1"></p>',
+      `with(this){return _c('p',{ref:_$s(0,'ref',component1)})}`
+    )
+  })
+
+  it('generate image', () => {
+    assertCodegen(
+      '<image :src="src"/>',
+      `with(this){return _c('image',{attrs:{"src":_$s(0,'a-src',src),"_i":0}})}`
+    )
+    assertCodegen(
+      '<image src="/static/logo.png"/>',
+      `with(this){return _c('image',{attrs:{"_i":0}})}`
+    )
+    assertCodegen(
+      '<image src="../static/logo.png"/>',
+      `with(this){return _c('image',{attrs:{"src":_$s(0,'a-src',"/"+require("../static/logo.png")),"_i":0}})}`
+    )
+    assertCodegen(
+      '<image src="@/static/logo.png"/>',
+      `with(this){return _c('image',{attrs:{"_i":0}})}`
+    )
+    assertCodegen(
+      '<image src="~@/static/logo.png"/>',
+      `with(this){return _c('image',{attrs:{"_i":0}})}`
+    )
+  })
+  it('generate text trim', () => {
+    assertCodegen(
+      '<view>text</view>',
+        `with(this){return _c('view')}`
+    )
+
+    assertCodegen(
+      '<view> text </view>',
+        `with(this){return _c('view')}`
+    )
+
+    assertCodegen(
+      '<text>{{line_one_cn+\' \'}}</text>',
+        `with(this){return _c('text',[_v((_$s(0,'t0-0',_s(line_one_cn+' '))))])}`
+    )
+
+    assertCodegen(
+      '<text>{{" "+line_one_cn}}</text>',
+        `with(this){return _c('text',[_v((_$s(0,'t0-0',_s(" "+line_one_cn))))])}`
+    )
+
+    assertCodegen(
+      '<text>\nN: {{title}}\n′</text>',
+        `with(this){return _c('text',[_v((_$s(0,'t0-0',_s(title))))])}`
+    )
+    assertCodegen(
+      '<text>我是第一行\n我的第二行</text>',
+        `with(this){return _c('text')}`
+    )
+    assertCodegen(
+      '<text>我是第一行\n我的第二行1{{title}}</text>',
+        `with(this){return _c('text',[_v((_$s(0,'t0-0',_s(title))))])}`
+    )
+    assertCodegen(
+        `<text>我是第一行
+  我的第二行2{{title}}</text>`,
+        `with(this){return _c('text',[_v((_$s(0,'t0-0',_s(title))))])}`
+    )
+
+    assertCodegen(
+      '<view> text text </view>',
+        `with(this){return _c('view')}`
+    )
+    assertCodegen(
+      '<view>text {{text}} text</view>',
+        `with(this){return _c('view',[_v((_$s(0,'t0-0',_s(text))))])}`
+    )
+    assertCodegen(
+      '<view> text {{text}} 文本 </view>',
+        `with(this){return _c('view',[_v((_$s(0,'t0-0',_s(text))))])}`
+    )
+    assertCodegen(
+      '<view>{{text}} text  text </view>',
+        `with(this){return _c('view',[_v((_$s(0,'t0-0',_s(text))))])}`
+    )
+    assertCodegen(
+      '<view>  {{text}} text  text </view>',
+        `with(this){return _c('view',[_v((_$s(0,'t0-0',_s(text))))])}`
+    )
+    assertCodegen(
+      '<view>{{text}} text  text {{text}}</view>',
+        `with(this){return _c('view',[_v((_$s(0,'t0-0',_s(text)))+(_$s(0,'t0-1',_s(text))))])}`
+    )
+    assertCodegen(
+      '<view>  {{text}} text  text {{text}}  </view>',
+        `with(this){return _c('view',[_v((_$s(0,'t0-0',_s(text)))+(_$s(0,'t0-1',_s(text))))])}`
+    )
+  })
+  it('generate bool attr', () => {
+    assertCodegen(
+      '<video controls/>',
+      `with(this){return _c('video',{attrs:{"_i":0}})}`
+    )
+    assertCodegen(
+      '<video controls=""/>',
+      `with(this){return _c('video',{})}`
+    )
+  })
 })
 /* eslint-enable quotes */

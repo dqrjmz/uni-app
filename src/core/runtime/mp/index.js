@@ -21,11 +21,13 @@ global['__wxComponents'] = Object.create(null)
 // 全局添加配置属性
 global['__wxVueOptions'] = Object.create(null)
 
+
 export function Page (options) {
   // 解析页面的配置对像
   const pageOptions = parsePage(options)
   // 页面的mixins数组添加补丁
   pageOptions.mixins.unshift(polyfill)
+
   // 将路由属性添加到
   pageOptions.mpOptions.path = global['__wxRoute']
   global['__wxComponents'][global['__wxRoute']] = pageOptions
@@ -33,10 +35,10 @@ export function Page (options) {
 
 function initRelationsHandler (vueComponentOptions) {
   // linked 需要在当前组件 attached 之后再执行
-  if (!vueComponentOptions['onServiceAttached']) {
-    vueComponentOptions['onServiceAttached'] = []
+  if (!vueComponentOptions.onServiceAttached) {
+    vueComponentOptions.onServiceAttached = []
   }
-  vueComponentOptions['onServiceAttached'].push(function onServiceAttached () {
+  vueComponentOptions.onServiceAttached.push(function onServiceAttached () {
     handleRelations(this, 'linked')
   })
 }
@@ -54,7 +56,7 @@ export function Component (options) {
   componentOptions.mpOptions.path = global['__wxRoute']
   // 
   initRelationsHandler(componentOptions)
-  global['__wxComponents'][global['__wxRoute']] = componentOptions
+  global.__wxComponents[global.__wxRoute] = componentOptions
 }
 
 export function Behavior (options) {

@@ -8,9 +8,12 @@ const {
   getNVueMainEntry,
   nvueJsPreprocessOptions,
   nvueHtmlPreprocessOptions,
-  devtoolModuleFilenameTemplate,
   getTemplatePath
 } = require('@dcloudio/uni-cli-shared')
+
+const {
+  devtoolModuleFilenameTemplate
+} = require('../util')
 
 const WebpackAppPlusNVuePlugin = process.env.UNI_USING_V3
   ? require('../packages/webpack-app-plus-plugin')
@@ -42,23 +45,27 @@ const uniPath = process.env.UNI_USING_V8
 const uniCloudPath = require.resolve('@dcloudio/vue-cli-plugin-uni/packages/uni-cloud/dist/index.js')
 
 const provide = {
-  'uniCloud': [uniCloudPath, 'default']
+  uniCloud: [uniCloudPath, 'default']
 }
 
-if (process.env.UNI_USING_V3 || process.env.UNI_USING_NATIVE) {
+if (
+  process.env.UNI_USING_V3 ||
+  process.env.UNI_USING_NATIVE ||
+  process.env.UNI_USING_V3_NATIVE
+) {
   provide['uni.getCurrentSubNVue'] = [path.resolve(__dirname,
     '../packages/uni-app-plus-nvue/dist/get-current-sub-nvue.js'), 'default']
   provide['uni.requireNativePlugin'] = [path.resolve(__dirname,
     '../packages/uni-app-plus-nvue/dist/require-native-plugin.js'), 'default']
 }
 
-if (!process.env.UNI_USING_V3) {
+if (!process.env.UNI_USING_V3 && !process.env.UNI_USING_V3_NATIVE) {
   if (!process.env.UNI_USING_NATIVE) {
-    provide['uni'] = [path.resolve(__dirname, uniPath), 'default']
+    provide.uni = [path.resolve(__dirname, uniPath), 'default']
   }
 
   if (process.env.UNI_USING_V8) {
-    provide['plus'] = [path.resolve(__dirname, uniPath), 'weexPlus']
+    provide.plus = [path.resolve(__dirname, uniPath), 'weexPlus']
   }
 }
 
@@ -66,18 +73,18 @@ if (
   process.env.UNI_PLATFORM === 'app-plus' &&
   process.env.UNI_USING_V8
 ) {
-  provide['__f__'] = [require.resolve('@dcloudio/vue-cli-plugin-uni/lib/format-log.js'), 'default']
-  provide['crypto'] = [require.resolve('@dcloudio/vue-cli-plugin-uni/lib/crypto.js'), 'default']
+  provide.__f__ = [require.resolve('@dcloudio/vue-cli-plugin-uni/lib/format-log.js'), 'default']
+  provide.crypto = [require.resolve('@dcloudio/vue-cli-plugin-uni/lib/crypto.js'), 'default']
 }
 
 const plugins = [
   new VueLoaderPlugin(),
   new webpack.DefinePlugin({
     'process.env': {
-      'NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-      'VUE_APP_PLATFORM': JSON.stringify(process.env.UNI_PLATFORM),
-      'UNI_CLOUD_PROVIDER': process.env.UNI_CLOUD_PROVIDER,
-      'HBX_USER_TOKEN': JSON.stringify(process.env.HBX_USER_TOKEN || '')
+      NODE_ENV: JSON.stringify(process.env.NODE_ENV),
+      VUE_APP_PLATFORM: JSON.stringify(process.env.UNI_PLATFORM),
+      UNI_CLOUD_PROVIDER: process.env.UNI_CLOUD_PROVIDER,
+      HBX_USER_TOKEN: JSON.stringify(process.env.HBX_USER_TOKEN || '')
     }
   }),
   new webpack.BannerPlugin({
@@ -93,7 +100,7 @@ const plugins = [
   new WebpackAppPlusNVuePlugin()
 ]
 
-const excludeModuleReg = /node_modules(?!(\/|\\).*(weex).*)/
+// const excludeModuleReg = /node_modules(?!(\/|\\).*(weex).*)/
 
 const rules = [{
   test: path.resolve(process.env.UNI_INPUT_DIR, 'pages.json'),
@@ -115,10 +122,10 @@ const rules = [{
     }
   },
   jsPreprocessorLoader
-  ],
-  exclude (modulePath) {
-    return excludeModuleReg.test(modulePath) && modulePath.indexOf('@dcloudio') === -1
-  }
+  ]
+  // exclude (modulePath) { // nvue js均提供babel，否则还得提供transpileDependencies配置
+  //   return excludeModuleReg.test(modulePath) && modulePath.indexOf('@dcloudio') === -1
+  // }
 },
 {
   test: [/\.nvue(\?[^?]+)?$/, /\.vue(\?[^?]+)?$/],
@@ -150,7 +157,7 @@ const rules = [{
 }
 ].concat(cssLoaders)
 
-if (process.env.UNI_USING_NVUE_COMPILER) {
+if (process.env.UNI_USING_NVUE_COMPILER || process.env.UNI_USING_V3_NATIVE) {
   rules.unshift({
     resourceQuery: function (query) {
       return query.indexOf('vue&type=template') !== -1 && query.indexOf('mpType=page') !== -1
@@ -171,7 +178,7 @@ rules.unshift({
   }]
 })
 
-if (process.env.UNI_USING_NATIVE) {
+if (process.env.UNI_USING_NATIVE || process.env.UNI_USING_V3_NATIVE) {
   plugins.push(new WebpackUniMPPlugin())
   const array = [{
     from: path.resolve(process.env.UNI_INPUT_DIR, 'static'),
@@ -181,21 +188,11 @@ if (process.env.UNI_USING_NATIVE) {
     array.push({
       from: path.resolve(getTemplatePath(), 'common'),
       to: process.env.UNI_OUTPUT_DIR
-    }, {
-      from: path.resolve(
-        process.env.UNI_HBUILDERX_PLUGINS,
-        'weapp-tools/template/common'
-      ),
-      to: process.env.UNI_OUTPUT_DIR,
-      ignore: [
-        '*.js',
-        '*.json',
-        '__uniapppicker.html',
-        '__uniappview.html',
-        '__uniappmarker@3x.png',
-        '__uniappopenlocation.html',
-        '__uniapppicker.html'
-      ]
+    })
+  } else if (process.env.UNI_USING_V3_NATIVE) {
+    array.push({
+      from: path.resolve(getTemplatePath(), 'weex'),
+      to: process.env.UNI_OUTPUT_DIR
     })
   } else {
     let nativeTemplatePath = path.resolve(process.env.UNI_HBUILDERX_PLUGINS, 'weapp-tools/template/v8-native')
@@ -235,7 +232,7 @@ module.exports = function () {
       return process.UNI_NVUE_ENTRY
     },
     externals: {
-      'vue': 'Vue'
+      vue: 'Vue'
     },
     performance: {
       hints: false

@@ -13,13 +13,15 @@
 * [开放生态](ecosystem.md)
 * [从其他项目转uni-app](translate.md)
 * [混合开发](hybrid.md)
-* [uni小程序sdk](https://ask.dcloud.net.cn/docs/#https://ask.dcloud.net.cn/article/36941)
+* [uni小程序sdk](https://nativesupport.dcloud.net.cn/README)
 * [运营服务](cloud.md)
 * [案例](case.md)
 * [开源项目资源汇总](casecode.md)
 * [选型评估指南](select.md)
 * [常见问题](faq.md)
-* [更新日志](release.md)
+* 更新日志
+  * [正式版](release.md)
+  * [Alpha版](release-note-alpha.md)
 <!-- * [更新日志](//update.dcloud.net.cn/hbuilderx/changelog/2.1.1.20190716.html) -->
 <!--  <li><a id="update-hock" href="javascript:;" target="__blank">更新日志</a></li> -->
   <li class="show-sponsor-in-phone show-last"><a href="//ext.dcloud.net.cn/" target="__blank">插件市场</a></li>

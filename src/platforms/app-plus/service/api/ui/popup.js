@@ -37,7 +37,7 @@ export function showToast ({
       waiting.close()
     }
     if (~['top', 'center', 'bottom'].indexOf(position)) {
-      let richText = `<span>${title}</span>`
+      const richText = `<span>${title}</span>`
       plus.nativeUI.toast(richText, {
         verticalAlign: position,
         type: 'richtext'
@@ -135,6 +135,7 @@ export function showModal ({
   confirmText = '确定',
   confirmColor = '#3CC51F'
 } = {}, callbackId) {
+  content = content || ' '
   plus.nativeUI.confirm(content, (e) => {
     if (showCancel) {
       invoke(callbackId, {
@@ -168,7 +169,7 @@ export function showActionSheet ({
   }
 
   if (plus.os.name === 'iOS') {
-    options.cancel = '取消'
+    options.cancel = ''
   }
 
   plus.nativeUI.actionSheet(Object.assign(options, { popover }), (e) => {

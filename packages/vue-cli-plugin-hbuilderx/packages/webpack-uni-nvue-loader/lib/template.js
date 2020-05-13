@@ -48,11 +48,18 @@ module.exports = function(content) {
   }
   // 暂时实时读取配置信息,查找是否 disableScroll
   const appJson = getPagesJson()
-  if (!appJson.nvue || !appJson.nvue.pages) {
-    return content
+
+  let pageJson
+  if (appJson.nvue) { //旧版本
+    if (!appJson.nvue || !appJson.nvue.pages) {
+      return content
+    }
+    const pagePath = resourcePath + '.html'
+    pageJson = appJson.nvue.pages.find(page => page.path === pagePath)
+  } else {
+    pageJson = appJson.pages.find(page => page.path === resourcePath)
   }
-  const pagePath = resourcePath + '.html'
-  const pageJson = appJson.nvue.pages.find(page => page.path === pagePath)
+
   if (!pageJson) {
     return content
   }
@@ -68,5 +75,5 @@ module.exports = function(content) {
     return content
   }
 
-  return `<scroll-view :scroll-y="true" :enableBackToTop="true" bubble="true" style="flex-direction:column">${content}</scroll-view>`
+  return `<scroll-view :scroll-y="true" :show-scrollbar="${pageJsonStyle.scrollIndicator==='none'?'false':'true'}" :enableBackToTop="true" bubble="true" style="flex-direction:column">${content}</scroll-view>`
 }

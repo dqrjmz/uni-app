@@ -10,7 +10,7 @@
 
 |App|H5|微信小程序|支付宝小程序|百度小程序|字节跳动小程序|QQ小程序|
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-|√|√|√|√|√|x|x|
+|√|√|√|√|√|x|1.9.0+|
 
 mapContext
 
@@ -21,7 +21,7 @@ mapContext
 |方法|参数|说明|平台差异说明|最低版本|
 |:-|:-|:-|:-|:-|
 |getCenterLocation|OBJECT|获取当前地图中心的经纬度，返回的是 gcj02 坐标系，可以用于 [uni.openLocation](api/location/location?id=getlocation)|||
-|moveToLocation||将地图中心移动到当前定位点，需要配合map组件的show-location使用|||
+|moveToLocation|OBJECT|将地图中心移动到当前定位点，需要配合map组件的show-location使用|||
 |translateMarker|OBJECT|平移marker，带动画|app-nvue 2.1.5+、微信小程序带动画||
 |includePoints|OBJECT|缩放视野展示所有经纬度|app-nvue 2.1.5+||
 |getRegion|OBJECT|获取当前地图的视野范围|||
@@ -42,6 +42,19 @@ mapContext
 |success|Function|否|接口调用成功的回调函数 ，res = { longitude: "经度", latitude: "纬度"}|
 |fail|Function|否|接口调用失败的回调函数|
 |complete|Function|否|接口调用结束的回调函数（调用成功、失败都会执行）|
+
+
+**moveToLocation 的 OBJECT 参数列表**
+
+|参数			|类型			|必填	|说明																																	|
+|:-				|:-				|:-		|:-																																		|
+|longitude|Number		|否		|经度 ，App 2.6.8、H5、仅微信小程序 2.8.0+ 支持																			|
+|latitude	|Number		|否		|纬度 ，App 2.6.8、H5、仅微信小程序 2.8.0+ 支持																			|
+|success	|Function	|否		|接口调用成功的回调函数 ，res = { longitude: "经度", latitude: "纬度"}|
+|success	|Function	|否		|接口调用成功的回调函数 ，res = { longitude: "经度", latitude: "纬度"}|
+|fail			|Function	|否		|接口调用失败的回调函数																								|
+|complete	|Function	|否		|接口调用结束的回调函数（调用成功、失败都会执行）											|
+
 
 **translateMarker 的 OBJECT 参数列表**
 

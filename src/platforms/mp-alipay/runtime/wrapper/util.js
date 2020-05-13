@@ -1,7 +1,8 @@
 import {
   isFn,
   cached,
-  camelize
+  camelize,
+  hasOwn
 } from 'uni-shared'
 
 import {
@@ -58,6 +59,10 @@ export function initSpecialMethods (mpInstance) {
     specialMethods.forEach(method => {
       if (isFn(mpInstance.$vm[method])) {
         mpInstance[method] = function (event) {
+          if (hasOwn(event, 'markerId')) {
+            event.detail = typeof event.detail === 'object' ? event.detail : {}
+            event.detail.markerId = event.markerId
+          }
           // TODO normalizeEvent
           mpInstance.$vm[method](event)
         }

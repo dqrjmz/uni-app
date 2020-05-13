@@ -2,17 +2,14 @@
 const eventNames = [
   'load',
   'close',
+  'verify',
   'error'
 ]
 
 const ERROR_CODE_LIST = [-5001, -5002, -5003, -5004, -5005, -5006]
 
 class RewardedVideoAd {
-  constructor (adpid) {
-    this._options = {
-      adpid: adpid
-    }
-
+  constructor (options = {}) {
     const _callbacks = this._callbacks = {}
     eventNames.forEach(item => {
       _callbacks[item] = []
@@ -26,7 +23,7 @@ class RewardedVideoAd {
     this._adError = ''
     this._loadPromiseResolve = null
     this._loadPromiseReject = null
-    const rewardAd = this._rewardAd = plus.ad.createRewardedVideoAd(this._options)
+    const rewardAd = this._rewardAd = plus.ad.createRewardedVideoAd(options)
     rewardAd.onLoad((e) => {
       this._isLoad = true
       this._dispatchEvent('load', {})
@@ -38,6 +35,9 @@ class RewardedVideoAd {
     rewardAd.onClose((e) => {
       this._loadAd()
       this._dispatchEvent('close', { isEnded: e.isEnded })
+    })
+    rewardAd.onVerify && rewardAd.onVerify((e) => {
+      this._dispatchEvent('verify', { isValid: e.isValid })
     })
     rewardAd.onError((e) => {
       const { code, message } = e
@@ -51,6 +51,7 @@ class RewardedVideoAd {
     })
     this._loadAd()
   }
+
   load () {
     return new Promise((resolve, reject) => {
       if (this._isLoad) {
@@ -62,6 +63,7 @@ class RewardedVideoAd {
       this._loadAd()
     })
   }
+
   show () {
     return new Promise((resolve, reject) => {
       if (this._isLoad) {
@@ -72,10 +74,20 @@ class RewardedVideoAd {
       }
     })
   }
+
+  getProvider () {
+    return this._rewardAd.getProvider()
+  }
+
+  destroy () {
+    this._rewardAd.destroy()
+  }
+
   _loadAd () {
     this._isLoad = false
     this._rewardAd.load()
   }
+
   _dispatchEvent (name, data) {
     this._callbacks[name].forEach(callback => {
       if (typeof callback === 'function') {
@@ -85,8 +97,6 @@ class RewardedVideoAd {
   }
 }
 
-export function createRewardedVideoAd ({
-  adpid = ''
-} = {}) {
-  return new RewardedVideoAd(adpid)
+export function createRewardedVideoAd (options) {
+  return new RewardedVideoAd(options)
 }

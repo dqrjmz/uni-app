@@ -3,6 +3,33 @@ const path = require('path')
 const mkdirp = require('mkdirp')
 const loaderUtils = require('loader-utils')
 
+require('./error-reporting')
+
+const hasOwnProperty = Object.prototype.hasOwnProperty
+
+function hasOwn (obj, key) {
+  return hasOwnProperty.call(obj, key)
+}
+
+const defaultInputDir = 'src'
+if (process.env.UNI_INPUT_DIR && process.env.UNI_INPUT_DIR.indexOf('./') === 0) {
+  process.env.UNI_INPUT_DIR = path.resolve(process.cwd(), process.env.UNI_INPUT_DIR)
+}
+process.env.UNI_INPUT_DIR = process.env.UNI_INPUT_DIR || path.resolve(process.cwd(), defaultInputDir)
+
+// 初始化全局插件对象
+global.uniPlugin = require('@dcloudio/uni-cli-shared/lib/plugin').init()
+const manifestJsonObj = require('@dcloudio/uni-cli-shared/lib/manifest').getManifestJson()
+const platformOptions = manifestJsonObj[process.env.UNI_SUB_PLATFORM || process.env.UNI_PLATFORM] || {}
+// 插件校验环境
+global.uniPlugin.validate.forEach(validate => {
+  validate(platformOptions, manifestJsonObj)
+})
+
+process.UNI_MANIFEST = manifestJsonObj
+
+process.env.UNI_USING_V3_SCOPED = true
+
 // 配置node进程参数
 // 检测node进程参数
 
@@ -48,25 +75,20 @@ if (
   process.env.UNI_PLATFORM === 'h5' &&
   process.env.NODE_ENV === 'production'
 ) {
-  console.warn(`发布H5，需要在uniCloud后台操作，绑定安全域名，否则会因为跨域问题而无法访问。教程参考：https://uniapp.dcloud.io/uniCloud/quickstart-H5`)
+  console.warn('发布H5，需要在uniCloud后台操作，绑定安全域名，否则会因为跨域问题而无法访问。教程参考：https://uniapp.dcloud.io/uniCloud/quickstart-H5')
 }
 
 // 初始化环境变量
-const defaultInputDir = '../../../../src'
 const defaultOutputDir = '../../../../dist/' +
   (process.env.NODE_ENV === 'production' ? 'build' : 'dev') + '/' +
-  process.env.UNI_PLATFORM
+  (process.env.UNI_SUB_PLATFORM || process.env.UNI_PLATFORM)
 
-if (process.env.UNI_INPUT_DIR && process.env.UNI_INPUT_DIR.indexOf('./') === 0) {
-  process.env.UNI_INPUT_DIR = path.resolve(process.cwd(), process.env.UNI_INPUT_DIR)
-}
 if (process.env.UNI_OUTPUT_DIR && process.env.UNI_OUTPUT_DIR.indexOf('./') === 0) {
   process.env.UNI_OUTPUT_DIR = path.resolve(process.cwd(), process.env.UNI_OUTPUT_DIR)
 }
 
 process.env.UNI_PLATFORM = process.env.UNI_PLATFORM || 'h5'
 process.env.VUE_APP_PLATFORM = process.env.UNI_PLATFORM
-process.env.UNI_INPUT_DIR = process.env.UNI_INPUT_DIR || path.resolve(__dirname, defaultInputDir)
 process.env.UNI_OUTPUT_DIR = process.env.UNI_OUTPUT_DIR || path.resolve(__dirname, defaultOutputDir)
 
 if (process.env.UNI_PLATFORM === 'app-plus') {
@@ -85,9 +107,7 @@ const {
   normalizePath,
   isSupportSubPackages,
   runByHBuilderX,
-  // isInHBuilderXAlpha,
-  getPagesJson,
-  getManifestJson
+  getPagesJson
 } = require('@dcloudio/uni-cli-shared')
 
 // 获取 项目路由配置 pages.json文件配置
@@ -121,6 +141,7 @@ process.UNI_PAGES = pagesJsonObj
 // manifest.json
 process.UNI_MANIFEST = manifestJsonObj
 
+
 // 是否开启调试
 if (manifestJsonObj.debug) {
   process.env.VUE_APP_DEBUG = true
@@ -135,7 +156,8 @@ process.UNI_STAT_CONFIG = {
 // if (isInHBuilderXAlpha) {
 let usingComponentsAbsent = false
 // 平台没有配置自定义组件 false
-if (!platformOptions.hasOwnProperty('usingComponents')) {
+
+if (!hasOwn(platformOptions, 'usingComponents')) {
   usingComponentsAbsent = true
 }
 // 自动开启自定义组件模式
@@ -185,27 +207,17 @@ if (process.env.UNI_PLATFORM === 'app-plus') {
   if (platformOptions.nvueCompiler === 'weex') {
     isNVueCompiler = false
   }
-  // app 平台页面的渲染器，非原生的 编译器版本为v3
-  if (platformOptions.renderer !== 'native' && // 非 native
-    (
-      platformOptions.compilerVersion === '3' ||
-      platformOptions.compilerVersion === 3
-    )
-  ) {
-    delete process.env.UNI_USING_CACHE
+
+  delete process.env.UNI_USING_CACHE
+  if (platformOptions.renderer === 'native') {
+    process.env.UNI_USING_V3_NATIVE = true
+  } else {
     process.env.UNI_USING_V3 = true
     platformOptions.usingComponents = true
-    process.env.UNI_OUTPUT_TMP_DIR = ''
-    isNVueCompiler = true // v3 目前仅支持 uni-app 模式
   }
-  // 原生渲染器
-  if (platformOptions.renderer === 'native') {
-    // 纯原生目前不提供 cache
-    delete process.env.UNI_USING_CACHE
-    process.env.UNI_USING_NATIVE = true
-    process.env.UNI_USING_V8 = true
-    process.env.UNI_OUTPUT_TMP_DIR = ''
-  }
+  process.env.UNI_OUTPUT_TMP_DIR = ''
+  // isNVueCompiler = true // v3 目前仅支持 uni-app 模式
+
   // v3 支持指定 js 混淆（仅发行模式）
   if (
     process.env.NODE_ENV === 'production' &&
@@ -224,7 +236,7 @@ if (process.env.UNI_PLATFORM === 'app-plus') {
 } else { // 其他平台，待确认配置方案
   if (
     manifestJsonObj['app-plus'] &&
-    manifestJsonObj['app-plus']['nvueCompiler'] === 'weex'
+    manifestJsonObj['app-plus'].nvueCompiler === 'weex'
   ) {
     isNVueCompiler = false
   }
@@ -254,11 +266,11 @@ if (
     platformOptions.uniStatistics || {}
   )
 
-  if (uniStatistics.enable !== false) {
+  if (uniStatistics.enable === true) {
     process.env.UNI_USING_STAT = true
     if (!process.UNI_STAT_CONFIG.appid && process.env.NODE_ENV === 'production') {
       console.log()
-      console.warn(`当前应用未配置Appid，无法使用uni统计，详情参考：https://ask.dcloud.net.cn/article/36303`)
+      console.warn('当前应用未配置Appid，无法使用uni统计，详情参考：https://ask.dcloud.net.cn/article/36303')
       console.log()
     }
   }
@@ -280,26 +292,25 @@ if (process.env.UNI_USING_COMPONENTS) { // 是否启用分包优化
 // 自动会开启自定义组件模式（小程序
 const warningMsg =
   usingComponentsAbsent
-    ? `该应用之前可能是非自定义组件模式，目前以自定义组件模式运行。非自定义组件已于2019年11月1日起停止支持。详见：https://ask.dcloud.net.cn/article/36385`
-    : `uni-app已于2019年11月1日起停止支持非自定义组件模式 [详情](https://ask.dcloud.net.cn/article/36385)`
+    ? '该应用之前可能是非自定义组件模式，目前以自定义组件模式运行。非自定义组件已于2019年11月1日起停止支持。详见：https://ask.dcloud.net.cn/article/36385'
+    : 'uni-app已于2019年11月1日起停止支持非自定义组件模式 [详情](https://ask.dcloud.net.cn/article/36385)'
 
     // 没有使用自定义组件模式
 const needWarning = !platformOptions.usingComponents || usingComponentsAbsent
 let hasNVue = false
 // 输出编译器版本等信息
-if (process.env.UNI_USING_NATIVE) {
-  // nvue文件的当前编译模式
-  console.log('当前nvue编译模式：' + (isNVueCompiler ? 'uni-app' : 'weex') +
+if (process.env.UNI_USING_NATIVE || process.env.UNI_USING_V3_NATIVE) {
+  console.log('当前nvue编译模式' + (process.env.UNI_USING_V3_NATIVE ? '（v3）' : '') + '：' + (isNVueCompiler ? 'uni-app'
+    : 'weex') +
     ' 。编译模式差异见：https://ask.dcloud.net.cn/article/36074')
-    // 
-} else if (process.env.UNI_PLATFORM !== 'h5' && process.env.UNI_PLATFORM !== 'quickapp') {
+} else if (process.env.UNI_PLATFORM !== 'h5' && process.env.UNI_PLATFORM !== 'quickapp-native') {
   try {
     let info = ''
     if (process.env.UNI_PLATFORM === 'app-plus') {
       const pagesPkg = require('@dcloudio/webpack-uni-pages-loader/package.json')
       if (pagesPkg) {
-        const v3Tips = `（v3）详见：https://ask.dcloud.net.cn/article/36599。`
-        info = '编译器版本：' + pagesPkg['uni-app']['compilerVersion'] + (process.env.UNI_USING_V3 ? v3Tips : '')
+        const v3Tips = '（v3）详见：https://ask.dcloud.net.cn/article/36599。'
+        info = '编译器版本：' + pagesPkg['uni-app'].compilerVersion + (process.env.UNI_USING_V3 ? v3Tips : '')
       }
       if (process.env.UNI_USING_V3) {
         console.log(info)
@@ -330,11 +341,11 @@ if (process.env.UNI_USING_NATIVE) {
   } catch (e) {}
 }
 if (process.env.NODE_ENV !== 'production') { // 运行模式性能提示
-  let perfMsg = `请注意运行模式下，因日志输出、sourcemap以及未压缩源码等原因，性能和包体积，均不及发行模式。`
+  let perfMsg = '请注意运行模式下，因日志输出、sourcemap以及未压缩源码等原因，性能和包体积，均不及发行模式。'
   if (hasNVue) { // app-nvue
-    perfMsg = perfMsg + `尤其是app-nvue的sourcemap影响较大`
+    perfMsg = perfMsg + '尤其是app-nvue的sourcemap影响较大'
   } else if (process.env.UNI_PLATFORM.indexOf('mp-') === 0) { // 小程序
-    perfMsg = perfMsg + `若要正式发布，请点击发行菜单或使用cli发布命令进行发布`
+    perfMsg = perfMsg + '若要正式发布，请点击发行菜单或使用cli发布命令进行发布'
   }
   console.log(perfMsg)
 }
@@ -384,7 +395,8 @@ if (
   process.env.UNI_USING_CACHE &&
   process.env.UNI_PLATFORM !== 'h5' &&
   !process.env.UNI_USING_V3 &&
-  !process.env.UNI_USING_NATIVE
+  !process.env.UNI_USING_NATIVE &&
+  !process.env.UNI_USING_V3_NATIVE
 ) { // 使用 cache, 拷贝 cache 的 json
   const cacheJsonDir = path.resolve(
     process.env.UNI_CLI_CONTEXT,
@@ -408,7 +420,15 @@ if (process.UNI_AUTO_SCAN_COMPONENTS) {
   initAutoImportScanComponents()
 }
 
-runByHBuilderX && console.log(`正在编译中...`)
+global.uniPlugin.configureEnv.forEach(configureEnv => {
+  configureEnv()
+})
+
+if (process.env.UNI_PLATFORM.startsWith('mp-')) {
+  console.log('小程序各家浏览器内核及自定义组件实现机制存在差异，可能存在样式布局兼容问题，参考：https://uniapp.dcloud.io/matter?id=mp')
+}
+
+runByHBuilderX && console.log('正在编译中...')
 
 module.exports = {
   manifestPlatformOptions: platformOptions

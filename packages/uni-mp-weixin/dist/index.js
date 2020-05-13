@@ -235,17 +235,22 @@ const promiseInterceptor = {
   }
 };
 
+
 const SYNC_API_RE =
   /^\$|sendNativeEvent|restoreGlobal|getCurrentSubNVue|getMenuButtonBoundingClientRect|^report|interceptors|Interceptor$|getSubNVueById|requireNativePlugin|upx2px|hideKeyboard|canIUse|^create|Sync$|Manager$|base64ToArrayBuffer|arrayBufferToBase64/;
 
 const CONTEXT_API_RE = /^create|Manager$/;
 
+// Context例外情况
+const CONTEXT_API_RE_EXC = ['createBLEConnection'];
+
+// 同步例外情况
 const ASYNC_API = ['createBLEConnection'];
 
-const CALLBACK_API_RE = /^on/;
+const CALLBACK_API_RE = /^on|^off/;
 
 function isContextApi (name) {
-  return CONTEXT_API_RE.test(name)
+  return CONTEXT_API_RE.test(name) && CONTEXT_API_RE_EXC.indexOf(name) === -1
 }
 function isSyncApi (name) {
   return SYNC_API_RE.test(name) && ASYNC_API.indexOf(name) === -1
@@ -262,8 +267,6 @@ function handlePromise (promise) {
     .catch(err => [err])
 }
 
-
-// 不能promise化的api
 function shouldPromise (name) {
   if (
     isContextApi(name) ||
@@ -328,12 +331,10 @@ function upx2px (number, newDeviceWidth) {
     checkDeviceWidth();
   }
 
-  // 数据类型转换
   number = Number(number);
   if (number === 0) {
     return 0
   }
-  // 转换后的尺寸 （新设备尺寸/基础设备尺寸 === result/number (缩放比例)
   let result = (number / BASE_DEVICE_WIDTH) * (newDeviceWidth || deviceWidth);
   // 不能为负值
   if (result < 0) {
@@ -356,14 +357,12 @@ const interceptors = {
   promiseInterceptor
 };
 
-
-
 var baseApi = /*#__PURE__*/Object.freeze({
   __proto__: null,
   upx2px: upx2px,
-  interceptors: interceptors,
   addInterceptor: addInterceptor,
-  removeInterceptor: removeInterceptor
+  removeInterceptor: removeInterceptor,
+  interceptors: interceptors
 });
 
 var previewImage = {
@@ -425,6 +424,7 @@ const todos = [
 ];
 const canIUses = [];
 
+
 const CALLBACKS = ['success', 'fail', 'cancel', 'complete'];
 
 function processCallback (methodName, method, returnValue) {
@@ -439,7 +439,7 @@ function processArgs (methodName, fromArgs, argsOption = {}, returnValue = {}, k
     if (isFn(argsOption)) {
       argsOption = argsOption(fromArgs, toArgs) || {};
     }
-    for (let key in fromArgs) {
+    for (const key in fromArgs) {
       if (hasOwn(argsOption, key)) {
         let keyOption = argsOption[key];
         if (isFn(keyOption)) {
@@ -475,12 +475,9 @@ function processReturnValue (methodName, res, returnValue, keepReturnValue = fal
 }
 
 function wrapper (methodName, method) {
-  // protocols 对象是否存在实例属性 methodName
   if (hasOwn(protocols, methodName)) {
-    // 获取这个实例属性
     const protocol = protocols[methodName];
-    // 暂不支持的 api
-    if (!protocol) {
+    if (!protocol) { // 暂不支持的 api
       return function () {
         console.error(`微信小程序 暂不支持${methodName}`);
       }
@@ -491,7 +488,6 @@ function wrapper (methodName, method) {
         options = protocol(arg1);
       }
 
-      // 处理函数参数
       arg1 = processArgs(methodName, arg1, options.args, options.returnValue);
 
       const args = [arg1];
@@ -619,8 +615,6 @@ var eventApi = /*#__PURE__*/Object.freeze({
   $emit: $emit
 });
 
-
-
 var api = /*#__PURE__*/Object.freeze({
   __proto__: null
 });
@@ -666,10 +660,6 @@ Page = function (options = {}) {
   return MPPage(options)
 };
 
-Component = function (options = {}) {
-  initHook('created', options);
-  return MPComponent(options)
-};
 
 const PAGE_EVENT_HOOKS = [
   'onPullDownRefresh',
@@ -736,10 +726,10 @@ function initVueComponent (Vue, vueOptions) {
   let VueComponent;
   if (isFn(vueOptions)) {
     VueComponent = vueOptions;
-    vueOptions = VueComponent.extendOptions;
   } else {
     VueComponent = Vue.extend(vueOptions);
   }
+  vueOptions = VueComponent.options;
   return [VueComponent, vueOptions]
 }
 
@@ -808,14 +798,14 @@ function createObserver (name) {
 }
 
 function initBehaviors (vueOptions, initBehavior) {
-  const vueBehaviors = vueOptions['behaviors'];
-  const vueExtends = vueOptions['extends'];
-  const vueMixins = vueOptions['mixins'];
+  const vueBehaviors = vueOptions.behaviors;
+  const vueExtends = vueOptions.extends;
+  const vueMixins = vueOptions.mixins;
 
-  let vueProps = vueOptions['props'];
+  let vueProps = vueOptions.props;
 
   if (!vueProps) {
-    vueOptions['props'] = vueProps = [];
+    vueOptions.props = vueProps = [];
   }
 
   const behaviors = [];
@@ -827,11 +817,11 @@ function initBehaviors (vueOptions, initBehavior) {
           vueProps.push('name');
           vueProps.push('value');
         } else {
-          vueProps['name'] = {
+          vueProps.name = {
             type: String,
             default: ''
           };
-          vueProps['value'] = {
+          vueProps.value = {
             type: [String, Number, Boolean, Array, Object, Date],
             default: ''
           };
@@ -900,7 +890,7 @@ function initProperties (props, isBehavior = false, file = '') {
     Object.keys(props).forEach(key => {
       const opts = props[key];
       if (isPlainObject(opts)) { // title:{type:String,default:''}
-        let value = opts['default'];
+        let value = opts.default;
         if (isFn(value)) {
           value = value();
         }
@@ -937,6 +927,11 @@ function wrapper$1 (event) {
 
   if (!hasOwn(event, 'detail')) {
     event.detail = {};
+  }
+
+  if (hasOwn(event, 'markerId')) {
+    event.detail = typeof event.detail === 'object' ? event.detail : {};
+    event.detail.markerId = event.markerId;
   }
 
   if (isPlainObject(event.detail)) {
@@ -1091,11 +1086,11 @@ function handleEvent (event) {
   // [['tap',[['handle',[1,2,a]],['handle1',[1,2,a]]]]]
   const dataset = (event.currentTarget || event.target).dataset;
   if (!dataset) {
-    return console.warn(`事件信息不存在`)
+    return console.warn('事件信息不存在')
   }
   const eventOpts = dataset.eventOpts || dataset['event-opts']; // 支付宝 web-view 组件 dataset 非驼峰
   if (!eventOpts) {
-    return console.warn(`事件信息不存在`)
+    return console.warn('事件信息不存在')
   }
 
   // [['handle',[1,2,a]],['handle1',[1,2,a]]]
@@ -1179,14 +1174,12 @@ function parseBaseApp (vm, {
   mocks,
   initRefs
 }) {
-  // 状态容器
   if (vm.$options.store) {
     Vue.prototype.$store = vm.$options.store;
   }
 
   Vue.prototype.mpHost = "mp-weixin";
 
-  // 混合全局
   Vue.mixin({
     beforeCreate () {
       if (!this.$options.mpType) {
@@ -1223,7 +1216,6 @@ function parseBaseApp (vm, {
         }
       }
 
-      // 组件实例
       this.$vm = vm;
 
       this.$vm.$mp = {
@@ -1256,7 +1248,6 @@ function parseBaseApp (vm, {
   return appOptions
 }
 
-// 
 const mocks = ['__route__', '__wxExparserNodeId__', '__wxWebviewId__'];
 
 function findVmByVueId (vm, vuePid) {
@@ -1348,7 +1339,7 @@ function parseBaseComponent (vueComponentOptions, {
   isPage,
   initRelation
 } = {}) {
-  let [VueComponent, vueOptions] = initVueComponent(Vue, vueComponentOptions);
+  const [VueComponent, vueOptions] = initVueComponent(Vue, vueComponentOptions);
 
   const options = {
     multipleSlots: true,
@@ -1358,8 +1349,8 @@ function parseBaseComponent (vueComponentOptions, {
 
   {
     // 微信 multipleSlots 部分情况有 bug，导致内容顺序错乱 如 u-list，提供覆盖选项
-    if (vueOptions['mp-weixin'] && vueOptions['mp-weixin']['options']) {
-      Object.assign(options, vueOptions['mp-weixin']['options']);
+    if (vueOptions['mp-weixin'] && vueOptions['mp-weixin'].options) {
+      Object.assign(options, vueOptions['mp-weixin'].options);
     }
   }
 
@@ -1424,6 +1415,10 @@ function parseBaseComponent (vueComponentOptions, {
       __e: handleEvent
     }
   };
+  // externalClasses
+  if (vueOptions.externalClasses) {
+    componentOptions.externalClasses = vueOptions.externalClasses;
+  }
 
   if (Array.isArray(vueOptions.wxsCallMethods)) {
     vueOptions.wxsCallMethods.forEach(callMethod => {
@@ -1489,7 +1484,6 @@ function createComponent (vueOptions) {
   }
 }
 
-// 将todo api设置为false
 todos.forEach(todoApi => {
   protocols[todoApi] = false;
 });
@@ -1497,7 +1491,6 @@ todos.forEach(todoApi => {
 canIUses.forEach(canIUseApi => {
   const apiName = protocols[canIUseApi] && protocols[canIUseApi].name ? protocols[canIUseApi].name
     : canIUseApi;
-  // 不能使用的api就是
   if (!wx.canIUse(apiName)) {
     protocols[canIUseApi] = false;
   }
@@ -1506,9 +1499,6 @@ canIUses.forEach(canIUseApi => {
 let uni = {};
 
 if (typeof Proxy !== 'undefined' && "mp-weixin" !== 'app-plus') {
-  /**
-   * 将api代理到uni全局对象上
-   */
   uni = new Proxy({}, {
     get (target, name) {
       if (target[name]) {

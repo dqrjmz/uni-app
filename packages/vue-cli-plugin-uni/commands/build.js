@@ -23,8 +23,10 @@ module.exports = (api, options) => {
     description: 'build for production',
     usage: 'vue-cli-service uni-build [options]',
     options: {
-      '--watch': `watch for changes`,
-      '--minimize': `Tell webpack to minimize the bundle using the TerserPlugin.`
+      '--watch': 'watch for changes',
+      '--minimize': 'Tell webpack to minimize the bundle using the TerserPlugin.',
+      '--auto-host': 'specify automator host',
+      '--auto-port': 'specify automator port'
     }
   }, async (args) => {
     for (const key in defaults) {
@@ -32,6 +34,8 @@ module.exports = (api, options) => {
         args[key] = defaults[key]
       }
     }
+
+    require('./util').initAutomator(args)
 
     args.entry = args.entry || args._[0]
 
@@ -83,8 +87,8 @@ function getWebpackConfigs (api, args, options) {
   }
   options.publicPath = '/'
   const serviceWebpackConfig = getWebpackConfig(api, args, options)
-  delete pluginOptions['uni-app-plus']['service']
-  pluginOptions['uni-app-plus']['view'] = true
+  delete pluginOptions['uni-app-plus'].service
+  pluginOptions['uni-app-plus'].view = true
   options.publicPath = './'
   const viewWebpackConfig = getWebpackConfig(api, args, options)
   return [serviceWebpackConfig, viewWebpackConfig]
@@ -124,11 +128,15 @@ async function build (args, api, options) {
     await fs.emptyDir(targetDir)
   }
 
-  if (process.env.UNI_USING_NATIVE) {
+  if (process.env.UNI_USING_NATIVE || process.env.UNI_USING_V3_NATIVE) {
     webpackConfigs.length = 0
   }
 
-  if (process.env.UNI_USING_NATIVE || (process.UNI_NVUE_ENTRY && Object.keys(process.UNI_NVUE_ENTRY).length)) {
+  if (
+    process.env.UNI_USING_NATIVE ||
+    process.env.UNI_USING_V3_NATIVE ||
+    (process.UNI_NVUE_ENTRY && Object.keys(process.UNI_NVUE_ENTRY).length)
+  ) {
     webpackConfigs.push(require('@dcloudio/vue-cli-plugin-hbuilderx/build/webpack.nvue.conf.js')(process.UNI_NVUE_ENTRY))
   }
 
@@ -143,10 +151,10 @@ async function build (args, api, options) {
 
       if (stats.hasErrors()) {
         /* eslint-disable prefer-promise-reject-errors */
-        return reject(`Build failed with errors.`)
+        return reject('Build failed with errors.')
       }
 
-      if (!args.silent && process.env.UNI_PLATFORM !== 'app-plus') {
+      if (!args.silent && (process.env.UNI_PLATFORM !== 'app-plus' || process.env.UNI_AUTOMATOR_WS_ENDPOINT)) {
         const targetDirShort = path.relative(
           api.service.context,
           process.env.UNI_OUTPUT_DIR

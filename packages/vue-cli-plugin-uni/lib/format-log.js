@@ -8,6 +8,13 @@ function isDebugMode () {
   return typeof __channelId__ === 'string' && __channelId__
 }
 
+export function log (type) {
+  for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    args[_key - 1] = arguments[_key]
+  }
+  console[type].apply(console, args)
+}
+
 export default function formatLog () {
   for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
     args[_key] = arguments[_key]
@@ -15,13 +22,13 @@ export default function formatLog () {
   var type = args.shift()
   if (isDebugMode()) {
     args.push(args.pop().replace('at ', 'uni-app:///'))
-    return console[type]['apply'](console, args)
+    return console[type].apply(console, args)
   }
 
   var msgs = args.map(function (v) {
-    var type = Object.prototype.toString.call(v)
+    var type = Object.prototype.toString.call(v).toLowerCase()
 
-    if (type.toLowerCase() === '[object object]') {
+    if (type === '[object object]' || type === '[object array]') {
       try {
         v = '---BEGIN:JSON---' + JSON.stringify(v) + '---END:JSON---'
       } catch (e) {

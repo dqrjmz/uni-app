@@ -8,7 +8,7 @@
 
 开始之前，开发者需先下载安装如下工具：
 
-- HBuilderX：[官方IDE下载地址](http://www.dcloud.io/hbuilderx.html)
+- HBuilderX：[官方IDE下载地址](https://www.dcloud.io/hbuilderx.html)
 
 HBuilderX是通用的前端开发工具，但为`uni-app`做了特别强化。
 
@@ -24,10 +24,12 @@ HBuilderX是通用的前端开发工具，但为`uni-app`做了特别强化。
   <img src="//img-cdn-qiniu.dcloud.net.cn/uniapp/doc/create1.png"/>
 </div>
 
-选择uni-app，输入工程名，如：hello-uniapp，点击创建，即可成功创建 uni-app。点击模板里的 Hello uni-app 即可体验官方示例。
+选择`uni-app`类型，输入工程名，选择模板，点击创建，即可成功创建。
+
+uni-app自带的模板有 Hello uni-app ，是官方的组件和API示例。还有一个重要模板是 uni ui项目模板，日常开发推荐使用该模板，已内置大量常用组件。
 
 <div align=center>
-  <img src="//img-cdn-qiniu.dcloud.net.cn/uniapp/doc/create2.png"/>
+  <img src="//img.cdn.aliyun.dcloud.net.cn/uni-app/doc/create.png"/>
 </div>
 
 ### 运行uni-app
@@ -75,7 +77,9 @@ HBuilderX是通用的前端开发工具，但为`uni-app`做了特别强化。
     <div align=center>
     	<img src="https://img-cdn-qiniu.dcloud.net.cn/uniapp/doc/uni20190222-4.png"/>
     </div>
-    
+
+7. 在QQ小程序开发工具里运行：内容同上，不再重复。
+
 **Tips**
 
 * 如果是第一次使用，需要配置开发工具的相关路径。点击工具栏的运行 -> 运行到小程序模拟器 -> 运行设置，配置相应小程序开发者工具的路径。
@@ -85,7 +89,7 @@ HBuilderX是通用的前端开发工具，但为`uni-app`做了特别强化。
 运行的快捷键是`Ctrl+r`。
 HBuilderX 还提供了快捷运行菜单，可以按数字快速选择要运行的设备：
 <div align=center>
-	<img src="https://img-cdn-qiniu.dcloud.net.cn/uniapp/doc/uni20190222-5.png"/>
+	<img src="//img.cdn.aliyun.dcloud.net.cn/uni-app/doc/runtool.png"/>
 </div>
 
 如需调试，可参考：[uni-app调试](/snippet?id=使用-chrome-调试)
@@ -106,7 +110,7 @@ HBuilderX 还提供了快捷运行菜单，可以按数字快速选择要运行�
 
 #### 打包为原生App（离线）
 
-``uni-app`` 支持离线打包，在 HBuilderX 生成离线打包资源，然后参考 [离线打包](http://ask.dcloud.net.cn/docs/#//ask.dcloud.net.cn/article/104)（或参考其他用户写的 [离线打包日记](https://ask.dcloud.net.cn/article/35302)），即可进行离线打包。
+``uni-app`` 支持离线打包，在 HBuilderX 发行菜单里生成离线打包资源，然后参考离线打包文档操作，可以从HBuilderX的发行菜单里找到文档链接，也可以直接访问：[https://nativesupport.dcloud.net.cn/AppDocs/README](https://nativesupport.dcloud.net.cn/AppDocs/README)。
 
 在HBuilderX工具栏，点击发行，选择本地打包，如下图，点击即可生成离线打包资源。
 
@@ -166,7 +170,7 @@ HBuilderX 还提供了快捷运行菜单，可以按数字快速选择要运行�
 </div>
 3. 在字节跳动小程序开发者工具中，导入生成的字节跳动小程序项目，测试项目代码运行正常后，点击“上传”按钮上传代码，在 [字节跳动小程序后台](https://developer.toutiao.com/app/applist)，选择刚提交的版本点击提交审核，详见：[字节跳动小程序文档](https://developer.toutiao.com/dev/cn/mini-app/introduction/plug-in/verification)。
 
-*发布为QQ小程序：*
+**发布为QQ小程序：**
 内容同上，不再重复。
 
 发布的快捷键是`Ctrl+u`。同样可拉下快速发布菜单并按数字键选择。
@@ -209,7 +213,7 @@ vue create -p dcloudio/uni-preset-vue#alpha my-alpha-project
 
 更多支持的下载方式，请参考这个插件的说明：[download-git-repo](https://github.com/flipxfx/download-git-repo)
 
-### 运行并发布uni-app
+### 运行、发布uni-app
 
 ```
 npm run dev:%PLATFORM%
@@ -220,17 +224,26 @@ npm run build:%PLATFORM%
 
 |值|平台|
 |---|---|
+|app-plus|app平台生成打包资源（仅支持npm run build:app-plus，也就是App平台运行调试不支持cli方式，需在HBuilderX中运行调试）|
 |h5|H5|
 |mp-alipay|支付宝小程序|
 |mp-baidu|百度小程序|
 |mp-weixin|微信小程序|
 |mp-toutiao|字节跳动小程序|
 |mp-qq|qq 小程序|
+|quickapp-webview|快应用|
 
 可以自定义更多条件编译平台，比如钉钉小程序，参考[package.json文档](https://uniapp.dcloud.io/collocation/package)。
 
+### 运行并发布快应用@quickapp
+快应用有两种开发方式，uni-app均支持：
+- 类小程序webview渲染方式：[https://ask.dcloud.net.cn/article/37182](https://ask.dcloud.net.cn/article/37182)
+- 原生渲染方式：[https://ask.dcloud.net.cn/article/37145](https://ask.dcloud.net.cn/article/37145)
+
+
 **其他：**
 
+* 目前使用`npm run build:app-plus`会在`/dist/build/app-plus`下生成app打包资源。如需制作wgt包，请以该项目的`appid`（参见`manifest.json`文件中的`appid`）命名新建文件夹，将`app-plus`中的文件复制到文件夹中，然后压缩成zip，再修改后缀为`wgt`。
 * dev 模式编译出的各平台代码存放于根目录下的 ``/dist/dev/``目录，打开各平台开发工具选择对应平台目录即可进行预览（h5 平台不会在此目录，存在于缓存中）；
 * build 模式编译出的各平台代码存放于根目录下的 ``/dist/build/`` 目录，发布时选择此目录进行发布；
 * dev 和 build 模式的区别：

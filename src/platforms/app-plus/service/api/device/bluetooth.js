@@ -1,8 +1,6 @@
 import {
   invoke,
-  publish,
-  arrayBufferToBase64,
-  base64ToArrayBuffer
+  publish
 } from '../../bridge'
 
 /**
@@ -53,20 +51,9 @@ function bluetoothOn (method, beforeSuccess) {
   return true
 }
 
-function checkDevices (data) {
-  data.devices = data.devices.map(device => {
-    var advertisData = device.advertisData
-    if (advertisData && typeof advertisData !== 'string') {
-      device.advertisData = arrayBufferToBase64(advertisData)
-    }
-    return device
-  })
-}
-
 var onBluetoothAdapterStateChange
 var onBluetoothDeviceFound
 var onBLEConnectionStateChange
-var onBLEConnectionStateChanged
 var onBLECharacteristicValueChange
 
 export function openBluetoothAdapter (data, callbackId) {
@@ -83,7 +70,7 @@ export function getBluetoothAdapterState (data, callbackId) {
 }
 
 export function startBluetoothDevicesDiscovery (data, callbackId) {
-  onBluetoothDeviceFound = onBluetoothDeviceFound || bluetoothOn('onBluetoothDeviceFound', checkDevices)
+  onBluetoothDeviceFound = onBluetoothDeviceFound || bluetoothOn('onBluetoothDeviceFound')
   bluetoothExec('startBluetoothDevicesDiscovery', callbackId, data)
 }
 
@@ -92,7 +79,7 @@ export function stopBluetoothDevicesDiscovery (data, callbackId) {
 }
 
 export function getBluetoothDevices (data, callbackId) {
-  bluetoothExec('getBluetoothDevices', callbackId, {}, checkDevices)
+  bluetoothExec('getBluetoothDevices', callbackId, {})
 }
 
 export function getConnectedBluetoothDevices (data, callbackId) {
@@ -101,7 +88,6 @@ export function getConnectedBluetoothDevices (data, callbackId) {
 
 export function createBLEConnection (data, callbackId) {
   onBLEConnectionStateChange = onBLEConnectionStateChange || bluetoothOn('onBLEConnectionStateChange')
-  onBLEConnectionStateChanged = onBLEConnectionStateChanged || bluetoothOn('onBLEConnectionStateChanged')
   bluetoothExec('createBLEConnection', callbackId, data)
 }
 
@@ -118,18 +104,12 @@ export function getBLEDeviceCharacteristics (data, callbackId) {
 }
 
 export function notifyBLECharacteristicValueChange (data, callbackId) {
-  onBLECharacteristicValueChange = onBLECharacteristicValueChange || bluetoothOn('onBLECharacteristicValueChange',
-    data => {
-      data.value = arrayBufferToBase64(data.value)
-    })
+  onBLECharacteristicValueChange = onBLECharacteristicValueChange || bluetoothOn('onBLECharacteristicValueChange')
   bluetoothExec('notifyBLECharacteristicValueChange', callbackId, data)
 }
 
 export function notifyBLECharacteristicValueChanged (data, callbackId) {
-  onBLECharacteristicValueChange = onBLECharacteristicValueChange || bluetoothOn('onBLECharacteristicValueChange',
-    data => {
-      data.value = arrayBufferToBase64(data.value)
-    })
+  onBLECharacteristicValueChange = onBLECharacteristicValueChange || bluetoothOn('onBLECharacteristicValueChange')
   bluetoothExec('notifyBLECharacteristicValueChanged', callbackId, data)
 }
 
@@ -139,8 +119,5 @@ export function readBLECharacteristicValue (data, callbackId) {
 }
 
 export function writeBLECharacteristicValue (data, callbackId) {
-  if (typeof data.value === 'string') {
-    data.value = base64ToArrayBuffer(data.value)
-  }
   bluetoothExec('writeBLECharacteristicValue', callbackId, data)
 }

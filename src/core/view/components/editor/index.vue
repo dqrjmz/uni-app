@@ -2,7 +2,8 @@
   <uni-editor
     :id="id"
     class="ql-container"
-    v-on="$listeners" />
+    v-on="$listeners"
+  />
 </template>
 
 <script>
@@ -101,34 +102,36 @@ export default {
       if (this.quillReady) {
         switch (type) {
           case 'format':
-            let { name = '', value = false } = options
-            range = quill.getSelection(true)
-            let format = quill.getFormat(range)[name] || false
-            if (['bold', 'italic', 'underline', 'strike', 'ins'].includes(name)) {
-              value = !format
-            } else if (name === 'direction') {
-              value = value === 'rtl' && format ? false : value
-              const align = quill.getFormat(range).align
-              if (value === 'rtl' && !align) {
-                quill.format('align', 'right', Quill.sources.USER)
-              } else if (!value && align === 'right') {
-                quill.format('align', false, Quill.sources.USER)
+            {
+              let { name = '', value = false } = options
+              range = quill.getSelection(true)
+              let format = quill.getFormat(range)[name] || false
+              if (['bold', 'italic', 'underline', 'strike', 'ins'].includes(name)) {
+                value = !format
+              } else if (name === 'direction') {
+                value = value === 'rtl' && format ? false : value
+                const align = quill.getFormat(range).align
+                if (value === 'rtl' && !align) {
+                  quill.format('align', 'right', Quill.sources.USER)
+                } else if (!value && align === 'right') {
+                  quill.format('align', false, Quill.sources.USER)
+                }
+              } else if (name === 'indent') {
+                const rtl = quill.getFormat(range).direction === 'rtl'
+                value = value === '+1'
+                if (rtl) {
+                  value = !value
+                }
+                value = value ? '+1' : '-1'
+              } else {
+                if (name === 'list') {
+                  value = value === 'check' ? 'unchecked' : value
+                  format = format === 'checked' ? 'unchecked' : format
+                }
+                value = ((format && format !== (value || false)) || (!format && value)) ? value : !format
               }
-            } else if (name === 'indent') {
-              const rtl = quill.getFormat(range).direction === 'rtl'
-              value = value === '+1'
-              if (rtl) {
-                value = !value
-              }
-              value = value ? '+1' : '-1'
-            } else {
-              if (name === 'list') {
-                value = value === 'check' ? 'unchecked' : value
-                format = format === 'checked' ? 'unchecked' : format
-              }
-              value = ((format && format !== (value || false)) || (!format && value)) ? value : !format
+              quill.format(name, value, Quill.sources.USER)
             }
-            quill.format(name, value, Quill.sources.USER)
             break
           case 'insertDivider':
             range = quill.getSelection(true)
@@ -137,27 +140,39 @@ export default {
             quill.setSelection(range.index + 2, Quill.sources.SILENT)
             break
           case 'insertImage':
-            range = quill.getSelection(true)
-            const { src = '', alt = '', data = {} } = options
-            quill.insertEmbed(range.index, 'image', this.$getRealPath(src), Quill.sources.USER)
-            quill.formatText(range.index, 1, 'alt', alt)
-            quill.formatText(range.index, 1, 'data-custom', Object.keys(data).map(key => `${key}=${data[key]}`).join('&'))
-            quill.setSelection(range.index + 1, Quill.sources.SILENT)
+            {
+              range = quill.getSelection(true)
+              const { src = '', alt = '', width = '', height = '', extClass = '', data = {} } = options
+              const path = this.$getRealPath(src)
+              quill.insertEmbed(range.index, 'image', path, Quill.sources.USER)
+              const local = /^(file|blob):/.test(path) ? path : false
+              quill.formatText(range.index, 1, 'data-local', local)
+              quill.formatText(range.index, 1, 'alt', alt)
+              quill.formatText(range.index, 1, 'width', width)
+              quill.formatText(range.index, 1, 'height', height)
+              quill.formatText(range.index, 1, 'class', extClass)
+              quill.formatText(range.index, 1, 'data-custom', Object.keys(data).map(key => `${key}=${data[key]}`).join('&'))
+              quill.setSelection(range.index + 1, Quill.sources.SILENT)
+            }
             break
           case 'insertText':
-            range = quill.getSelection(true)
-            const { text = '' } = options
-            quill.insertText(range.index, text, Quill.sources.USER)
-            quill.setSelection(range.index + text.length, 0, Quill.sources.SILENT)
+            {
+              range = quill.getSelection(true)
+              const { text = '' } = options
+              quill.insertText(range.index, text, Quill.sources.USER)
+              quill.setSelection(range.index + text.length, 0, Quill.sources.SILENT)
+            }
             break
           case 'setContents':
-            const { delta, html } = options
-            if (typeof delta === 'object') {
-              quill.setContents(delta, Quill.sources.SILENT)
-            } else if (typeof html === 'string') {
-              quill.setContents(this.html2delta(html), Quill.sources.SILENT)
-            } else {
-              errMsg = 'contents is missing'
+            {
+              const { delta, html } = options
+              if (typeof delta === 'object') {
+                quill.setContents(delta, Quill.sources.SILENT)
+              } else if (typeof html === 'string') {
+                quill.setContents(this.html2delta(html), Quill.sources.SILENT)
+              } else {
+                errMsg = 'contents is missing'
+              }
             }
             break
           case 'getContents':
@@ -167,16 +182,18 @@ export default {
             quill.setContents([])
             break
           case 'removeFormat':
-            range = quill.getSelection(true)
-            var parchment = Quill.import('parchment')
-            if (range.length) {
-              quill.removeFormat(range, Quill.sources.USER)
-            } else {
-              Object.keys(quill.getFormat(range)).forEach(key => {
-                if (parchment.query(key, parchment.Scope.INLINE)) {
-                  quill.format(key, false)
-                }
-              })
+            {
+              range = quill.getSelection(true)
+              const parchment = Quill.import('parchment')
+              if (range.length) {
+                quill.removeFormat(range, Quill.sources.USER)
+              } else {
+                Object.keys(quill.getFormat(range)).forEach(key => {
+                  if (parchment.query(key, parchment.Scope.INLINE)) {
+                    quill.format(key, false)
+                  }
+                })
+              }
             }
             break
           case 'undo':
@@ -188,6 +205,7 @@ export default {
           default:
             break
         }
+        this.updateStatus(range)
       } else {
         errMsg = 'not ready'
       }
@@ -207,7 +225,7 @@ export default {
         }
         return
       }
-      let script = document.createElement('script')
+      const script = document.createElement('script')
       script.src = window.plus ? './__uniappquill.js' : 'https://unpkg.com/quill@1.3.7/dist/quill.min.js'
       document.body.appendChild(script)
       script.onload = callback
@@ -219,7 +237,7 @@ export default {
         }
         return
       }
-      let script = document.createElement('script')
+      const script = document.createElement('script')
       script.src = window.plus ? './__uniappquillimageresize.js' : 'https://unpkg.com/quill-image-resize-mp@3.0.1/image-resize.min.js'
       document.body.appendChild(script)
       script.onload = callback
@@ -231,7 +249,7 @@ export default {
         toolbar: false,
         readOnly: this.readOnly,
         placeholder: this.placeholder,
-        modules: { }
+        modules: {}
       }
       if (imageResizeModules.length) {
         Quill.register('modules/ImageResize', window.ImageResize.default)
@@ -241,14 +259,23 @@ export default {
       }
       const quill = this.quill = new Quill(this.$el, options)
       const $el = quill.root
-      const events = ['focus', 'blur']
+      const events = ['focus', 'blur', 'input']
       events.forEach(name => {
         $el.addEventListener(name, ($event) => {
-          this.$trigger(name, $event, this.getContents())
+          if (name === 'input') {
+            $event.stopPropagation()
+          } else {
+            this.$trigger(name, $event, this.getContents())
+          }
         })
       })
       quill.on(Quill.events.TEXT_CHANGE, () => {
         this.$trigger('input', {}, this.getContents())
+      })
+      quill.on(Quill.events.SELECTION_CHANGE, this.updateStatus.bind(this))
+      quill.on(Quill.events.SCROLL_OPTIMIZE, () => {
+        const range = quill.selection.getRange()[0]
+        this.updateStatus(range)
       })
       quill.clipboard.addMatcher(Node.ELEMENT_NODE, (node, delta) => {
         if (this.skipMatcher) {
@@ -274,7 +301,7 @@ export default {
       }
     },
     html2delta (html) {
-      const tags = ['span', 'strong', 'b', 'ins', 'em', 'i', 'u', 'a', 'del', 's', 'sub', 'sup', 'img', 'div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'ol', 'ul', 'li']
+      const tags = ['span', 'strong', 'b', 'ins', 'em', 'i', 'u', 'a', 'del', 's', 'sub', 'sup', 'img', 'div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'ol', 'ul', 'li', 'br']
       let content = ''
       let disable
       HTMLParser(html, {
@@ -303,6 +330,14 @@ export default {
       const delta = this.quill.clipboard.convert(content)
       this.skipMatcher = false
       return delta
+    },
+    updateStatus (range) {
+      const status = range ? this.quill.getFormat(range) : {}
+      const keys = Object.keys(status)
+      if (keys.length !== Object.keys(this.__status || {}).length || keys.find(key => status[key] !== this.__status[key])) {
+        this.__status = status
+        this.$trigger('statuschange', {}, status)
+      }
     }
   }
 }

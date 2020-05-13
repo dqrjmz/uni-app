@@ -47,12 +47,13 @@ class Page {
   constructor (webview) {
     this.webview = webview
   }
+
   sendMessage (data) {
-    const message = {
+    const message = JSON.parse(JSON.stringify(({
       __message: {
         data
       }
-    }
+    })))
     const id = this.webview.id
     if (BroadcastChannel_) {
       const channel = new BroadcastChannel_(id)
@@ -61,6 +62,7 @@ class Page {
       plus_.webview.postMessageToUniNView(message, id)
     }
   }
+
   close () {
     this.webview.close()
   }

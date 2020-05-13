@@ -83,7 +83,7 @@ function beforeEach (to, from, next, routes) {
   const toId = to.params.__id__
   // 下一个页面元数据
   const toName = to.meta.name + '-' + toId
-  if (toId === fromId) { // 相同页面阻止
+  if (toId === fromId && to.type !== 'reLaunch') { // 相同页面阻止
     // 处理外部修改 history 导致卡在当前页面的问题
     if (to.fullPath !== from.fullPath) {
       removeKeepAliveInclude.call(this, toName)
@@ -110,12 +110,13 @@ function beforeEach (to, from, next, routes) {
             to.meta.isQuit = true
             to.meta.isEntry = !!from.meta.isEntry
           }
-          if (from.meta.isTabBar) { // 如果是 tabBar，需要更新系统组件 tabBar 内的 list 数据
-            to.meta.isTabBar = true
-            to.meta.tabBarIndex = from.meta.tabBarIndex
-            const appVm = getApp().$children[0]
-            appVm.$set(appVm.tabBar.list[to.meta.tabBarIndex], 'pagePath', to.meta.pagePath)
-          }
+          // 小程序没有这个逻辑，当时为何加了保留并更新 tabBar 的逻辑？
+          // if (from.meta.isTabBar) { // 如果是 tabBar，需要更新系统组件 tabBar 内的 list 数据
+          //   to.meta.isTabBar = true
+          //   to.meta.tabBarIndex = from.meta.tabBarIndex
+          //   const appVm = getApp().$children[0]
+          //   appVm.$set(appVm.tabBar.list[to.meta.tabBarIndex], 'pagePath', to.meta.pagePath)
+          // }
         }
 
         break
@@ -208,18 +209,7 @@ function afterEach (to, from) {
       // 延迟执行 onShow，防止与 UniServiceJSBridge.emit('onHidePopup') 冲突。
       setTimeout(function () {
         if (__PLATFORM__ === 'h5') {
-          const navigationBar = toVm.$parent.$parent.navigationBar
-          if (typeof qh !== 'undefined') {
-            qh.setNavigationBarTitle({
-              title: document.title
-            })
-            qh.setNavigationBarColor({
-              backgroundColor: navigationBar.backgroundColor
-            })
-            qh.setNavigationBarTextStyle({
-              textStyle: navigationBar.textColor === '#000' ? 'black' : 'white'
-            })
-          }
+          UniServiceJSBridge.emit('onNavigationBarChange', toVm.$parent.$parent.navigationBar)
         }
         callPageHook(toVm, 'onShow')
       }, 0)

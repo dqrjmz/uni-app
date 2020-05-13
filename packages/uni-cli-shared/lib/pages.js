@@ -131,14 +131,7 @@ function isValidPage (page, root = '') {
         if (subNVuePath) {
           subNVuePath = subNVue.path.split('?')[0]
           const subNVuePagePath = removeExt(path.join(root, subNVuePath))
-
-          // if (process.env.UNI_USING_NVUE_COMPILER) {
           process.UNI_NVUE_ENTRY[subNVuePagePath] = getNVueMainJsPath(subNVuePagePath)
-          // } else {
-          //   process.UNI_NVUE_ENTRY[subNVuePagePath] = path.resolve(process.env.UNI_INPUT_DIR,
-          //     subNVuePagePath +
-          //                   '.nvue') + '?entry'
-          // }
         }
       })
     }
@@ -152,7 +145,7 @@ function isValidPage (page, root = '') {
 
     process.UNI_NVUE_ENTRY[pagePath] = getNVueMainJsPath(pagePath)
 
-    if (process.env.UNI_USING_V3) { // 不移除
+    if (process.env.UNI_USING_V3 || process.env.UNI_USING_V3_NATIVE) { // 不移除
       page.nvue = true
       return true
     } else {
@@ -216,7 +209,7 @@ function parseEntry (pagesJson) {
 
   process.UNI_NVUE_ENTRY = {}
 
-  if (process.env.UNI_USING_NATIVE) {
+  if (process.env.UNI_USING_NATIVE || process.env.UNI_USING_V3_NATIVE) {
     process.UNI_NVUE_ENTRY['app-config'] = path.resolve(process.env.UNI_INPUT_DIR, 'pages.json')
     process.UNI_NVUE_ENTRY['app-service'] = path.resolve(process.env.UNI_INPUT_DIR, getMainEntry())
   }
@@ -368,10 +361,10 @@ function initAutoImportScanComponents () {
 
   const components = getAutoComponentsByDir(componentsPath)
 
-  if (process.env.UNI_PLATFORM === 'quickapp') {
+  if (process.env.UNI_PLATFORM === 'quickapp-native') {
     if (!uniQuickAppAutoImportScanComponents) {
       uniQuickAppAutoImportScanComponents = getAutoComponentsByDir(
-        path.resolve(require.resolve('@dcloudio/uni-quickapp'), '../../components'),
+        path.resolve(require.resolve('@dcloudio/uni-quickapp-native'), '../../components'),
         true
       )
     }

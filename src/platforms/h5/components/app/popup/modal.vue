@@ -2,27 +2,40 @@
   <transition name="uni-fade">
     <uni-modal
       v-show="visible"
-      @touchmove.prevent>
-      <div class="uni-mask"/>
+      @touchmove.prevent
+    >
+      <div class="uni-mask" />
       <div class="uni-modal">
         <div
           v-if="title"
-          class="uni-modal__hd">
-          <strong class="uni-modal__title">{{ title }}</strong>
+          class="uni-modal__hd"
+        >
+          <strong
+            class="uni-modal__title"
+            v-text="title"
+          />
         </div>
         <div
           class="uni-modal__bd"
-          @touchmove.stop>{{ content }}</div>
+          @touchmove.stop
+          v-text="content"
+        />
         <div class="uni-modal__ft">
           <div
             v-if="showCancel"
             :style="{color:cancelColor}"
             class="uni-modal__btn uni-modal__btn_default"
-            @click="_close('cancel')">{{ cancelText }}</div>
+            @click="_close('cancel')"
+          >
+            {{ cancelText }}
+          </div>
           <div
             :style="{color:confirmColor}"
             class="uni-modal__btn uni-modal__btn_primary"
-            @click="_close('confirm')">{{ confirmText }}</div>
+            @click="_close('confirm')"
+          >
+            {{ confirmText }}
+          </div>
         </div>
       </div>
     </uni-modal>

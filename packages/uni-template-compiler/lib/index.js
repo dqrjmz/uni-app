@@ -10,7 +10,6 @@ const {
   ssrCompileToFunctions
 } = require('@dcloudio/vue-cli-plugin-uni/packages/vue-template-compiler')
 
-const platforms = require('./platforms')
 const traverseScript = require('./script/traverse')
 const generateScript = require('./script/generate')
 const traverseTemplate = require('./template/traverse')
@@ -45,11 +44,12 @@ module.exports = {
     ) {
       (options.modules || (options.modules = [])).push(autoComponentsModule)
     }
-
-    // 非h5平台，transformAssetUrls
-    if (process.env.UNI_PLATFORM !== 'h5') {
-      (options.modules || (options.modules = [])).push(require('./asset-url'))
+    if (!options.modules) {
+      options.modules = []
     }
+    // transformAssetUrls
+    options.modules.push(require('./asset-url'))
+    options.modules.push(require('./bool-attr'))
 
     options.isUnaryTag = isUnaryTag
     // 将 autoComponents 挂在 isUnaryTag 上边
@@ -57,7 +57,7 @@ module.exports = {
 
     options.preserveWhitespace = false
     if (options.service) {
-      (options.modules || (options.modules = [])).push(require('./app/service'))
+      options.modules.push(require('./app/service'))
       options.optimize = false // 启用 staticRenderFns
       // domProps => attrs
       options.mustUseProp = () => false
@@ -71,7 +71,7 @@ module.exports = {
         throw e
       }
     } else if (options.view) {
-      (options.modules || (options.modules = [])).push(require('./app/view'))
+      options.modules.push(require('./app/view'))
       options.optimize = false // 暂不启用 staticRenderFns
       options.isUnaryTag = isUnaryTag
       options.isReservedTag = (tagName) => false // 均为组件
@@ -81,16 +81,16 @@ module.exports = {
         console.error(source)
         throw e
       }
-    } else if (options.quickapp) {
+    } else if (options['quickapp-native']) {
       // 后续改版，应统一由具体包实现
-      (options.modules || (options.modules = [])).push(require('@dcloudio/uni-quickapp/lib/compiler-module'))
+      options.modules.push(require('@dcloudio/uni-quickapp-native/lib/compiler-module'))
     }
 
-    if (!options.mp) { // h5,quickapp
+    if (!options.mp) { // h5,quickapp-native
       return compileTemplate(source, options, compile)
     }
 
-    (options.modules || (options.modules = [])).push(compilerModule)
+    options.modules.push(compilerModule)
 
     if (options.mp.platform === 'mp-alipay') {
       options.modules.push(compilerAlipayModule)
@@ -102,7 +102,7 @@ module.exports = {
       optimize: false
     }), compile)
 
-    options.mp.platform = platforms[options.mp.platform]
+    options.mp.platform = require('./mp')(options.mp.platform)
 
     options.mp.scopeId = options.scopeId
 

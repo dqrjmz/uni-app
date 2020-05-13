@@ -22,7 +22,8 @@ import {
   getPageRoute,
   getRoute,
   getPageTypes,
-  calibration
+  calibration,
+  isReportData
 } from './parameter';
 
 import {
@@ -83,6 +84,10 @@ class Util {
       sh: resultOptions.screenHeight
     }
 
+  }
+
+  getIsReportData() {
+    return isReportData()
   }
 
   _applicationShow() {
@@ -374,34 +379,38 @@ class Util {
     this._sendRequest(optionsData)
   }
   _sendRequest(optionsData) {
-    uni.request({
-      url: STAT_URL,
-      method: 'POST',
-      // header: {
-      //   'content-type': 'application/json' // 默认值
-      // },
-      data: optionsData,
-      success: () => {
-        // if (process.env.NODE_ENV === 'development') {
-        //   console.log('stat request success');
-        // }
-      },
-      fail: (e) => {
-        if (++this._retry < 3) {
-          setTimeout(() => {
-            this._sendRequest(optionsData);
-          }, 1000);
+    this.getIsReportData().then(() => {
+      uni.request({
+        url: STAT_URL,
+        method: 'POST',
+        // header: {
+        //   'content-type': 'application/json' // 默认值
+        // },
+        data: optionsData,
+        success: () => {
+          // if (process.env.NODE_ENV === 'development') {
+          //   console.log('stat request success');
+          // }
+        },
+        fail: (e) => {
+          if (++this._retry < 3) {
+            setTimeout(() => {
+              this._sendRequest(optionsData);
+            }, 1000);
+          }
         }
-      }
-    });
+      });
+    })
   }
   /**
    * h5 请求
    */
   imageRequest(data) {
-    let image = new Image();
-    let options = getSgin(GetEncodeURIComponentOptions(data)).options;
-    image.src = STAT_H5_URL + '?' + options
+    this.getIsReportData().then(() => {
+      let image = new Image();
+      let options = getSgin(GetEncodeURIComponentOptions(data)).options;
+      image.src = STAT_H5_URL + '?' + options
+    })
   }
 
   sendEvent(key, value) {

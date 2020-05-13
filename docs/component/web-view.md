@@ -1,6 +1,6 @@
 #### web-view
 
-`web-view` 是一个 web 浏览器组件，可以用来承载网页的容器，会自动铺满整个页面（nvue 使用需要手动指的宽高）。
+`web-view` 是一个 web 浏览器组件，可以用来承载网页的容器，会自动铺满整个页面（nvue 使用需要手动指定宽高）。
 
 > 各小程序平台，web-view 加载的 url 需要在后台配置域名白名单，包括内部再次 iframe 内嵌的其他 url 。
 
@@ -11,13 +11,14 @@
 |src|String|webview 指向网页的链接|&nbsp;|
 |webview-styles|Object|webview 的样式|App|
 |@message|EventHandler|网页向应用 `postMessage` 时，会在特定时机（后退、组件销毁、分享）触发并收到消息。|H5 暂不支持|
+|@onPostMessage|EventHandler|网页向应用实时 `postMessage`|App-nvue|
 
 **src**
 
 |来源|App|H5|微信小程序|支付宝小程序|百度小程序|字节跳动小程序|QQ小程序|
 |:-|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 |网络|√|√|√|√|√|√|√|
-|本地|√|暂不支持|x|x|x|x|x|
+|本地|√|√|x|x|x|x|x|
 
 **webview-styles**
 
@@ -62,7 +63,7 @@
 - 小程序端 web-view 组件一定有原生导航栏，下面一定是全屏的 web-view 组件，navigationStyle: custom 对 web-view 组件无效。
 - App 端使用 `自定义组件模式` 时，uni.web-view.js 的最低版为 [uni.webview.1.5.2.js](https://js.cdn.aliyun.dcloud.net.cn/dev/uni-app/uni.webview.1.5.2.js)
 - App 平台同时支持网络网页和本地网页，但本地网页及相关资源（js、css等文件）必须放在 `uni-app 项目根目录->hybrid->html` 文件夹下，如下为一个加载本地网页的`uni-app`项目文件目录示例：
-- nvue `web-view` 必须指定样式宽高, @message 暂时写成 @onPostMessage，示例: <web-view @message="onmessage" @onPostMessage="onmessage"></web-view>
+- nvue `web-view` 必须指定样式宽高
 - V3 编译模式，网页向应用 `postMessage` 为实时消息
 
 <pre v-pre="" data-lang="">
@@ -193,7 +194,7 @@ var wv;//计划创建的webview
 export default {
 	onReady() {
 		// #ifdef APP-PLUS
-		var currentWebview = this.$mp.page.$getAppWebview() //获取当前页面的webview对象
+		var currentWebview = this.$scope.$getAppWebview() //此对象相当于html5plus里的plus.webview.currentWebview()。在uni-app里vue页面直接使用plus.webview.currentWebview()无效，非v3编译模式使用this.$mp.page.$getAppWebview()
 		setTimeout(function() {
 			wv = currentWebview.children()[0]
 			wv.setStyle({top:150,height:300})
@@ -221,7 +222,7 @@ export default {
 			top:uni.getSystemInfoSync().statusBarHeight+44 //放置在titleNView下方。如果还想在webview上方加个地址栏的什么的，可以继续降低TOP值
 		})
 		wv.loadURL("https://www.baidu.com")
-		var currentWebview = this.$mp.page.$getAppWebview() //获取当前页面的webview对象
+		var currentWebview = this.$scope.$getAppWebview(); //此对象相当于html5plus里的plus.webview.currentWebview()。在uni-app里vue页面直接使用plus.webview.currentWebview()无效，非v3编译模式使用this.$mp.page.$getAppWebview()
 		currentWebview.append(wv);//一定要append到当前的页面里！！！才能跟随当前页面一起做动画，一起关闭
 		setTimeout(function() {
 			console.log(wv.getStyle())
@@ -275,3 +276,6 @@ A：调用 uni 相关的 API，就可以实现页面切换及发送消息。参�
 
 Q：web-view 加载的 HTML 中，能够调用 5+ 的能力么？
 A：加载的 HTML 中是有 5+ 环境的，在 plusready 后调用即可。参考：[一个简单实用的 plusready 方法](https://ask.dcloud.net.cn/article/34922)
+
+Q: web-view 加载 uni-app H5，内部跳转冲突如何解决
+A：使用 uni.webView.navigateTo...

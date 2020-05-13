@@ -212,6 +212,11 @@ const protocols = { // 需要做转换的 API 列表
       apFilePath: 'tempFilePath'
     }
   },
+  getFileInfo: {
+    args: {
+      filePath: 'apFilePath'
+    }
+  },
   chooseVideo: {
     // 支付宝小程序文档中未找到（仅在getSetting处提及），但实际可用
     returnValue: {
@@ -301,21 +306,18 @@ const protocols = { // 需要做转换的 API 列表
   scanCode: {
     name: 'scan',
     args (fromArgs) {
-      if (fromArgs.scanType === 'qrCode') {
-        fromArgs.type = 'qr'
-        return {
-          onlyFromCamera: 'hideAlbum'
+      if (fromArgs.scanType) {
+        switch (fromArgs.scanType[0]) {
+          case 'qrCode':
+            fromArgs.type = 'qr'
+            break
+          case 'barCode':
+            fromArgs.type = 'bar'
+            break
         }
-      } else if (fromArgs.scanType === 'barCode') {
-        fromArgs.type = 'bar'
-        return {
-          onlyFromCamera: 'hideAlbum'
-        }
-      } else {
-        return {
-          scanType: false,
-          onlyFromCamera: 'hideAlbum'
-        }
+      }
+      return {
+        onlyFromCamera: 'hideAlbum'
       }
     },
     returnValue: {
@@ -438,7 +440,7 @@ const protocols = { // 需要做转换的 API 列表
   chooseAddress: {
     name: 'getAddress',
     returnValue (result) {
-      let info = result.result || {}
+      const info = result.result || {}
       result.userName = info.fullname
       result.provinceName = info.prov
       result.cityName = info.city

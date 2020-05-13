@@ -17,6 +17,8 @@
 
 **阿里云使用的mongoDB数据库版本为3.4，腾讯云使用的版本是4.0。此差异可能会导致本文档内的部分功能不能在阿里云使用，我们会进行标注，如果发现有遗漏欢迎向我们反馈**
 
+**如果不想使用此数据库，可以自行连接其他数据库，如mysql，用法可以参考nodejs连接数据库**
+
 ## 获取数据库的引用
 
 ```js
@@ -42,6 +44,44 @@ const db = uniCloud.database();
 ```
 db.createCollection(collectionName)
 ```
+
+阿里云的集合需提前在web控制台创建。
+
+## 使用`db_init.json`初始化项目数据库@db_init
+
+自`HBuilderX 2.5.11`起`uniCloud`提供了`db_init.json`来方便开发者快速进行数据库的初始化操作，即在HBuilderX工具中，将本地数据直接同步到云数据库中。
+
+这个功能尤其适合插件作者，可以快速初始化集合和数据。
+
+**使用方式**
+- 在`cloudfucntions`目录右键即可创建`db_init.json`，
+- 编写好json内容，在`db_init.json`上右键初始化数据库。
+
+**db_init.json形式如下**
+
+```
+{
+    "collection_test": { // 集合（表名）
+        "data": [ // 数据
+           {
+                "_id": "da51bd8c5e37ac14099ea43a2505a1a5",
+               "name": "tom"
+           }
+        ],
+        "index": [{ // 索引
+            "IndexName": "index_a", // 索引名称
+            "MgoKeySchema": { // 索引规则
+                "MgoIndexKeys": [{
+                    "Name": "index", // 索引字段
+                    "Direction": "1" // 索引方向，1：ASC-升序，-1：DESC-降序，2dsphere：地理位置
+                }],
+                "MgoIsUnique": false // 索引是否唯一
+            }
+        }]
+    }
+}
+```
+
 
 ## 获取集合的引用
 
@@ -139,7 +179,10 @@ const collection = db.collection('user');
 - 阿里云数据库在存入emoji表情时会导致uniCloud控制台无法获取数据列表，目前阿里正在处理此问题，开发者可以先自行过滤一下
 
 以下对几个特殊的数据类型做个补充说明
+
 ### 时间 Date
+
+**仅腾讯云支持，使用阿里云时请存储日期字符串或者时间戳，比如`new Date().toISOString()`，以下关于Date的内容仅腾讯云支持**
 
   Date 类型用于表示时间，精确到毫秒，可以用 JavaScript 内置 Date 对象创建。需要特别注意的是，用此方法创建的时间是客户端时间，不是服务端时间。如果需要使用服务端时间，应该用 API 中提供的 serverDate 对象来创建一个服务端当前时间的标记，当使用了 serverDate 对象的请求抵达服务端处理时，该字段会被转换成服务端当前的时间，更棒的是，我们在构造 serverDate 对象时还可通过传入一个有 offset 字段的对象来标记一个与当前服务端时间偏移 offset 毫秒的时间，这样我们就可以达到比如如下效果：指定一个字段为服务端时间往后一个小时。
 
@@ -157,9 +200,22 @@ const collection = db.collection('user');
   })
   ```
   
-**Tips**
-
-- 使用阿里云作为服务提供商时，如需存入日期类型，需要`2020-02-10T04:59:05.579Z`形式，即可以在云函数中使用`new Date().toISOString()`得到。
+如果需要对日期进行比较操作，可以使用聚合操作符将日期进行转化，比如以下示例查询所有time字段在`2020-02-02`以后的记录
+  
+```js
+'use strict';
+const db = uniCloud.database()
+exports.main = async (event, context) => {
+	const dbCmd = db.command
+	const $ = dbCmd.aggregate
+	let res = await db.collection('unicloud-test').where(dbCmd.expr(
+		$.gte(['$time',$.dateFromString({
+			dateString: new Date('2020-02-02').toISOString()
+		})])
+	)).get()
+	return res
+};
+```
 
 ### 地理位置
 
@@ -171,8 +227,7 @@ const collection = db.collection('user');
 
   Null 相当于一个占位符，表示一个字段存在但是值为空。
 
-<span id="add"></span>
-## 新增文档
+## 新增文档@add
 
 方法1： collection.add(data)
 
@@ -187,7 +242,7 @@ const collection = db.collection('user');
 let res = await collection.add({
   name: 'Ben'
 })
-// 批量插入数据
+// 批量插入数据，腾讯云暂不支持
 let res = await collection.add([{
   name: 'Alex'
 },{
@@ -197,8 +252,9 @@ let res = await collection.add([{
 }])
 // res.inserted // 插入成功条数
 // res.result // 阿里云特有，批量插入返回的所有记录 id
-// res.failIndexes // 腾讯云特有，插入失败的记录的下标
 ```
+
+<!-- // res.failIndexes // 腾讯云特有，插入失败的记录的下标 -->
 
 **Tips**
 
@@ -210,7 +266,7 @@ let res = await collection.add([{
 如果文档不存在，`set` 方法会创建一个新文档。
 
 ```js
-let res = await collection.doc().set({
+let res = await collection.doc('doc-id').set({
   name: "Hey"
 });
 ```
@@ -226,10 +282,10 @@ let res = await collection.doc().set({
 ### 添加查询条件
 
 collection.where()
-参数
 
-设置过滤条件
-where 可接收对象作为参数，表示筛选出拥有和传入对象相同的 key-value 的文档。比如筛选出所有类型为计算机的、内存为 8g 的商品：
+**在聚合操作中请使用match**
+
+设置过滤条件，where 可接收对象作为参数，表示筛选出拥有和传入对象相同的 key-value 的文档。比如筛选出所有类型为计算机的、内存为 8g 的商品：
 
 ```js
 let res = await db.collection('goods').where({
@@ -262,13 +318,23 @@ db.collection('user').where({
 
 collection.count()
 
-参数
 ```js
 let res = await db.collection('goods').where({
   category: 'computer',
   type: {
     memory: 8,
   }
+}).count()
+```
+
+**注意**
+
+使用阿里云时，count必须搭配where使用，此问题阿里云正在修复。如果要count所有记录可以使用一个必然满足的条件，比如下面这样：
+
+```js
+const dbCmd = db.command
+let res = await db.collection('goods').where({
+  _db: dbCmd.exists(true)
 }).count()
 ```
 
@@ -539,7 +605,7 @@ db.collection('goods').where(dbCmd.or(
 ))
 ```
 
-### 正则表达式查询
+### 正则表达式查询@regexp
 
 #### db.RegExp
 
@@ -552,7 +618,12 @@ db.collection('articles').where({
   version: /^\ds/i
 })
 
-// 或者
+// 也可以使用new RegExp
+db.collection('user').where({
+  name: new RegExp('^\\ds', 'i')
+})
+
+// 或者使用new db.RegExp，这种方式阿里云不支持
 db.collection('articles').where({
   version: new db.RegExp({
     regex: '^\\ds'   // 正则表达式为 /^\ds/，转义后变成 '^\\ds'
@@ -584,6 +655,12 @@ collection.where().remove()
 const dbCmd = db.command
 let res = await collection.where({
   a: dbCmd.gt(2)
+}).remove()
+
+// 清理全部数据
+const dbCmd = db.command
+let res = await collection.where({
+  _id: dbCmd.exists(true)
 }).remove()
 ```
 
@@ -1401,6 +1478,22 @@ exports.main = async (event) => {
 db.collection('scores').aggregate()
 ```
 
+### 聚合表达式
+
+表达式可以是字段路径、常量、或聚合操作符。表达式可以嵌套表达式。
+
+**字段路径**
+
+表达式用字段路径表示法来指定记录中的字段。字段路径的表示由一个 `$` 符号加上字段名或嵌套字段名。嵌套字段名用点将嵌套的各级字段连接起来。如 `$profile` 就表示 `profile` 的字段路径，`$profile.name` 就表示 `profile.name` 的字段路径（`profile` 字段中嵌套的 `name` 字段）。
+
+**常量**
+
+常量可以是任意类型。默认情况下 $ 开头的字符串都会被当做字段路径处理，如果想要避免这种行为，使用 `AggregateCommand.literal` 声明为常量。
+
+**聚合操作符**
+
+参考[聚合操作符](#aggregate-operator)
+
 ### addFields
 
 聚合阶段。添加新字段到输出的记录。经过 `addFields` 聚合阶段，输出的所有记录中除了输入时带有的字段外，还将带有 `addFields` 指定的字段。
@@ -1919,7 +2012,7 @@ let res = await db.collection('attractions').aggregate()
   .geoNear({
     distanceField: 'distance', // 输出的每个记录中 distance 即是与给定点的距离
     spherical: true,
-    near: db.Geo.Point(113.3089506, 23.0968251),
+    near: new db.Geo.Point(113.3089506, 23.0968251),
     query: {
       docType: 'geoNear',
     },
@@ -2558,7 +2651,7 @@ let res = await db.collection('orders').aggregate()
 以下操作连接 `orders` 和 `books` 集合，要求两个条件：
 
 - orders 的 book 字段与 books 的 title 字段相等
-- orders 的 quantity 字段大于或等于 books 的 stock 字段
+- books 的 stock 字段 大于或等于 orders 的 quantityorders 字段
 ```js
 const db = cloud.database()
 const $ = db.command.aggregate
@@ -3336,8 +3429,7 @@ let res = await db.collection('books').aggregate()
   .end()
 ```
 
-<span id="dbcmd"></span>
-## 数据库操作符
+## 数据库操作符@dbcmd
 
 ### 查询·逻辑操作符
 
@@ -3972,7 +4064,7 @@ let res = await db.collection('todos').where({
 const dbCmd = db.command
 let res = await db.collection('restaurants').where({
   location: dbCmd.geoNear({
-    geometry: db.Geo.Point(113.323809, 23.097732),
+    geometry: new db.Geo.Point(113.323809, 23.097732),
     minDistance: 1000,
     maxDistance: 5000,
   })
@@ -4619,7 +4711,7 @@ let res = await db.collection('todos').doc('doc-id').update({
 
 
 
-## 聚合操作符
+## 聚合操作符@aggregate-operator
 
 ### 算术操作符
 

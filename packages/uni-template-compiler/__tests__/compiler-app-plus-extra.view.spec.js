@@ -88,5 +88,117 @@ describe('codegen', () => {
       `with(this){return (_$g(0,'i'))?_c('v-uni-text',{attrs:{"_i":0}},[_v("1")]):(_$g(1,'e'))?_c('v-uni-text',{attrs:{"_i":1}},[_v("2")]):(_$g(2,'e'))?_c('v-uni-text',{attrs:{"_i":2}},[_v("3")]):_c('v-uni-text',{attrs:{"_i":3}},[_v("d")])}`
     )
   })
+  it('generate dynamic slot', () => {
+    assertCodegen(
+      '<base-layout><template v-slot:[dynamicSlotName]></template></base-layout>',
+      `with(this){return _c('base-layout',{attrs:{"_i":0},scopedSlots:_u([{key:_$g(1,'st'),fn:function(_empty_, _svm, _si){return undefined}}],null,true)})}`
+    )
+  })
+  it('generate ref', () => {
+    assertCodegen(
+      '<p :ref="component1"></p>',
+      `with(this){return _c('p',{ref:_$g(0,'ref'),attrs:{"_i":0}})}`
+    )
+  })
+  it('generate image', () => {
+    assertCodegen(
+      '<image :src="src"/>',
+      `with(this){return _c('v-uni-image',{attrs:{"src":_$g(0,'a-src'),"_i":0}})}`
+    )
+    assertCodegen(
+      '<image src="/static/logo.png"/>',
+      `with(this){return _c('v-uni-image',{attrs:{"src":"/static/logo.png","_i":0}})}`
+    )
+    assertCodegen(
+      '<image src="../static/logo.png"/>',
+      `with(this){return _c('v-uni-image',{attrs:{"src":_$g(0,'a-src'),"_i":0}})}`
+    )
+    assertCodegen(
+      '<image src="@/static/logo.png"/>',
+      `with(this){return _c('v-uni-image',{attrs:{"src":"/static/logo.png","_i":0}})}`
+    )
+    assertCodegen(
+      '<image src="~@/static/logo.png"/>',
+      `with(this){return _c('v-uni-image',{attrs:{"src":"/static/logo.png","_i":0}})}`
+    )
+  })
+  it('generate text trim', () => {
+    assertCodegen(
+      '<view>text</view>',
+      `with(this){return _c('v-uni-view',{attrs:{"_i":0}},[_v("text")])}`
+    )
+
+    assertCodegen(
+      '<view> text </view>',
+      `with(this){return _c('v-uni-view',{attrs:{"_i":0}},[_v("text")])}`
+    )
+
+    assertCodegen(
+      '<text>{{line_one_cn+\' \'}}</text>',
+      `with(this){return _c('v-uni-text',{attrs:{"_i":0}},[_v((_$g(0,'t0-0')))])}`
+    )
+
+    assertCodegen(
+      '<text>{{" "+line_one_cn}}</text>',
+      `with(this){return _c('v-uni-text',{attrs:{"_i":0}},[_v((_$g(0,'t0-0')))])}`
+    )
+
+    assertCodegen(
+      '<text>\nN: {{title}}\n′</text>',
+      `with(this){return _c('v-uni-text',{attrs:{"_i":0}},[_v("N: "+(_$g(0,'t0-0'))+"\\n′")])}`
+    )
+    assertCodegen(
+      '<text>我是第一行\n我的第二行</text>',
+      `with(this){return _c('v-uni-text',{attrs:{"_i":0}},[_v("我是第一行\\n我的第二行")])}`
+    )
+    assertCodegen(
+      '<text>我是第一行\n我的第二行1{{title}}</text>',
+      `with(this){return _c('v-uni-text',{attrs:{"_i":0}},[_v("我是第一行\\n我的第二行1"+(_$g(0,'t0-0')))])}`
+    )
+    assertCodegen(
+      `<text>我是第一行
+  我的第二行2{{title}}</text>`,
+      `with(this){return _c('v-uni-text',{attrs:{"_i":0}},[_v("我是第一行\\n  我的第二行2"+(_$g(0,'t0-0')))])}`
+    )
+
+    assertCodegen(
+      '<view> text text </view>',
+      `with(this){return _c('v-uni-view',{attrs:{"_i":0}},[_v("text text")])}`
+    )
+    assertCodegen(
+      '<view>text {{text}} text</view>',
+      `with(this){return _c('v-uni-view',{attrs:{"_i":0}},[_v("text "+(_$g(0,'t0-0'))+" text")])}`
+    )
+    assertCodegen(
+      '<view> text {{text}} 文本 </view>',
+      `with(this){return _c('v-uni-view',{attrs:{"_i":0}},[_v("text "+(_$g(0,'t0-0'))+" 文本")])}`
+    )
+    assertCodegen(
+      '<view>{{text}} text  text </view>',
+      `with(this){return _c('v-uni-view',{attrs:{"_i":0}},[_v((_$g(0,'t0-0'))+" text  text")])}`
+    )
+    assertCodegen(
+      '<view>  {{text}} text  text </view>',
+      `with(this){return _c('v-uni-view',{attrs:{"_i":0}},[_v((_$g(0,'t0-0'))+" text  text")])}`
+    )
+    assertCodegen(
+      '<view>{{text}} text  text {{text}}</view>',
+      `with(this){return _c('v-uni-view',{attrs:{"_i":0}},[_v((_$g(0,'t0-0'))+" text  text "+(_$g(0,'t0-1')))])}`
+    )
+    assertCodegen(
+      '<view>  {{text}} text  text {{text}}  </view>',
+      `with(this){return _c('v-uni-view',{attrs:{"_i":0}},[_v((_$g(0,'t0-0'))+" text  text "+(_$g(0,'t0-1')))])}`
+    )
+  })
+  it('generate bool attr', () => {
+    assertCodegen(
+      '<video controls/>',
+      `with(this){return _c('v-uni-video',{attrs:{"controls":true,"_i":0}})}`
+    )
+    assertCodegen(
+      '<video controls=""/>',
+      `with(this){return _c('v-uni-video',{attrs:{"controls":"","_i":0}})}`
+    )
+  })
 })
 /* eslint-enable quotes */

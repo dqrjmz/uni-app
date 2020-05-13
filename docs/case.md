@@ -1,6 +1,6 @@
-DCloud有**420万**开发者，[uni统计](https://tongji.dcloud.net.cn/)手机端月活**6.5亿**。是开发者数量和案例最丰富的多端开发框架。
+DCloud有**490万**开发者，[uni统计](https://tongji.dcloud.net.cn/)手机端月活**9.6亿**。是开发者数量和案例最丰富的多端开发框架。
 
-欢迎知名开发商提交案例或接入uni统计，[项目案例征集](https://github.com/dcloudio/uni-app/issues/6)提交。
+欢迎知名开发商[提交案例](https://github.com/dcloudio/uni-app/issues/6)或接入[uni统计](https://tongji.dcloud.net.cn/)。
 
 ### 新冠抗疫专区案例
 
@@ -70,6 +70,18 @@ uni-app助力数百家单位快速上线**抗疫系统**，开源众多项目，
     <a href="javascript:;" target="_blank" class="clear-style barcode-view">
 		<img src="https://img-cdn-qiniu.dcloud.net.cn/uniapp/doc/onchina.png" width="200"/>
 		<span style="margin-top:15px;">百度小程序码</span>
+	</a>
+</div>
+
+<a href="#" target="_blank" class="clear-style"><b>vivo官方商城：</b></a> vivo公司旗下的官方自营商城。
+<div style="display:flex;justify-content: space-around;">
+	<a href="javascript:;" target="_blank" class="clear-style barcode-view">
+		<img src="https://img.cdn.aliyun.dcloud.net.cn/guide/uniapp/vivo-weixin.jpg" width="200"/>
+		<span style="margin-top:15px;">微信小程序码</span>
+	</a>
+  <a href="javascript:;" target="_blank" class="clear-style barcode-view">
+		<img src="https://img.cdn.aliyun.dcloud.net.cn/uni-app/case/vivo-mall.png" width="200"/>
+		<span style="margin-top:15px;">支付宝小程序码</span>
 	</a>
 </div>
 
@@ -157,16 +169,9 @@ uni-app助力数百家单位快速上线**抗疫系统**，开源众多项目，
 
 **华为：** 微信小程序搜索“荣耀亲选商城”、[H5](https://m.qinxuan.honor.cn/)
 
-**京东：** 京东开发的新冠抗疫服务平台。[H5](http://yingji-h5.chanye.jdcloud.com/)
+**京东：** 京东开发的新冠抗疫服务平台：[H5](http://yingji-h5.chanye.jdcloud.com/)、京东金融羊羊大作战：[H5](https://u.jr.jd.com/uc-fe-wxgrowing/sheep-fight/)
 
-<div class="scan-code">
- <strong>vivo商城官方小程序：</strong> 支付宝搜索 "vivo"，或鼠标移此查看[支付宝小程序码]
- <div class="scan-code-hover">
-    <div class="scan-code-hover-box">
-      <img src="https://img.cdn.aliyun.dcloud.net.cn/uni-app/case/vivo-mall.png" alt="二维码获取失败" />
-    </div>
- </div>
-</div>
+**vivo官方商城：**微信小程序搜索"vivo"，支付宝搜索 "vivo"
 
 <div class="scan-code">
  <strong>vivo会员官方小程序：</strong> 微信小程序搜索 "vivo会员"，或鼠标移此查看[微信小程序码]
