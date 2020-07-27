@@ -36,6 +36,9 @@ uni-app 已将常用的组件、JS API 封装到框架中，开发者按照 uni-
 |MP-QQ|QQ小程序|
 |MP-360|360小程序|
 |MP|微信小程序/支付宝小程序/百度小程序/字节跳动小程序/QQ小程序/360小程序|
+|quickapp-webview|快应用通用(包含联盟、华为)|
+|quickapp-webview-union|快应用联盟|
+|quickapp-webview-huawei|快应用华为|
 
 **支持的文件**
 
@@ -133,7 +136,11 @@ json的条件编译，如不同平台的key名称相同，cli项目下开发者�
 
 ### 整体目录条件编译
 
-如果想把各平台的页面文件更彻底的分开，也可以在uni-app项目根目录创建`platforms`目录，然后在下面进一步创建APP-PLUS、MP-WEIXIN等子目录，存放不同平台的文件。
+如果想把各平台的页面文件更彻底的分开，也可以在uni-app项目根目录创建`platforms`目录，然后在下面进一步创建`app-plus`、`mp-weixin`等子目录，存放不同平台的文件。
+
+**注意**
+
+- `platforms`目录下只支持放置页面文件（即页面vue文件），如果需要对其他资源条件编译建议使用[static 目录的条件编译](https://uniapp.dcloud.io/platform?id=static-%e7%9b%ae%e5%bd%95%e7%9a%84%e6%9d%a1%e4%bb%b6%e7%bc%96%e8%af%91)
 
 ### HBuilderX 支持
 

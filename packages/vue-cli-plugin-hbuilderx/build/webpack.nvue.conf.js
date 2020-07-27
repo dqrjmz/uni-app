@@ -3,6 +3,7 @@ const path = require('path')
 const webpack = require('webpack')
 const VueLoaderPlugin = require('@dcloudio/vue-cli-plugin-uni/packages/vue-loader/lib/plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
 
 const {
   getNVueMainEntry,
@@ -10,10 +11,6 @@ const {
   nvueHtmlPreprocessOptions,
   getTemplatePath
 } = require('@dcloudio/uni-cli-shared')
-
-const {
-  devtoolModuleFilenameTemplate
-} = require('../util')
 
 const WebpackAppPlusNVuePlugin = process.env.UNI_USING_V3
   ? require('../packages/webpack-app-plus-plugin')
@@ -84,7 +81,8 @@ const plugins = [
       NODE_ENV: JSON.stringify(process.env.NODE_ENV),
       VUE_APP_PLATFORM: JSON.stringify(process.env.UNI_PLATFORM),
       UNI_CLOUD_PROVIDER: process.env.UNI_CLOUD_PROVIDER,
-      HBX_USER_TOKEN: JSON.stringify(process.env.HBX_USER_TOKEN || '')
+      HBX_USER_TOKEN: JSON.stringify(process.env.HBX_USER_TOKEN || ''),
+      UNI_AUTOMATOR_WS_ENDPOINT: JSON.stringify(process.env.UNI_AUTOMATOR_WS_ENDPOINT)
     }
   }),
   new webpack.BannerPlugin({
@@ -99,6 +97,10 @@ const plugins = [
   }),
   new WebpackAppPlusNVuePlugin()
 ]
+
+if (process.env.NODE_ENV === 'development') {
+  plugins.push(require('@dcloudio/uni-cli-shared/lib/source-map').createEvalSourceMapDevToolPlugin())
+}
 
 // const excludeModuleReg = /node_modules(?!(\/|\\).*(weex).*)/
 
@@ -178,6 +180,26 @@ rules.unshift({
   }]
 })
 
+if (process.env.UNI_USING_V3_NATIVE) {
+  try {
+    const automatorJson = require.resolve('@dcloudio/uni-automator/dist/automator.json')
+    plugins.push(new CopyWebpackPlugin([{
+      from: automatorJson,
+      to: '../.automator/' + (process.env.UNI_SUB_PLATFORM || process.env.UNI_PLATFORM) +
+        '/.automator.json',
+      transform (content) {
+        if (process.env.UNI_AUTOMATOR_WS_ENDPOINT) {
+          return JSON.stringify({
+            version: require('@dcloudio/uni-automator/package.json').version,
+            wsEndpoint: process.env.UNI_AUTOMATOR_WS_ENDPOINT
+          })
+        }
+        return ''
+      }
+    }]))
+  } catch (e) {}
+}
+
 if (process.env.UNI_USING_NATIVE || process.env.UNI_USING_V3_NATIVE) {
   plugins.push(new WebpackUniMPPlugin())
   const array = [{
@@ -226,7 +248,7 @@ module.exports = function () {
   return {
     target: 'node', // 激活 vue-loader 的 isServer 逻辑
     mode: process.env.NODE_ENV,
-    devtool: process.env.NODE_ENV === 'development' ? 'inline-source-map' : false,
+    devtool: false,
     watch: process.env.NODE_ENV === 'development',
     entry () {
       return process.UNI_NVUE_ENTRY
@@ -238,12 +260,20 @@ module.exports = function () {
       hints: false
     },
     optimization: {
-      namedModules: false
+      namedModules: false,
+      minimizer: [
+        new TerserPlugin({
+          terserOptions: {
+            output: {
+              ascii_only: true
+            }
+          }
+        })
+      ]
     },
     output: {
       path: process.env.UNI_OUTPUT_DIR,
-      filename: '[name].js',
-      devtoolModuleFilenameTemplate
+      filename: '[name].js'
     },
     resolve: {
       extensions: ['.js', '.nvue', '.vue', '.json'],

@@ -235,7 +235,6 @@ const promiseInterceptor = {
   }
 };
 
-
 const SYNC_API_RE =
   /^\$|sendNativeEvent|restoreGlobal|getCurrentSubNVue|getMenuButtonBoundingClientRect|^report|interceptors|Interceptor$|getSubNVueById|requireNativePlugin|upx2px|hideKeyboard|canIUse|^create|Sync$|Manager$|base64ToArrayBuffer|arrayBufferToBase64/;
 
@@ -336,18 +335,15 @@ function upx2px (number, newDeviceWidth) {
     return 0
   }
   let result = (number / BASE_DEVICE_WIDTH) * (newDeviceWidth || deviceWidth);
-  // 不能为负值
   if (result < 0) {
     result = -result;
   }
-  // 
   result = Math.floor(result + EPS);
-  // 750设备宽
   if (result === 0) {
     if (deviceDPR === 1 || !isIOS) {
-      return 1
+      result = 1;
     } else {
-      return 0.5
+      result = 0.5;
     }
   }
   return number < 0 ? -result : result
@@ -420,7 +416,10 @@ const protocols = {
   }
 };
 const todos = [
-  'vibrate'
+  'vibrate',
+  'preloadPage',
+  'unPreloadPage',
+  'loadSubPackage'
 ];
 const canIUses = [];
 
@@ -659,7 +658,6 @@ Page = function (options = {}) {
   initHook('onLoad', options);
   return MPPage(options)
 };
-
 
 const PAGE_EVENT_HOOKS = [
   'onPullDownRefresh',
@@ -950,7 +948,18 @@ function getExtraValue (vm, dataPathsArray) {
       const propPath = dataPathArray[1];
       const valuePath = dataPathArray[3];
 
-      const vFor = dataPath ? vm.__get_value(dataPath, context) : context;
+      let vFor;
+      if (Number.isInteger(dataPath)) {
+        vFor = dataPath;
+      } else if (!dataPath) {
+        vFor = context;
+      } else if (typeof dataPath === 'string' && dataPath) {
+        if (dataPath.indexOf('#s#') === 0) {
+          vFor = dataPath.substr(3);
+        } else {
+          vFor = vm.__get_value(dataPath, context);
+        }
+      }
 
       if (Number.isInteger(vFor)) {
         context = value;
@@ -1000,6 +1009,12 @@ function processEventExtra (vm, extra, event) {
         } else {
           if (dataPath === '$event') { // $event
             extraObj['$' + index] = event;
+          } else if (dataPath === 'arguments') {
+            if (event.detail && event.detail.__args__) {
+              extraObj['$' + index] = event.detail.__args__;
+            } else {
+              extraObj['$' + index] = [event];
+            }
           } else if (dataPath.indexOf('$event.') === 0) { // $event.target.value
             extraObj['$' + index] = vm.__get_value(dataPath.replace('$event.', ''), event);
           } else {
@@ -1167,7 +1182,8 @@ const hooks = [
   'onShow',
   'onHide',
   'onError',
-  'onPageNotFound'
+  'onPageNotFound',
+  'onThemeChange'
 ];
 
 function parseBaseApp (vm, {

@@ -416,7 +416,7 @@ export default {
             // 解决 PLUS-APP（wkwebview）以及 H5 图像跨域问题（H5图像响应头需包含access-control-allow-origin）
             // 本地文件加载
             if (window.plus && src.indexOf('http://') !== 0 && src.indexOf('https://') !==
-              0) {
+              0 && !/^data:.*,.*/.test(src)) {
               loadFile(src)
               // base64图片地址
             } else if (/^data:.*,.*/.test(src)) {

@@ -22,11 +22,12 @@ module.exports = {
     filterTag: 'wxs',
     // 项目的配置文件
     project: 'project.config.json',
-    // 子包
-    subPackages: true
+    subPackages: true,
+    darkmode: true
   },
   copyWebpackOptions (platformOptions, vueOptions) {
     const copyOptions = [
+      'theme.json',
       'sitemap.json',
       'ext.json',
       'custom-tab-bar'
@@ -45,10 +46,5 @@ module.exports = {
       })
     }
     return copyOptions
-  },
-  configureWebpack () {
-    return {
-      devtool: process.env.NODE_ENV === 'production' ? false : 'source-map'
-    }
   }
 }

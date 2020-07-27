@@ -6,7 +6,7 @@ const {
 } = require('./util')
 
 function handleObjectExpression (declaration, path, state) {
-  if (state.options) { // name,inheritAttrs
+  if (state.options) { // name,inheritAttrs,props
     Object.keys(state.options).forEach(name => {
       const optionProperty = declaration.properties.filter(prop => {
         return t.isObjectProperty(prop) &&
@@ -14,7 +14,21 @@ function handleObjectExpression (declaration, path, state) {
           prop.key.name === name
       })[0]
       if (optionProperty) {
-        if (t.isStringLiteral(optionProperty.value)) {
+        if (name === 'props') {
+          if (t.isArrayExpression(optionProperty.value)) {
+            state.options[name] = JSON.stringify(optionProperty.value.elements.filter(element => t.isStringLiteral(element)).map(({ value }) => value))
+          } else if (t.isObjectExpression(optionProperty.value)) {
+            const props = []
+            optionProperty.value.properties.forEach(({ key }) => {
+              if (t.isIdentifier(key)) {
+                props.push(key.name)
+              } else if (t.isStringLiteral(key)) {
+                props.push(key.value)
+              }
+            })
+            state.options[name] = JSON.stringify(props)
+          }
+        } else if (t.isStringLiteral(optionProperty.value)) {
           state.options[name] = JSON.stringify(optionProperty.value.value)
         } else {
           state.options[name] = optionProperty.value.value
@@ -34,15 +48,16 @@ function handleObjectExpression (declaration, path, state) {
   }
 }
 
-function handleComponentsObjectExpression (componentsObjExpr, path, state) {
+function handleComponentsObjectExpression (componentsObjExpr, path, state, prepend) {
   const properties = componentsObjExpr.properties
     .filter(prop => t.isObjectProperty(prop) && t.isIdentifier(prop.value))
-  state.components = parseComponents(properties.map(prop => {
+  const components = parseComponents(properties.map(prop => {
     return {
       name: prop.key.name || prop.key.value,
       value: prop.value.name
     }
   }), path.scope.bindings, path)
+  state.components = prepend ? components.concat(state.components) : components
 }
 
 module.exports = function (ast, state = {
@@ -74,7 +89,7 @@ module.exports = function (ast, state = {
         rightExpression.arguments.length === 2 &&
         t.isObjectExpression(rightExpression.arguments[0])
       ) {
-        handleComponentsObjectExpression(rightExpression.arguments[0], path, state)
+        handleComponentsObjectExpression(rightExpression.arguments[0], path, state, true)
       }
     },
     ExportDefaultDeclaration (path) {

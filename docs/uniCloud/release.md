@@ -1,5 +1,37 @@
 # uniCloud 更新日志
 ======================================
+#### 2020-07-24
+  + 阿里云 修复 本地运行时云函数互调报错的Bug
+
+#### 2020-07-21
+  + 【重要】新增 本地运行云函数，可连接远程数据库和云存储，大幅提升开发效率，同时方便数据导入导出 [详情](https://uniapp.dcloud.net.cn/uniCloud/local)
+  + 【重要】新增 插件市场支持云函数付费销售，欢迎插件作者们提交高质量可售卖插件
+  + 【重要】新增 uniCloud.sendSms 短信发送能力，可方便、便宜的发送验证码短信 [详情](https://uniapp.dcloud.net.cn/uniCloud/send-sms)
+  + 修复 2.7.12版本引出的支付宝小程序、百度小程序下使用 uniCloud 报错的Bug
+  + 修复 2.7.12版本引出的H5端 main.js 内使用 uniCloud 导致 uniCloud 不可使用的Bug
+
+#### 2020-07-10
+  + web控制台 新增 云数据库新增、管理记录可全屏编辑
+  + web控制台 优化 云数据库数据的展现形式
+  + web控制台 修复 云数据库选项卡快速切换导致内容显示不正确的Bug
+
+#### 2020-06-24
+  + 腾讯云 新增 数据库回档功能 [详情](https://uniapp.dcloud.io/uniCloud/cf-database?id=backup)
+  + 腾讯云 修复 web控制台修改日期格式字段会变成字符串的Bug，目前显示为 {$date:xxx} 形式
+
+#### 2020-06-15
+  + 腾讯云 优化 开发期间客户端直连云函数
+
+#### 2020-06-13
+  + 阿里云 新增 前端网站部署功能 [详情](https://uniapp.dcloud.io/uniCloud/hosting)
+
+#### 2020-06-10
+  + 阿里云 调整 定时触发的云函数，运行超时时间上限可设置为600秒，便于大数据量的跑批任务执行
+  + 腾讯云 新增 前端网站部署功能 [详情](https://uniapp.dcloud.io/uniCloud/hosting)
+
+#### 2020-06-04
+  + 腾讯云 新增 云数据库支持批量插入数据 [详情](https://uniapp.dcloud.io/uniCloud/cf-database?id=add)
+
 #### 2020-05-21
   + 新增 云函数内获取客户端ua、ip [详情](https://uniapp.dcloud.io/uniCloud/cf-functions)
 

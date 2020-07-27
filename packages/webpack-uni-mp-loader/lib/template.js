@@ -4,6 +4,7 @@ const loaderUtils = require('loader-utils')
 
 const {
   removeExt,
+  normalizePath,
   getPlatformExts,
   getShadowTemplate
 } = require('@dcloudio/uni-cli-shared')
@@ -36,14 +37,26 @@ function parseFilterModules (filterModules) {
   return {}
 }
 
-module.exports = function (content) {
+module.exports = function (content, map) {
   this.cacheable && this.cacheable()
 
   const vueLoaderOptions = this.loaders.find(loader => loader.ident === 'vue-loader-options')
   if (vueLoaderOptions) {
     const globalUsingComponents = getGlobalUsingComponents()
     const realResourcePath = path.relative(process.env.UNI_INPUT_DIR, this.resourcePath)
-    const resourcePath = normalizeNodeModules(removeExt(realResourcePath) + templateExt)
+    let resourcePath = normalizeNodeModules(removeExt(realResourcePath) + templateExt)
+
+    if ( // windows 上 page-meta, navigation-bar 可能在不同盘上
+      /^win/.test(process.platform) &&
+      path.isAbsolute(resourcePath) &&
+      (
+        resourcePath.indexOf('page-meta') !== -1 ||
+        resourcePath.indexOf('navigation-bar') !== -1
+      )
+    ) {
+      resourcePath = normalizePath(path.relative(process.env.UNI_CLI_CONTEXT, resourcePath))
+    }
+
     const wxComponents = getWXComponents(resourcePath.replace(path.extname(resourcePath), ''))
 
     const params = loaderUtils.parseQuery(this.resourceQuery)
@@ -69,5 +82,5 @@ module.exports = function (content) {
   } else {
     throw new Error('vue-loader-options parse error')
   }
-  return content
+  this.callback(null, content, map)
 }

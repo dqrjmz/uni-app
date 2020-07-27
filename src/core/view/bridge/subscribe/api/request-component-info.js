@@ -149,5 +149,5 @@ export function requestComponentInfo ({
   UniViewJSBridge.publishHandler('onRequestComponentInfo', {
     reqId,
     res: result
-  }, pageVm.$page.id)
+  }, pageId)
 }

@@ -2,6 +2,8 @@
 
 `uni-account`是一个适用于微信小程序和支付宝小程序的平台账户登录的云函数模板。`uni-account`内部对不同平台的 api 进行了拉齐，有助于开发者更方便的调用相关功能。
 
+**uni-account功能已整合到uni-id内，推荐使用uni-id**
+
 ## 引入 uni-account
 
 开发者可以自行选择是从插件市场导入还是从 npm 安装，引入方式略有不同，请看下面示例
@@ -13,6 +15,10 @@ const uniAccount = require('uni-account')
 // npm安装
 const uniAccount = require('@dcloudio/uni-account')
 ```
+
+**注意**
+
+- 插件市场导入的用法请参考[云函数公用模块](https://uniapp.dcloud.net.cn/uniCloud/cf-common)
 
 ## 初始化
 
@@ -56,7 +62,8 @@ const uniAccountIns = uniAccount.initAlipay({
 
 ### 获取 openid
 
-`uniAccountIns.code2Session`。传入`uni.login`返回的`code`来获取用户 openid 等信息
+`uniAccountIns.code2Session`。传入客户端上调用[uni.login](https://uniapp.dcloud.net.cn/api/plugins/login?id=login)返回的`code`来获取用户`openid`等信息
+
 
 **入参说明**
 

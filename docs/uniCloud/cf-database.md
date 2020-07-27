@@ -15,9 +15,12 @@
 
 鉴于安全问题，暂不支持客户端直接访问数据库。
 
-**阿里云使用的mongoDB数据库版本为3.4，腾讯云使用的版本是4.0。此差异可能会导致本文档内的部分功能不能在阿里云使用，我们会进行标注，如果发现有遗漏欢迎向我们反馈**
+**阿里云使用的mongoDB数据库版本为3.4，腾讯云使用的腾讯云自研的文档型数据库（兼容mongoDB 4.0版本）。此差异可能会导致本文档内的部分功能不能在阿里云使用，我们会进行标注，如果发现有遗漏欢迎向我们反馈**
 
-**如果不想使用此数据库，可以自行连接其他数据库，如mysql，用法可以参考nodejs连接数据库**
+如果不想使用此数据库，可以自行连接其他数据库，如mysql/redis，用法可以参考：
+
+- [云函数连接Mysql数据库示例](https://ext.dcloud.net.cn/plugin?id=1925)
+- [云函数连接Redis数据库示例](https://ext.dcloud.net.cn/plugin?id=1846)
 
 ## 获取数据库的引用
 
@@ -85,6 +88,20 @@ db.createCollection(collectionName)
 }
 ```
 
+## 数据库回档@backup
+
+**此功能暂时只有腾讯云支持**
+
+uniCloud会在每天备份一次数据库，最多保留7天。
+
+**操作说明**
+
+1. 登录[uniCloud后台](https://unicloud-dev.dcloud.net.cn/)
+2. 点击左侧菜单`云数据库 --> 数据库回档`，点击`新建回档`
+3. 选择可回档时间
+4. 选择需要回档的集合（注意：回档后集合不能与现有集合重名，如需对集合重命名可以在集合列表处操作）
+
+![数据库回档](https://img.cdn.aliyun.dcloud.net.cn/uni-app/uniCloud/unicloud-db-backup.jpg)
 
 ## 获取集合的引用
 
@@ -177,19 +194,17 @@ const collection = db.collection('user');
 * Date：时间
 * Null
 
-**注意**
-
-- 阿里云数据库在存入emoji表情时会导致uniCloud控制台无法获取数据列表，目前阿里正在处理此问题，开发者可以先自行过滤一下
-
 以下对几个特殊的数据类型做个补充说明
 
 ### 时间 Date
 
-**仅腾讯云支持，使用阿里云时请存储日期字符串或者时间戳，比如`new Date().toISOString()`，以下关于Date的内容仅腾讯云支持**
+**使用阿里云时请存储日期字符串或者时间戳，比如`new Date().toISOString()`。数据库存储Date类型数据仅腾讯云支持**
+
+<!-- 我们推荐无论是腾讯云还是阿里云都以时间戳的方式存储时间字段 -->
 
   Date 类型用于表示时间，精确到毫秒，可以用 JavaScript 内置 Date 对象创建。需要特别注意的是，用此方法创建的时间是客户端时间，不是服务端时间。如果需要使用服务端时间，应该用 API 中提供的 serverDate 对象来创建一个服务端当前时间的标记，当使用了 serverDate 对象的请求抵达服务端处理时，该字段会被转换成服务端当前的时间，更棒的是，我们在构造 serverDate 对象时还可通过传入一个有 offset 字段的对象来标记一个与当前服务端时间偏移 offset 毫秒的时间，这样我们就可以达到比如如下效果：指定一个字段为服务端时间往后一个小时。
 
-  那么当我们需要使用客户端时间时，存放 Date 对象和存放毫秒数是否是一样的效果呢？不是的，我们的数据库有针对日期类型的优化，建议大家使用时都用 Date 或 serverDate 构造时间对象。
+  <!-- 那么当我们需要使用客户端时间时，存放 Date 对象和存放毫秒数是否是一样的效果呢？不是的，我们的数据库有针对日期类型的优化，建议大家使用时都用 Date 或 serverDate 构造时间对象。 -->
 
   ```js
   //服务端当前时间
@@ -234,18 +249,36 @@ exports.main = async (event, context) => {
 
 方法1： collection.add(data)
 
-示例：
+参数说明
 
 | 参数 | 类型   | 必填 | 说明                                     |
 | ---- | ------ | ---- | ---------------------------------------- |
 | data | object &#124; array | 是   | {_id: '10001', 'name': 'Ben'} _id 非必填|
+
+响应参数
+
+单条插入时
+
+
+| 参数| 类型	|  说明																			|
+| ----| ------|  ----------------------------------------	|
+|id		| String|插入记录的id																|
+
+批量插入时
+
+| 参数		| 类型	|  说明																			|
+| ----		| ------|  ----------------------------------------	|
+| inserted| Number| 插入成功条数															|
+|ids			| Array	|批量插入所有记录的id												|
+
+示例：
 
 ```js
 // 单条插入数据
 let res = await collection.add({
   name: 'Ben'
 })
-// 批量插入数据，腾讯云暂不支持
+// 批量插入数据
 let res = await collection.add([{
   name: 'Alex'
 },{
@@ -253,11 +286,7 @@ let res = await collection.add([{
 },{
   name: 'John'
 }])
-// res.inserted // 插入成功条数
-// res.result // 阿里云特有，批量插入返回的所有记录 id
 ```
-
-<!-- // res.failIndexes // 腾讯云特有，插入失败的记录的下标 -->
 
 **Tips**
 
@@ -267,6 +296,21 @@ let res = await collection.add([{
 
 也可通过 `set` 方法新增一个文档，需先取得文档引用再调用 `set` 方法。
 如果文档不存在，`set` 方法会创建一个新文档。
+
+
+**参数说明**
+
+| 参数 | 类型   | 必填 | 说明                                     |
+| ---- | ------ | ---- | ---------------------------------------- |
+| data | object | 是   | 更新字段的Object，{'name': 'Ben'} _id 非必填|
+
+**响应参数**
+
+| 参数			| 类型	|  说明																				|
+| ----			| ------|  ----------------------------------------		|
+|updated		| Number| 更新成功条数，数据更新前后没变化时也会返回1	|
+|upsertedId	| String| 创建的文档id																|
+
 
 ```js
 let res = await collection.doc('doc-id').set({
@@ -281,6 +325,12 @@ let res = await collection.doc('doc-id').set({
 
 只有当调用`get()` `update()`时才会真正发送请求。
 注：默认取前100条数据，最大取前100条数据。
+
+**get响应参数**
+
+| 参数| 类型	|  说明																			|
+| ----| ------|  ----------------------------------------	|
+|data	| Array	| 查询结果数组															|
 
 ### 添加查询条件
 
@@ -345,8 +395,6 @@ let res = await db.collection('goods').where({
 
 | 字段      | 类型    | 必填 | 说明                     |
 | --------- | ------- | ---- | ------------------------ |
-| code      | string  | 否   | 状态码，操作成功则不返回 |
-| message   | string  | 否   | 错误描述                 |
 | total     | Integer | 否   | 计数结果                 |
 | requestId | string  | 否   | 请求序列号，用于错误排查 |
 
@@ -405,16 +453,18 @@ let res = await collection.orderBy("name", "asc").get()
 
 collection.field()
 
+从查询结果集中，过滤掉不需要的字段，或者指定要返回的字段。
+
 参数说明
 
 | 参数 | 类型   | 必填 | 说明                                    |
 | ---- | ------ | ---- | --------------------------------------- |
-| -    | object | 是   | 要过滤的字段，不返回传false，返回传true |
+| -    | object | 是   | 过滤字段对象，包含字段名和策略，不返回传false，返回传true |
 
 使用示例
 
 ```js
-collection.field({ 'age': true })
+collection.field({ 'age': true }) //只返回age字段，其他字段不返回
 ```
 备注：只能指定要返回的字段或者不要返回的字段。即{'a': true, 'b': false}是一种错误的参数格式
 
@@ -671,7 +721,20 @@ let res = await collection.where({
 
 ### 更新指定文档
 
-collection.doc().update()
+collection.doc().update(Object data)
+
+**参数说明**
+
+| 参数 | 类型   | 必填 | 说明                                     |
+| ---- | ------ | ---- | ---------------------------------------- |
+| data | object | 是   | 更新字段的Object，{'name': 'Ben'} _id 非必填|
+
+**响应参数**
+
+| 参数	| 类型	|  说明																			|
+| ----	| ------|  ----------------------------------------	|
+|updated| Number| 更新成功条数，数据更新前后没变化时会返回0	|
+
 
 ```js
 let res = await collection.doc('doc-id').update({
@@ -773,6 +836,90 @@ let res = await collection.where({name: dbCmd.eq('hey')}).update({
 })
 ```
 
+### 更新数组内指定下标的元素
+
+```js
+const res = await db.collection('query').doc('1').update({
+  // 更新students[1]
+  ['students.' + 1]: {
+    name: 'wang'
+  }
+})
+```
+
+```js
+// 更新前
+{
+  "_id": "1",
+  "students": [
+    {
+      "name": "zhang"
+    },
+    {
+      "name": "li"
+    }
+  ]
+}
+
+// 更新后
+{
+  "_id": "1",
+  "students": [
+    {
+      "name": "zhang"
+    },
+    {
+      "name": "wang"
+    }
+  ]
+}
+```
+
+### 更新数组内匹配条件的元素
+
+**注意：只可确定数组内只会被匹配到一个的时候使用**
+
+```js
+const res = await db.collection('query').where({
+	'students.id': '001'
+}).update({
+  // 将students内id为001的name改为li
+	'students.$.name': 'li'
+})
+```
+
+
+```js
+// 更新前
+{
+  "_id": "1",
+  "students": [
+    {
+      "id": "001",
+      "name": "zhang"
+    },
+    {
+      "id": "002",
+      "name": "wang"
+    }
+  ]
+}
+
+// 更新后
+{
+  "_id": "1",
+  "students": [
+    {
+      "id": "001",
+      "name": "li"
+    },
+    {
+      "id": "002",
+      "name": "wang"
+    }
+  ]
+}
+```
 
 ### 更新操作符
 
@@ -1360,23 +1507,28 @@ exports.main = async (event) => {
       const bbbRes = await transaction.collection('account').doc('bbb').get()
 
       if (aaaRes.data && bbbRes.data) {
-        const updateAAARes = await transaction.collection('account').doc('aaa').update({
-          data: {
-            amount: _.inc(-10)
+        try {
+          const updateAAARes = await transaction.collection('account').doc('aaa').update({
+            data: {
+              amount: _.inc(-10)
+            }
+          })
+
+          const updateBBBRes = await transaction.collection('account').doc('bbb').update({
+            data: {
+              amount: _.inc(10)
+            }
+          })
+
+          console.log(`transaction succeeded`)
+
+          // 会作为 runTransaction resolve 的结果返回
+          return {
+            aaaAccount: aaaRes.data.amount - 10,
           }
-        })
-
-        const updateBBBRes = await transaction.collection('account').doc('bbb').update({
-          data: {
-            amount: _.inc(10)
-          }
-        })
-
-        console.log(`transaction succeeded`)
-
-        // 会作为 runTransaction resolve 的结果返回
-        return {
-          aaaAccount: aaaRes.data.amount - 10,
+        } catch(e) {
+          // 会作为 runTransaction reject 的结果出去
+          await transaction.rollback(-100)
         }
       } else {
         // 会作为 runTransaction reject 的结果出去
@@ -1427,8 +1579,8 @@ const db = uniCloud.database()
 const _ = db.command
 
 exports.main = async (event) => {
+  const transaction = await db.startTransaction()
   try {
-    const transaction = await db.startTransaction()
 
     const aaaRes = await transaction.collection('account').doc('aaa').get()
     const bbbRes = await transaction.collection('account').doc('bbb').get()
@@ -1455,7 +1607,6 @@ exports.main = async (event) => {
         aaaAccount: aaaRes.data.amount - 10,
       }
     } else {
-      await transaction.rollback()
 
       return {
         success: false,
@@ -1464,6 +1615,7 @@ exports.main = async (event) => {
       }
     }
   } catch (e) {
+    await transaction.rollback()
     console.error(`transaction error`, e)
 
     return {
@@ -4090,12 +4242,12 @@ const dbCmd = db.command
 const { Point, LineString, Polygon } = db.Geo
 let res = await .collection('restaurants').where({
   location: dbCmd.geoWithin({
-    geometry: Polygon([
-      LineString([
-        Point(0, 0),
-        Point(3, 2),
-        Point(2, 3),
-        Point(0, 0)
+    geometry: new Polygon([
+      new LineString([
+        new Point(0, 0),
+        new Point(3, 2),
+        new Point(2, 3),
+        new Point(0, 0)
       ])
     ]),
   })
@@ -4138,12 +4290,12 @@ const dbCmd = db.command
 const { Point, LineString, Polygon } = db.Geo
 let res = await db.collection('restaurants').where({
   location: dbCmd.geoIntersects({
-    geometry: Polygon([
-      LineString([
-        Point(0, 0),
-        Point(3, 2),
-        Point(2, 3),
-        Point(0, 0)
+    geometry: new Polygon([
+      new LineString([
+        new Point(0, 0),
+        new Point(3, 2),
+        new Point(2, 3),
+        new Point(0, 0)
       ])
     ]),
   })

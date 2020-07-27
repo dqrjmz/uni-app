@@ -91,7 +91,7 @@ import add from '../../common/add.js'
 
 ### css引入静态资源
 
-> `css`文件或`style标签`内引入`css`文件时（scss、less文件同理），只能使用相对路径
+> `css`文件或`style标签`内引入`css`文件时（scss、less文件同理），可以使用相对路径或绝对路径（`HBuilderX 2.6.6-alpha`）
 
 ```css
 /* 绝对路径 */
@@ -137,6 +137,7 @@ background-image: url(../../static/logo.png);
 |onHide|当 ``uni-app`` 从前台进入后台|
 |onError|当 `uni-app` 报错时触发	|
 |onUniNViewMessage|对 ``nvue`` 页面发送的数据进行监听，可参考 [nvue 向 vue 通讯](/use-weex?id=nvue-向-vue-通讯)|
+|onUnhandledRejection|对未处理的 Promise 拒绝事件监听函数（2.8.1+）|
 
 **注意**
 
@@ -165,8 +166,10 @@ background-image: url(../../static/logo.png);
 |onNavigationBarSearchInputChanged|监听原生标题栏搜索输入框输入内容变化事件|App、H5|1.6.0|
 |onNavigationBarSearchInputConfirmed|监听原生标题栏搜索输入框搜索事件，用户点击软键盘上的“搜索”按钮时触发。|App、H5|1.6.0|
 |onNavigationBarSearchInputClicked|监听原生标题栏搜索输入框点击事件|App、H5|1.6.0|
+|onShareTimeline|监听用户点击右上角转发到朋友圈|微信小程序|uni-app 2.8.1+|
+|onAddToFavorites|监听用户点击右上角收藏|微信小程序|uni-app 2.8.1+|
 
-``onPageScroll`` 参数说明：
+``onPageScroll`` 参数说明：f
 
 |属性|类型|说明|
 |---|---|---|
@@ -184,6 +187,7 @@ background-image: url(../../static/logo.png);
 - onTabItemTap常用于点击当前tabitem，滚动或刷新当前页面。如果是点击不同的tabitem，一定会触发页面切换。
 - 如果想在App端实现点击某个tabitem不跳转页面，不能使用onTabItemTap，可以使用[plus.nativeObj.view](http://www.html5plus.org/doc/zh_cn/nativeobj.html)放一个区块盖住原先的tabitem，并拦截点击事件。
 - onTabItemTap在App端，从HBuilderX 1.9 的自定义组件编译模式开始支持。
+- 避免在 onShow 里使用需要权限的 API（比如 setScreenBrightness() 等需要手机权限）, 可能会再次触发onShow造成死循环。
 
 ``onNavigationBarButtonTap`` 参数说明：
 
@@ -404,6 +408,7 @@ rpx 是相对于基准宽度的单位，可以根据屏幕宽度进行自适应�
 **注意：** 
 - 在 ```uni-app``` 中不能使用 ```*``` 选择器。
 - ```page``` 相当于 ```body``` 节点，例如：
+- 微信小程序自定义组件中仅支持 class 选择器
 ```css
 <!-- 设置页面背景颜色 -->
 page {
@@ -753,6 +758,9 @@ const package = require('packageName')
 
 ## TypeScript 支持
 在 uni-app 中使用 ts 开发，请参考 [Vue.js TypeScript 支持](https://cn.vuejs.org/v2/guide/typescript.html) 说明。
+
+
+类型定义文件由 @dcloudio/types 模块提供，安装后请注意配置 tsconfig.json 文件中的 compilerOptions > types 部分，如需其他小程序平台类型定义也可以安装，如：miniprogram-api-typings、mini-types。对于缺少或者错误的类型定义，可以自行在本地新增或修改并同时报告给官方请求更新。
 
 ### 注意事项
 在 uni-app 中使用 ts 需要注意以下事项。
@@ -1325,8 +1333,9 @@ renderjs，以 vue 组件的写法运行在 view 层。
 
 ### 注意事项
 
-* 可以使用 dom、bom API 不可直接访问逻辑层数据
-* 视图层和逻辑层通讯方式与 [WXS](?id=wxs) 一致
+* 可以使用 vue 组件的声明周期不可以使用 App、Page 的声明周期
+* 可以使用 dom、bom API，不可直接访问逻辑层数据，不可以使用 uni 相关接口（如：uni.request）
+* 视图层和逻辑层通讯方式与 [WXS](frame?id=wxs) 一致，另外可以通过 this.$ownerInstance 获取当前组件的 ComponentDescriptor 实例
 * 观测更新的数据在 view 层可以直接访问到
 * 不要直接引用大型类库，推荐通过动态创建 script 方式引用
 * view 层的页面引用资源的路径相对于根目录计算，例如：./static/test.js

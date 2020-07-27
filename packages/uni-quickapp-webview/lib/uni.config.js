@@ -30,6 +30,7 @@ module.exports = {
     filterTag: 'qjs'
   },
   validate (platformOptions, manifestJson) {
+    Object.assign(platformOptions, manifestJson['quickapp-webview'] || {}, platformOptions)
     if (!platformOptions.package) {
       console.warn('manifest.json->quickapp-webview 缺少 package 配置')
     }
@@ -51,10 +52,5 @@ module.exports = {
     }
 
     return copyOptions
-  },
-  configureWebpack () {
-    return {
-      devtool: process.env.NODE_ENV === 'production' ? false : 'inline-source-map'
-    }
   }
 }

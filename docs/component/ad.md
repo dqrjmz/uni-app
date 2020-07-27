@@ -7,9 +7,9 @@
 
 **平台差异说明**
 
-|App|H5|微信小程序|支付宝小程序|百度小程序|字节跳动小程序|QQ小程序|
-|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-|√（2.5.2+）|x|√|x|√|√|√|
+|App|H5|微信小程序|支付宝小程序|百度小程序|字节跳动小程序|QQ小程序|快应用|360小程序|
+|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+|√（2.5.2+）|√（2.8.3+）|√|x|√|√|√|x|x|
 
 
 **开通配置广告**
@@ -70,9 +70,13 @@ App和微信小程序的ad组件没有type属性，可以用于banner，也可�
 - 微信小程序 `<ad>` 组件不支持触发 tap 等触摸相关事件
 - Android 平台 nvue的 `<list>` 组件中使用 `<ad>` 时，必须指定宽度属性`<ad width="750rpx" />`，因为 `<list>` 有自动的内存回收机制，不在屏幕范围的组件不被创建，组件内部无法获取大小
 - 广点通概率出现重复广告，可根据需求请求广告数据，推荐单次大于1条(plus.ad.getAds) 来降低重复率
-- vue 页面使用 `<ad>` 暂不支持非 V3 编译，manifest.json 可配置
+- app-vue 页面使用 `<ad>` 不支持非 V3 编译，必须使用v3编译器。
 - `<recycle-list>` 暂不支持 `<ad>`
-- app-vue|QQ是客户端原生组件，层级最高无法被覆盖，app-nvue|微信|头条没有层级覆盖问题
+- app-vue|QQ是客户端[原生组件](https://uniapp.dcloud.io/component/native-component)，层级最高无法被覆盖，app-nvue|微信|头条没有层级覆盖问题
+- app-vue 无法在 `<swiper>` 组件中使用`<ad>`
+- app-vue 不能在 `<scroll-view>` 组件中使用 `<ad>`，仅适用于页面级的滚动
+- HBuilderX2.8+版本Android平台更新穿山甲（今日头条）广告SDK后不再支持x86类型CPU，无法运行到x86类型cpu的模拟器。
+- `<ad>` 组件测试广告位是上图下文，uniAD后台申请的广告位默认左图右文
 
 **@error 错误码**
 - App端聚合的穿山甲：[错误码](https://ad.oceanengine.com/union/media/doc?id=5de4cc6d78c8690012a90aa5)
@@ -91,6 +95,37 @@ App和微信小程序的ad组件没有type属性，可以用于banner，也可�
 |4|下载失败|
 |5| 下载取消|
 |6|已安装|
+
+
+### H5平台 (2.8.3+)
+```html
+<template>
+  <view class="content">
+    <!-- H5平台 adpid在uniAD后台申请，支持复用 App 平台广告位-->
+    <view class="ad-view">
+      <ad adpid=""></ad>
+    </view>
+  </view>
+</template>
+```
+
+**注意:**
+- `H5` 广告需要校验域名，开发时不支持使用 localhost/ip，本机调试可配置 `host` 测试
+- 不支持 file 协议中使用
+
+
+### H5平台错误码
+
+|code|message|
+|:-|:-|
+|3001|非法请求|
+|3002|未找到此广告位|
+|3003|域名未校验，请先通过uniAD后台 [uniad.dcloud.net.cn](https://uniad.dcloud.net.cn/) 效验域名|
+|3004|遇到错误，请稍后重试|
+|3005|未找到H5广告配置信息|
+|3006|未找到任何广告位|
+|3007|域名未校验或包含端口号，请先通过 [uniad.dcloud.net.cn](https://uniad.dcloud.net.cn/) 效验域名|
+
 
 
 **示例：**
@@ -207,6 +242,6 @@ export default {
 
 **注意**
 - App端广告开通指南和收益相关问题：[https://ask.dcloud.net.cn/article/36769](https://ask.dcloud.net.cn/article/36769)
-- App端除了ad组件，还支持开屏。详见[uni-AD官网](https://uniad.dcloud.net.cn/)
+- App端除了ad组件，还支持开屏、激励视频等多种广告形式。详见[uni-AD官网](https://uniad.dcloud.net.cn/)
 - App端uni-AD聚合了腾讯广点通、头条穿山甲、360广告联盟等服务，打包时必须勾选相应的sdk，详见：[https://ask.dcloud.net.cn/article/36718](https://ask.dcloud.net.cn/article/36718)
 ![](https://img-cdn-qiniu.dcloud.net.cn/uploads/article/20200115/10b714ce030ce2032a9d9b0bdd0ae03a.jpg)

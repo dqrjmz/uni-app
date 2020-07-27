@@ -85,7 +85,7 @@
   "easycom": {
     "autoscan": true, //是否自动扫描组件
     "custom": {//自定义扫描规则
-      "uni-(.*)": "@/components/uni-$1.vue"
+      "^uni-(.*)": "@/components/uni-$1.vue"
     }
   }
 }
@@ -108,7 +108,7 @@
 |backgroundColorTop|HexColor|#ffffff|顶部窗口的背景色（bounce回弹区域）|仅 iOS 平台|
 |backgroundColorBottom|HexColor|#ffffff|底部窗口的背景色（bounce回弹区域）|仅 iOS 平台|
 |titleImage|String||导航栏图片地址（替换当前文字标题），支付宝小程序内必须使用https的图片链接地址|支付宝小程序、H5、APP|
-|transparentTitle|String|none|导航栏透明设置。支持 always 一直透明 / auto 滑动自适应 / none 不透明|支付宝小程序、H5、APP|
+|transparentTitle|String|none|导航栏整体（前景、背景）透明设置。支持 always 一直透明 / auto 滑动自适应 / none 不透明|支付宝小程序、H5、APP|
 |titlePenetrate|String|NO|导航栏点击穿透|支付宝小程序、H5|
 |pageOrientation|String|portrait|横屏配置，屏幕旋转设置，仅支持 auto / portrait / landscape 详见 [响应显示区域变化](https://developers.weixin.qq.com/miniprogram/dev/framework/view/resizable.html)|App 2.4.7+、微信小程序|
 |animationType|String|pop-in|窗口显示的动画效果，详见：[窗口动画](api/router?id=animation)|App|
@@ -763,8 +763,8 @@ h5 平台下拉刷新动画，只有 circle 类型。
 "easycom": {
   "autoscan": true,
   "custom": {
-    "uni-(.*)": "@/components/uni-$1.vue", // 匹配components目录内的vue文件
-    "vue-file-(.*)": "packageName/path/to/vue-file-$1.vue" // 匹配node_modules内的vue文件
+    "^uni-(.*)": "@/components/uni-$1.vue", // 匹配components目录内的vue文件
+    "^vue-file-(.*)": "packageName/path/to/vue-file-$1.vue" // 匹配node_modules内的vue文件
   }
 }
 ```
@@ -906,7 +906,15 @@ midButton没有pagePath，需监听点击事件，自行处理点击后的行为
 
 # subPackages
 
-分包加载配置，此配置为小程序的分包加载机制。在App里始终为整包。
+分包加载配置，此配置为小程序的分包加载机制。
+
+因小程序有体积和资源加载限制，各家小程序平台提供了分包方式，优化小程序的下载和启动速度。
+
+所谓的主包，即放置默认启动页面/TabBar 页面，以及一些所有分包都需用到公共资源/JS 脚本；而分包则是根据pages.json的配置进行划分。
+
+在小程序启动时，默认会下载主包并启动主包内页面，当用户进入分包内某个页面时，会把对应分包自动下载下来，下载完成后再进行展示。此时终端界面会有等待提示。
+
+App默认为整包。从uni-app 2.7.12+ 开始，也兼容了小程序的分包配置。其目的不用于下载提速，而用于首页是vue时的启动提速。App下开启分包，除在pages.json中配置分包规则外，还需要在manifest中设置在app端开启分包设置，详见：[https://uniapp.dcloud.io/collocation/manifest?id=app-vue-optimization](https://uniapp.dcloud.io/collocation/manifest?id=app-vue-optimization)
 
 subPackages 节点接收一个数组，数组每一项都是应用的子包，其属性值如下：
 
@@ -918,8 +926,10 @@ subPackages 节点接收一个数组，数组每一项都是应用的子包，�
 **注意：** 
 
 - ```subPackages``` 里的pages的路径是 ``root`` 下的相对路径，不是全路径。
-- 微信、百度小程序每个分包的大小是2M，总体积一共不能超过8M。
+- 微信小程序每个分包的大小是2M，总体积一共不能超过16M。
+- 百度小程序每个分包的大小是2M，总体积一共不能超过8M。
 - 支付宝小程序每个分包的大小是2M，总体积一共不能超过4M。
+- QQ小程序每个分包的大小是2M，总体积一共不能超过24M。
 - 分包下支持独立的 ```static``` 目录，用来对静态资源进行分包。
 - `uni-app`内支持对微信小程序、QQ小程序、百度小程序分包优化，即将静态资源或者js文件放入分包内不占用主包大小。详情请参考：[关于分包优化的说明](/collocation/manifest?id=关于分包优化的说明)
 - 针对`vendor.js`过大的情况可以使用运行时压缩代码
@@ -991,12 +1001,18 @@ subPackages 节点接收一个数组，数组每一项都是应用的子包，�
 
 # preloadRule 
 
-分包预载配置，`preloadRule` 中，`key` 是页面路径，`value` 是进入此页面的预下载配置，每个配置有以下几项：
+分包预载配置。
+
+配置preloadRule后，在进入小程序某个页面时，由框架自动预下载可能需要的分包，提升进入后续分包页面时的启动速度
+
+`preloadRule` 中，`key` 是页面路径，`value` 是进入此页面的预下载配置，每个配置有以下几项：
 
 |字段|类型|必填|默认值|说明|
 |---|---|---|---|---|
 |packages|StringArray	|是|无|进入页面后预下载分包的 root 或 name。__APP__ 表示主包。|
 |network|String|否	|wifi|在指定网络下预下载，可选值为：all（不限网络）、wifi（仅wifi下预下载）|
+
+app的分包，同样支持preloadRule，但网络规则无效。
 
 # FAQ
 - Q：为什么在pages.json里配置小程序定位权限描述，无法编译到小程序端，运行后一直提示getLocation需要在app.json中声明

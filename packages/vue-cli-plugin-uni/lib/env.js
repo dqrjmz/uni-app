@@ -72,10 +72,11 @@ if (process.env.UNI_CLOUD_SPACES) {
 
 if (
   process.UNI_CLOUD &&
+  !process.env.UNI_SUB_PLATFORM &&
   process.env.UNI_PLATFORM === 'h5' &&
   process.env.NODE_ENV === 'production'
 ) {
-  console.warn('发布H5，需要在uniCloud后台操作，绑定安全域名，否则会因为跨域问题而无法访问。教程参考：https://uniapp.dcloud.io/uniCloud/quickstart-H5')
+  console.warn('发布H5，需要在uniCloud后台操作，绑定安全域名，否则会因为跨域问题而无法访问。教程参考：https://uniapp.dcloud.io/uniCloud/quickstart?id=useinh5')
 }
 
 // 初始化环境变量
@@ -360,6 +361,7 @@ moduleAlias.addAlias('mpvue-template-compiler', '@dcloudio/vue-cli-plugin-uni/pa
 moduleAlias.addAlias('vue-loader', '@dcloudio/vue-cli-plugin-uni/packages/vue-loader')
 
 if (process.env.UNI_USING_V3 && process.env.UNI_PLATFORM === 'app-plus') {
+  moduleAlias.addAlias('./runtime/getUrl.js', '@dcloudio/vue-cli-plugin-uni/lib/app-plus/getUrl.js')
   moduleAlias.addAlias('../runtime/getUrl.js', '@dcloudio/vue-cli-plugin-uni/lib/app-plus/getUrl.js')
   moduleAlias.addAlias('vue-style-loader', '@dcloudio/vue-cli-plugin-uni/packages/app-vue-style-loader')
 }

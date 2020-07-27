@@ -1,5 +1,7 @@
 **本章内容仅针对腾讯云开发，阿里侧暂不支持**
 
+默认情况下所有用户都是通过匿名登录访问云函数以及云存储的，自定义登录提供了在云端区分用户身份的能力。比如云存储权限配置为仅创建者可写时，文件上传者的userId和当前用户的userId一致时才可以覆盖该文件。
+
 ## 名词解释
 
 - Ticket（票据）：由云函数调用`createTicket`返回的票据，用于客户端使用票据进行登录操作
@@ -68,7 +70,7 @@ auth.getLoginState().then(loginState => {
 |字段					|类型		|是否必备	|说明														|
 |:-:					|:-:		|:-:			|:-:														|
 |uid					|string	|是				|用户在云开发的唯一ID						|
-<!-- |customUserId	|string	|否				|用户使用云Token传入的用户Id	| -->
+|customUserId	|string	|否				|用户使用自定义登录传入的用户Id	|
 
 **示例代码**
 
@@ -88,7 +90,7 @@ auth.signInWithTicket('YourTicket').then(() => {
 
 ### 第一步：获取私钥文件
 
-登录uniCloud控制台[uniCloud控制台](http://unicloud.dcloud.net.cn/)，在`云token`中，点击“生成并下载”
+登录uniCloud控制台[uniCloud控制台](http://unicloud.dcloud.net.cn/)，在`自定义登录`中，点击“生成并下载”
 
 **注意：重复生成私钥会使之前生成的私钥失效，并导致用户登录状态失效**
 
@@ -102,6 +104,8 @@ auth.signInWithTicket('YourTicket').then(() => {
 
 每个用户的`customUserId`不能相同，每次用户重新登录时，原有的登录态将会失效。
 
+**Ticket一般在验证了用户名密码成功之后下发**
+
 ```js
 let customUserId = '123456';
 
@@ -110,33 +114,6 @@ const ticket = uniCloud.auth().createTicket(customUserId, {
 });
 // 然后把 ticket 发送给客户端
 ```
-
-<!-- ### 在开发者服务器创建登录凭据
-
-获取私钥文件之后，在服务端 SDK 初始化时，加入私钥文件的路径：
-
-```js
-// 开发者的服务端代码
-// 初始化示例
-const tcb = require('tcb-admin-node');
-
-// 1. 直接使用下载的私钥文件
-tcb.init({
-  // ...
-  spaceId: 'your-space-id',
-  credentials: require('/path/to/your/tcb_custom_login.json')
-});
-
-// 2. 也可以直接传入私钥的内容
-tcb.init({
-  // ...
-  spaceId: 'your-space-id',
-  credentials: {
-    private_key_id: 'xxxxxxxxxxxxx',
-    private_key: 'xxxxxxxxxxx'
-  }
-});
-``` -->
 
 ### 第三步：客户端上使用Ticket登录
 
@@ -158,8 +135,8 @@ uniCloud允许开发者使用匿名登录的方式进行静默授权，可以避
 
 #### 匿名用户转化为正式用户
 目前uniCloud支持将匿名用户转化为正式用户，此转正用户将会继承匿名用户在云端创建的资源，流程如下：
-1. 首先需要按照[登录流程](#cloudtoken)搭建获取云Token凭证`ticket`的服务；
-2. 客户端请求接口获取云Token凭证`ticket`。**请注意**，此`ticket`必须未注册过uniCloud，换句话说，匿名用户只能转化为新的uniCloud用户；
+1. 首先需要按照[登录流程](#cloudtoken)搭建获取自定义登录凭证`ticket`的服务；
+2. 客户端请求接口获取自定义登录凭证`ticket`。**请注意**，此`ticket`必须未注册过uniCloud，换句话说，匿名用户只能转化为新的uniCloud用户；
 3. 客户端调用`auth.linkAndRetrieveDataWithTicket`API，如下：
 ```js
 // 调用此API之前需先请求接口获取到ticket

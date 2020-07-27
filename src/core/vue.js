@@ -5,19 +5,23 @@ import {
   hasLifecycleHook
 } from 'uni-helpers/index'
 
-export default function initVue(Vue) {
-  // 异常捕获
-  // Vue全局性的异常捕获
-  Vue.config.errorHandler = function (err) {
-    // getApp是否函数，调用得到app实例
+export default function initVue (Vue) {
+  Vue.config.errorHandler = function (err, vm, info) {
+    Vue.util.warn(`Error in ${info}: "${err.toString()}"`, vm)
     const app = typeof getApp === 'function' && getApp()
     // 有生命周期钩子函数onError
     if (app && hasLifecycleHook(app.$options, 'onError')) {
       // 调用onError钩子函数
       app.__call_hook('onError', err)
     } else {
-      // 打印错误日志
-      console.error(err)
+      if (__PLATFORM__ === 'app-plus' && process.env.NODE_ENV !== 'production') {
+        console.error(`
+  ${err.message}
+  ${err.stack}
+  `)
+      } else {
+        console.error(err)
+      }
     }
   }
 
@@ -42,7 +46,6 @@ export default function initVue(Vue) {
     if (~conflictTags.indexOf(tag)) { // svg 部分标签名称与 uni 标签冲突
       return false
     }
-    // 老的获取标签命名空间的方法
-    return oldGetTagNamespace(tag) || false
+    return oldGetTagNamespace(tag)
   }
 }

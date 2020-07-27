@@ -135,7 +135,7 @@ vue页面在App端的渲染引擎默认是系统webview（不是手机自带浏�
 <img src="https://img-cdn-qiniu.dcloud.net.cn/uploads/article/20181116/6ab94f68e109bb07e4f422c95a2c9015.png" width="500">
 </div>
     2. 点击菜单 发行-> H5
-    3. 在当下项目下的 ``unpackage/dist/build/h5`` 目录找到出的资源，部署服务器（或者使用本地服务器预览）
+    3. 在当下项目下的 ``unpackage/dist/build/h5`` 目录找到出的资源，部署服务器（或者使用本地服务器预览），如需部署到相对路径（支持本地file协议打开）参考：https://ask.dcloud.net.cn/article/37432。
 
 * 引用第三方 js 的方式：
     1. 通过 npm 引入（通过条件编译，只有是 h5 平台才 import 相应的库）
@@ -264,3 +264,21 @@ pages 配置
 },
 ```
 [360小程序文档](https://mp.360.cn/doc/miniprogram/dev/#/)
+
+
+
+#### 快应用开发注意@quickapp
+* HBuilderX 2.7.12+ alpha 版支持
+
+##### quickapp-webview
+- 目前仅vivo oppo支持
+- 最小平台版本支持需要 1063
+- 暂不支持 canvas 组件
+
+##### quickapp-webview-huawei
+- Huawei QuickApp IDE 最低版本 2.5.2 （已知该版本工具有个bug：不支持项目名称中包含空格）
+- 最小平台版本支持需要 1070
+- 暂不支持 `uni.login(OBJECT)`，暂时使用条件编译，参考文档 [https://developer.huawei.com/consumer/cn/doc/development/quickApp-References/webview-api-hwaccount](https://developer.huawei.com/consumer/cn/doc/development/quickApp-References/webview-api-hwaccount)
+- 暂不支持 支付，支付依赖`uni.login(OBJECT)`
+- 页面有滚动条时 canvas 组件不会跟随页面滚动
+- rich-text 组件某些情况下显示异常

@@ -21,7 +21,7 @@
 |cursor|Number||指定focus时的光标位置||
 |selection-start|Number|-1|光标起始位置，自动聚集时有效，需与selection-end搭配使用||
 |selection-end|Number|-1|光标结束位置，自动聚集时有效，需与selection-start搭配使用||
-|adjust-position|Boolean|true|键盘弹起时，是否自动上推页面|App-Android（softinputMode 为 adjustResize 时无效）、微信小程序、百度小程序、QQ小程序|
+|adjust-position|Boolean|true|键盘弹起时，是否自动上推页面|App-Android（vue 页面 softinputMode 为 adjustResize 时无效）、微信小程序、百度小程序、QQ小程序|
 |hold-keyboard|boolean|false|focus时，点击页面的时候不收起键盘|微信小程序2.8.2|
 |@input|EventHandle||当键盘输入时，触发input事件，event.detail = {value}|差异见下方 Tips|
 |@focus|EventHandle||输入框聚焦时触发，event.detail = { value, height }，height 为键盘高度|仅微信小程序、App（2.2.3+） 、QQ小程序支持 height|
@@ -40,7 +40,7 @@
 |值|说明|平台差异说明|
 |:-|:-|:-|
 |text|文本输入键盘||
-|number|数字输入键盘|注意iOS的vue页面弹出的数字键盘并非9宫格方式|
+|number|数字输入键盘|均支持，注意iOS上app-vue弹出的数字键盘并非9宫格方式|
 |idcard|身份证输入键盘|微信、支付宝、百度、QQ小程序|
 |digit|带小数点的数字键盘|App的nvue页面、微信、支付宝、百度、头条、QQ小程序|
 
@@ -89,7 +89,7 @@ this.$scope.$getAppWebview().setStyle({
 //this.$scope.$getAppWebview()相当于html5plus里的plus.webview.currentWebview()。在uni-app里vue页面直接使用plus.webview.currentWebview()无效，非v3编译模式使用this.$mp.page.$getAppWebview()
 ```
 
-如果是nvue页面，默认就没有键盘上方的横条，无需任何设置。
+如果是nvue页面，iOS默认就没有键盘上方的横条，无需任何设置。
 
 #### 关于软键盘弹出的逻辑说明
 
@@ -125,9 +125,11 @@ App平台软键盘弹出有 adjustResize|adjustPan 两种模式，默认为 adju
 - 原生输入框在iOS上不会有软键盘上方的横条
 - 原生输入框一样受配置的`adjustPan|adjustResize`模式影响
 
-**input示例** [查看演示](https://uniapp.dcloud.io/h5/pages/component/input/input)
+**input示例** [查看演示](https://hellouniapp.dcloud.net.cn/pages/component/input/input)
  
+以下示例代码，来自于[hello uni-app项目](https://github.com/dcloudio/hello-uniapp)，推荐使用HBuilderX，新建uni-app项目，选择hello uni-app模板，可直接体验完整示例。
 ```html
+<!-- 本示例未包含完整css，获取外链css请参考上文，在hello uni-app项目中查看 -->
 <template>
 	<view>
 		<view class="uni-common-mt">

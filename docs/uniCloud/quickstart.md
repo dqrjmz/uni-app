@@ -1,7 +1,7 @@
 ## 创建uniCloud项目
   
   - 在 [HBuilderX 2.5.8+](https://www.dcloud.io/hbuilderx.html) 新建项目，选择uni-app项目，并勾选`启用uniCloud`
-  - 在右侧选择服务供应商（自`HBuilderX 2.6.7+`起开放腾讯云，目前腾讯云处于邀请试用阶段，如需试用可以发送邮件到`service@dcloud.io`，邮件内容需包括要试用腾讯云的DCloud账号）
+  - 在右侧选择服务供应商
 
 ![创建uniCloud项目](https://img.cdn.aliyun.dcloud.net.cn/uni-app/uniCloud/create-project.png)
 
@@ -18,7 +18,7 @@
 
 一个开发者可以拥有多个服务空间，每个服务空间都是一个独立的serverless云环境，不同服务空间之间的云函数、数据库、存储都是隔离的。
 
-**注：公测期间，选择腾讯云作为服务商时，只可以创建一个服务空间，并且需要申请。阿里云无限制**
+注：目前腾讯云仅提供一个服务空间。阿里云无限制
 
 服务空间和手机端项目是多对多绑定关系。同账号下，一个项目可以关联到多个服务空间。一个服务空间也可以被多个项目访问。
 
@@ -30,14 +30,15 @@
   
 **说明**
 
-- 如果未进行实名认证，会跳转至实名认证页面进行实名认证，等待实名认证审核之后可以开通服务空间
-- 创建服务空间可能需要几分钟的时间，可以在控制台查看是否创建完成
+- 如果未进行实名认证，会跳转至实名认证页面进行实名认证，等待实名认证审核之后可以开通服务空间。若腾讯云实名认证提示身份证下已创建过多账户，则需要在腾讯云官网注销不用的账户。
+- 创建服务空间可能需要几十秒的时间，可以在web控制台查看是否创建完成。
 - 一个应用，可以在[dev.dcloud.net.cn](https://dev.dcloud.net.cn)设置协作者（选择应用->设置项目成员），实现多人共同使用一个云服务空间。（需 HBuilderX 2.5.9+）
 
 ## 创建云函数
 
 `uniCloud`项目创建并绑定服务空间后，开发者可以在`cloudfunctions`目录右键创建云函数。
-![新建云函数](http://img.cdn.aliyun.dcloud.net.cn/uni-app/uniCloud/unicloud-02.png)
+
+![新建云函数](https://img.cdn.aliyun.dcloud.net.cn/uni-app/uniCloud/unicloud-02.png)
 
 创建后会以云函数名称为名生成一个特殊目录，该目录下自动生成index.js，是该云函数的入口文件，不可改名。如果该云函数还需要引入其他js，可在index.js入口文件中引用。
 
@@ -67,21 +68,84 @@ exports.main = async (event, context) => {
 
 ## 运行和调试云函数@rundebug
 
-编写云函数后，在项目管理器里右键点击该云函数的目录，在弹出菜单中可选择“上传部署云函数”、“上传并运行测试云函数”。如下图所示：
+编写云函数后，在项目管理器里右键点击该云函数的目录，在弹出菜单中可选择“本地运行云函数”、“上传部署云函数”、“上传并运行云函数”。
 
-前者仅完成部署，后者会在部署后同时运行，并打印日志出来。
+- 本地运行云函数：即在HBuilderX自带的node环境中运行选中的云函数。云函数连接的数据库和云存储，仍然在云端。（从HBuilderX 2.8.1起支持）
+- 上传部署云函数：将云函数部署到uniCloud服务空间，不会运行。（快捷键Ctrl+u）
+- 上传并运行云函数会：先上传云函数，并在云端立即执行该云函数。在部署后同时运行，并打印日志出来。有延时，调试时不如本地运行云函数快捷。
 
-在云函数对应的目录右键可以配置运行测试参数，如下图，选择之后会生成一个形如`${函数名}.param.json`的文件，此文件内容会在云函数`上传并运行`时作为参数传入云函数内。
-
-在云函数编辑器里，按`Ctrl+r`运行快捷键，或点工具栏的运行，还会直接看到上传并运行云函数的快捷指令。`Ctrl+r`然后回车或选`0`，即可高效的在控制台看到运行结果和日志输出。
-
-云函数目前无法断点debug，只能打印`console.log`看日志。
+在云函数编辑器里，按`Ctrl+r`运行快捷键（或点工具栏的运行），可看到运行云函数的若干菜单。`Ctrl+r`然后回车或选`0`，即可高效的在控制台看到运行结果和日志输出。如下图所示：
 
 ![](https://img.cdn.aliyun.dcloud.net.cn/uni-app/uniCloud/uniCloud-run-function.png)
 
+云函数目前无法断点debug，只能打印`console.log`看日志。
+
 ![](https://img.cdn.aliyun.dcloud.net.cn/uni-app/uniCloud/uniCloud-run-function-2.png)
 
-**运行云函数时配置运行测试参数**
+运行云函数时，如需要给云函数传参，除了在前端传参外，在调试阶段，可以通过配置json文件来传测试参数。
+
+在云函数对应的目录右键可以配置运行测试参数，如下图，选择之后会生成一个形如`${函数名}.param.json`的文件，此文件内容会在云函数`上传并运行`时作为参数传入云函数内。详细用法可参考：[配置运行测试参数](https://uniapp.dcloud.net.cn/uniCloud/quickstart?id=runparam)
+
+
+## 本地运行云函数注意事项@runlocal
+
+自2.8.1版本起HBuilderX支持云函数本地运行，调试云函数更加方便快捷。此外还可以方便批量导入数据及文件，不再受云函数超时限制。
+
+**目前只支持本地运行，debug断点还在开发中**
+
+#### 使用方式
+
+在项目管理器选择要本地运行的云函数，右键选择本地运行。或者打开这个云函数，按`ctrl+r`回车。
+
+- 如果没有安装本地运行插件，按照提示安装即可
+- 如需配置运行参数请参考[配置运行测试参数](https://uniapp.dcloud.net.cn/uniCloud/quickstart?id=runparam)
+
+![](https://img.cdn.aliyun.dcloud.net.cn/uni-app/uniCloud/uniCloud-local-1.jpg)
+
+#### 注意事项
+
+**使用公用模块**
+
+本地运行的云函数使用公用模块时需注意：
+
+- 需要在云函数内执行`npm install ../common/xxx`安装公共模块，详细请参考[云函数公用模块](uniCloud/cf-common.md)
+- 如果使用到加密的公共模块则此云函数不可本地运行
+
+**时区问题**
+
+uniCloud云端的云函数使用的时区是utc+0，本地运行时使用的是本机时间，中国一般是+8。在使用“时间戳”时两者没有差异，但如果要获取年、月、日、小时要注意时区的差异。
+
+以下方式可以获取指定时区的年、月、日、小时，可以参考一下
+
+```js
+// 获取偏移后的Date对象，例如utc+x时offset就传x
+function getOffsetDate (offset) {
+  return new Date(
+    Date.now() + (new Date().getTimezoneOffset() + (offset || 0) * 60) * 60000
+  )
+}
+
+// 获取utc+8的小时数
+const hour = getOffsetDate(8).getHours()
+
+// 获取时间戳无需使用此方式utc+0时间戳是与utc+8时间戳一致的
+```
+
+**数据与存储**
+
+请务必注意云函数在本地运行时依然是连接的云端数据库与存储
+
+云函数上传文件到云存储只有腾讯云支持。当然也可以在前端直接上传文件，此时阿里云腾讯云均支持。
+
+**Nodejs版本**
+
+服务空间所使用的nodejs版本为8.9，本地运行时使用的本地nodejs可能与服务空间的nodejs版本并不一致，在本地测试之后部署到云端也务必测试一下兼容性。
+
+**协作者**
+
+目前只开放了协作者本地使用腾讯云服务空间，协作者使用阿里云服务空间后续会开放。
+
+## 运行云函数时配置运行测试参数@runparam
 
 在云函数的上传运行菜单或右键菜单中，有`配置运行测试参数`的功能。
 
@@ -91,11 +155,26 @@ exports.main = async (event, context) => {
 
 在云函数目录右键运行云函数，也可以在云函数编辑器里，按`Ctrl+r`运行快捷键，或点工具栏的运行
 
-![](http://img.cdn.aliyun.dcloud.net.cn/uni-app/uniCloud/run-function-with-param-1.jpg)
+![](https://img.cdn.aliyun.dcloud.net.cn/uni-app/uniCloud/run-function-with-param-1.jpg)
 
 此时云函数运行会携带所配置的运行参数
 
-![](http://img.cdn.aliyun.dcloud.net.cn/uni-app/uniCloud/run-function-with-param-2.jpg)
+![](https://img.cdn.aliyun.dcloud.net.cn/uni-app/uniCloud/run-function-with-param-2.jpg)
+
+**模拟客户端类型**
+
+如果需要模拟客户端类型可以在运行参数内添加clientInfo字段
+
+```
+{
+  "otherParam": "***",
+  "clientInfo":{
+    CLIENT_SDK_VERSION: "1.0.0"
+    OS: "ios" // 系统类型 ios、android
+    PLATFORM: "h5" // 客户端类型 app-plus、h5、mp-weixin、mp-alipay等
+  }
+}
+```
 
 ## 手机端调用云函数
 在uni-app的前端代码中，通过`uniCloud.callFunction`方法调用云函数。详见[callFunction文档](https://uniapp.dcloud.io/uniCloud/functions?id=callfunction)
@@ -121,9 +200,9 @@ uniCloud.callFunction({
 
 ## 手机端看日志
 
-uni-app运行在各端，均可在查看手机端日志。额外的，在App真机运行模式下，在HBuilderX的真机运行控制台除了打印手机端日志，也会打印云函数输出的`console.log`。
+uni-app运行在HBuilderX内置浏览器和App环境时，在HBuilderX的控制台中，除了可以看普通手机端日志外，还可以直接看到云端的云函数里打印的console.log日志。
 
-**App端真机调试输出云函数日志，如下图所示**
+**示例**
 
 所执行云函数代码
 
@@ -139,24 +218,21 @@ exports.main = async (event, context) => {
 };
 ```
 
-日志输出
+H5端HBuilderX内置浏览器输出云函数日志，如下图所示（注意：日志在HBuilderX控制台输出）：
+
+![](https://img.cdn.aliyun.dcloud.net.cn/uni-app/uniCloud/uniCloud-function-log-h5.jpg)
+
+App端真机调试输出云函数日志，如下图所示：
 
 ![](https://img.cdn.aliyun.dcloud.net.cn/uni-app/uniCloud/uniCloud-function-log.png)
 
-- 运行到H5，需要在浏览器的控制台查看日志，但仅包含前端日志，不包含云函数内部的console.log。
-- 运行到小程序，需要在小程序开发工具的控制台查看日志，但仅包含前端日志，不包含云函数内部的console.log。
+
+- 如运行到小程序开发工具或外部浏览器，仅能在这些软件的调试控制台查看本地日志，不包含云函数里的console.log。
 
 uniCloud的[web控制台](https://unicloud.dcloud.net.cn/)可以查看线上云函数的所有运行日志，而不仅仅是开发时的运行日志。
 
-## 云函数公用模块@common
 
-文档已迁移至 [云函数公用模块](https://uniapp.dcloud.io/uniCloud/cf-common)
-
-## 使用db_init.json初始化项目数据库@db-init
-
-文档已迁移至 [使用db_init.json初始化项目数据库](https://uniapp.dcloud.io/uniCloud/cf-database?id=db_init)
-
-## 小程序中使用uniCloud
+## 小程序中使用uniCloud的白名单配置
 
 各家小程序平台，均要求在小程序管理后台配置小程序应用的联网服务器域名，否则无法联网。
 
@@ -164,10 +240,10 @@ uniCloud的[web控制台](https://unicloud.dcloud.net.cn/)可以查看线上云�
 
 根据下表，在小程序管理后台设置request合法域名、uploadFile合法域名（如没有上传文件业务，可不设置）。下表的域名均为阿里云或腾讯云自有域名，并非DCloud所属域名。
 
-|服务提供商	|request合法域名			|uploadFile合法域名					|
-|:-:		|:-:						|:-:								|
-|阿里云		|api.bspapp.com				|bsppub.oss-cn-shanghai.aliyuncs.com|
-|腾讯云		|tcb-api.tencentcloudapi.com|cos.ap-shanghai.myqcloud.com		|
+|服务提供商	|request合法域名			|uploadFile合法域名					|download合法域名｜
+|:-:		|:-:						|:-:								|:-:|
+|阿里云		|api.bspapp.com				|bsppub.oss-cn-shanghai.aliyuncs.com|需要从云存储下载文件的时候才需要配置，不同服务空间域名不同，可以在web控制台查看文件详情里面看到|
+|腾讯云		|tcb-api.tencentcloudapi.com|cos.ap-shanghai.myqcloud.com		|需要从云存储下载文件的时候才需要配置，不同服务空间域名不同，可以在web控制台查看文件详情里面看到|
 
 
 小程序开发工具的真机预览功能，必须添加上述域名白名单，否则无法调用云函数。模拟器的PC端预览、真机调试不受此影响。
@@ -177,9 +253,9 @@ uniCloud的[web控制台](https://unicloud.dcloud.net.cn/)可以查看线上云�
 - 获取日志需要从管理端调用云函数，速度比sdk直接调用慢。
 - 访问DCloud服务器也有时间损耗。
 
-后续会对此流程进行优化
+**2.7.13-alpha已对此流程进行优化，和阿里云一样由客户端直接调用云函数。**
 
-## H5中使用uniCloud@useinh5
+## H5中使用uniCloud的跨域处理@useinh5
 
 H5前端js访问云函数，涉及跨域问题，导致前端js无法连接云函数服务器。处理方式如下：。
 
@@ -192,7 +268,7 @@ H5前端js访问云函数，涉及跨域问题，导致前端js无法连接云�
 ![](https://img.cdn.aliyun.dcloud.net.cn/uni-app/uniCloud/uniCloud-add-domain.png)
 
 - 如果运行时，想使用外部浏览器运行，方案如下：
-  * 方式1：在uniCloud web控制台绑定测试期的地址为安全域名，如配置：localhost:8080、192.168.0.1:8080（腾讯云不支持配置本地地址，建议使用内置浏览器测试）
+  * 方式1：在uniCloud web控制台绑定测试期的地址为安全域名，如配置：localhost:8080、192.168.0.1:8080（建议直接使用内置浏览器测试）
   * 方式2：在外部浏览器安装跨域插件，详见：[https://ask.dcloud.net.cn/article/35267](https://ask.dcloud.net.cn/article/35267)。要跨域的地址，详见上述文档中小程序配置安全域名章节。
 
 ## cli项目中使用uniCloud
@@ -200,7 +276,7 @@ H5前端js访问云函数，涉及跨域问题，导致前端js无法连接云�
 如果要在cli项目中使用uniCloud，可以参考以下步骤
 
 1. 将cli项目导入`HBuilderX`
-2. 在项目根目录（src同级）创建`cloudfunctions-aliyun`或者`cloudfunctions-tencent`目录
+2. 在项目根目录（src同级）创建`cloudfunctions-aliyun`或者`cloudfunctions-tcb`目录
 3. 打开`src/manifest.json`，在`基础配置-->uni-app应用标示`处点击`重新获取`
 4. 在步骤2创建的目录右键关联服务空间
 5. 完成
@@ -208,20 +284,19 @@ H5前端js访问云函数，涉及跨域问题，导致前端js无法连接云�
 **注意**
 
 - 运行与发行只能使用HBuilderX的菜单，不可使用`package.json`内的命令
+- 如果HBuilderX菜单运行不能满足需求可以考虑自行初始化服务空间[服务空间初始化](uniCloud/init.md)
 
 **H5前端页面部署问题**
 
-uniCloud暂未支持H5前端页面部署，需开发者自行准备web服务器，在HBuilderX中点发行菜单，生成H5，将生成的前端文件部署在Nginx等web服务器下。
+uniCloud已支持前端页面部署，在HBuilderX中点发行菜单，生成H5，将生成的前端文件部署在uniCloud的前端网页托管内即可[详情参考](uniCloud/hosting.md)。
 
-然后自行注册或使用已有域名，在域名服务商处处理好域名的解析，指向你的Nginx等服务器ip。
-
-最后将该域名通过[uniCloud web控制台](https://unicloud.dcloud.net.cn) 配置为安全域名，即可在浏览器中访问。
+需要注意的是你仍在[uniCloud web控制台](https://unicloud.dcloud.net.cn) 配置H5安全域名。
 
 **m3w.cn二级域名申请**
 
 若为新冠抗疫需紧急上线H5，来不及注册域名，可申请使用DCloud提供的m3w.cn的二级域名，示例：[hellounicloud.m3w.cn](https://hellounicloud.m3w.cn) 。此时请使用你注册DCloud账户的邮箱向service@dcloud.io发邮件申请，提供你的appid、计划使用的二级域名名称、解析的ip地址、应用的使用用途。
 
-如果不发布H5，使用uniCloud不需要自己申请或准备域名。App和小程序里直接调用云函数即可。
+如果不发布H5，则不需要自己申请或准备域名。App和小程序里直接调用云函数即可，无需域名。
 
 
 **Tips**
