@@ -38,6 +38,7 @@ export function isTaskApi (name) {
 }
 
 function handlePromise (promise) {
+  // 调用Promise ，格式化返回值
   return promise.then(data => {
     return [null, data]
   })
@@ -48,8 +49,11 @@ function handlePromise (promise) {
 // 不能promise化的api
 export function shouldPromise (name) {
   if (
+    // 上下文api
     isContextApi(name) ||
+    // 同步api
     isSyncApi(name) ||
+    // 回调api
     isCallbackApi(name)
   ) {
     return false
@@ -70,11 +74,22 @@ if (!Promise.prototype.finally) {
   }
 }
 
+/**
+ * 
+ * @param {*} name 
+ * @param {*} api 
+ */
 export function promisify (name, api) {
+  // 是否可以Promise化
   if (!shouldPromise(name)) {
+    // 不能直接返回
     return api
   }
+  /**
+   * 
+   */
   return function promiseApi (options = {}, ...params) {
+    // 成功 失败 完成 是函数
     if (isFn(options.success) || isFn(options.fail) || isFn(options.complete)) {
       return wrapperReturnValue(name, invokeApi(name, api, options, ...params))
     }

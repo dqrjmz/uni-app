@@ -1,3 +1,7 @@
+
+/**
+ * uniapp 内置的标签
+ */
 module.exports = [
   'uni-app',
   'uni-tabbar',

@@ -36,10 +36,13 @@ export default function initVue(Vue) {
   // uniapp与html冲突标签
   const conflictTags = ['switch', 'image', 'text', 'view']
 
+  // 获取标签的名称空间
   Vue.config.getTagNamespace = function (tag) {
+    // ~ -1 为 0, 冲突标签返回false,没有名称空间
     if (~conflictTags.indexOf(tag)) { // svg 部分标签名称与 uni 标签冲突
       return false
     }
+    // 老的获取标签命名空间的方法
     return oldGetTagNamespace(tag) || false
   }
 }

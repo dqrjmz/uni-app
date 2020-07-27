@@ -28,6 +28,7 @@ export default {
     this._$noop = noop
   },
   created () { // properties 中可能会访问 methods,故需要在 created 中初始化
+    // 创建
     initState(this)
     initMethods(this)
     initRelations(this)

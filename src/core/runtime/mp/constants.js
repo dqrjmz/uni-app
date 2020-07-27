@@ -20,6 +20,9 @@ export const PAGE_LIFETIMES = {
 
 export const PAGE_LIFETIMES_KEYS = Object.keys(PAGE_LIFETIMES)
 
+/**
+ * 小程序的生命周期
+ */
 export const PAGE_LIFECYCLE = [
   'onLoad',
   'onShow',

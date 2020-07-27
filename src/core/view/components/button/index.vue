@@ -47,10 +47,16 @@ export default {
     }
   },
   methods: {
+    /**
+     * 点击事件
+     * @param {} $event 事件对象
+     */
     _onClick ($event, isLabelClick) {
+      // 按钮不可用
       if (this.disabled) {
         return
       }
+      // 标签点击
       if (isLabelClick) {
         this.$el.click()
       }
@@ -103,17 +109,28 @@ export default {
       return data
     }
   },
+  /**
+   * 渲染函数
+   * @param {} createElement 创建vnode
+   */
   render (createElement) {
+    // 定义一个没有原型链的对象
     const $listeners = Object.create(null)
+    // 组件身上绑定的事件
     if (this.$listeners) {
+      // 遍历监听器
       Object.keys(this.$listeners).forEach(e => {
+        // 按钮可用 && 是click tap 事件，直接返回
         if (this.disabled && (e === 'click' || e === 'tap')) {
           return
         }
+        // 将事件复制到 $listeners 对象上
         $listeners[e] = this.$listeners[e]
       })
     }
+    // 有hover类 && 值不为 none
     if (this.hoverClass && this.hoverClass !== 'none') {
+      // 创建vnode
       return createElement(
         'uni-button',
         this._bindObjectListeners(

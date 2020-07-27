@@ -8,6 +8,10 @@ import {
   findElm
 } from './util'
 
+/**
+ * 获取根信息
+ * @param {*} fields 
+ */
 function getRootInfo (fields) {
   const info = {}
   if (fields.id) {
@@ -33,6 +37,11 @@ function getRootInfo (fields) {
   return info
 }
 
+/**
+ * 获取节点信息
+ * @param {*} el 
+ * @param {*} fields 
+ */
 function getNodeInfo (el, fields) {
   const info = {}
   const {
@@ -112,6 +121,7 @@ export function requestComponentInfo ({
   reqId,
   reqs
 }, pageId) {
+  // 获取当前页面的历史栈
   const pages = getCurrentPages() // 跨平台时，View 层也应该实现该方法，举例 App 上，View 层的 getCurrentPages 返回长度为1的当前页面数组
 
   const page = pages.find(page => page.$page.id === pageId)

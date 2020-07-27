@@ -2,6 +2,10 @@ const path = require('path')
 
 const t = require('@babel/types')
 
+/**
+ * 生成js代码
+ * @param {*} properties
+ */
 function generateJsCode (properties = '{}') {
   return `
 wx.createComponent({
@@ -12,18 +16,27 @@ wx.createComponent({
 `
 }
 
+/**
+ * 对象有自己的属性
+ * @param {*} obj 
+ * @param {*} key 
+ */
 function hasOwn (obj, key) {
   return Object.prototype.hasOwnProperty.call(obj, key)
 }
 
 module.exports = {
+  // 指令
   directive: 'wx:',
+  // 创建作用域插槽
   createScopedSlots (slotName, props, state) {
+    // 组件名称
     const componentName = 'scoped-slots-' + slotName
     if (!state.componentGenerics) {
       state.componentGenerics = Object.create(null)
     }
 
+    // 
     state.componentGenerics[componentName] = true
 
     return {
@@ -65,6 +78,7 @@ module.exports = {
     if (!state.files) {
       state.files = {}
     }
+    // 获取路径的扩展名
     const extname = path.extname(resourcePath)
 
     // TODO 需要存储 resourcePath 相关 json

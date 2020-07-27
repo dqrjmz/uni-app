@@ -28,30 +28,56 @@ import {
   wrapper
 } from 'uni-helpers/hidpi'
 
+/**
+ * 解析颜色
+ * @param {} color 颜色
+ */
 function resolveColor (color) {
+  // 复制颜色
   color = color.slice(0)
+  // 透明度计算
   color[3] = color[3] / 255
+  // 返回颜色
   return 'rgba(' + color.join(',') + ')'
 }
 
+/**
+ * 处理触摸点
+ * @param {} targt 目标对象
+ * @param {} touches 触摸点
+  */
 function processTouches (target, touches) {
+  // 遍历touches 类数组
   return ([]).map.call(touches, (touch) => {
+    // 获取目标对象的尺寸
     var boundingClientRect = target.getBoundingClientRect()
+    // 返回处理后的触摸点
     return {
       identifier: touch.identifier,
+      // 手指与canvas左边的距离
       x: touch.clientX - boundingClientRect.left,
+      // 手指与canvas上边的距离
       y: touch.clientY - boundingClientRect.top
     }
   })
 }
 
 var tempCanvas
+/**
+ * 获取临时canvas
+ * 
+ */
 function getTempCanvas (width = 0, height = 0) {
+  // 临时canvas不存在
   if (!tempCanvas) {
+    // 创建一个canvas
     tempCanvas = document.createElement('canvas')
   }
+  // 设置宽度
   tempCanvas.width = width
+  // 设置高度
   tempCanvas.height = height
+  // 返回canvas dom 对象
   return tempCanvas
 }
 
@@ -78,12 +104,18 @@ export default {
       return this.canvasId
     },
     _listeners () {
+      // 创建一个 合并 this.$listeners 对象的新对象
       var $listeners = Object.assign({}, this.$listeners)
+      // 监听的事件
       var events = ['touchstart', 'touchmove', 'touchend']
+      // 遍历事件
       events.forEach(event => {
+        // 获取当前事件的处理函数
         var existing = $listeners[event]
         var eventHandler = []
+        // 现存函数
         if (existing) {
+          // 添加处理函数
           eventHandler.push(($event) => {
             this.$trigger(event, Object.assign({}, $event, {
               touches: processTouches($event.currentTarget, $event.touches),
@@ -92,9 +124,12 @@ export default {
             }))
           })
         }
+        // 不能滚动 && 是touchmove事件
         if (this.disableScroll && event === 'touchmove') {
+          // 
           eventHandler.push(this._touchmove)
         }
+        // 给事件添加处理函数
         $listeners[event] = eventHandler
       })
       return $listeners
@@ -125,19 +160,33 @@ export default {
       }
     },
     _resize () {
+      // 获取 canvas dom
       var canvas = this.$refs.canvas
+      // 宽 高都大于 0
       if (canvas.width > 0 && canvas.height > 0) {
+        // 创建2d 上下文
         var context = canvas.getContext('2d')
+        // 获取图片数据（指定区域的像素）
         var imageData = context.getImageData(0, 0, canvas.width, canvas.height)
+        
         wrapper(this.$refs.canvas)
+        // 将像素重新放回canvas
         context.putImageData(imageData, 0, 0)
       } else {
         wrapper(this.$refs.canvas)
       }
     },
+    /**
+     * 触摸移动
+     * @param {} event
+     */
     _touchmove (event) {
+      // 阻止默认事件
       event.preventDefault()
     },
+    /**
+     * 新为改变
+     */
     actionsChanged ({
       actions,
       reserve,
@@ -151,7 +200,9 @@ export default {
         this._actionsDefer.push([actions, reserve, callbackId])
         return
       }
+      // 获取canvas节点
       var canvas = this.$refs.canvas
+      // 获取2d的上下文
       var c2d = canvas.getContext('2d')
       if (!reserve) {
         c2d.fillStyle = '#000000'
@@ -300,12 +351,14 @@ export default {
          * 加载图像
          */
         function loadImage () {
+          // 创建一个图片实例
           self._images[src] = new Image()
+          // 给图片对象绑定加载事件
           self._images[src].onload = function () {
             self._images[src].ready = true
           }
           /**
-           * 从Blob加载
+           * 从Blob加载 
            * @param {Blob} blob
            */
           function loadBlob (blob) {
@@ -355,22 +408,32 @@ export default {
             xhr.send()
           }
 
+          // 存在plus属性 && 不是webkit渲染引擎 || 没有信息处理
           if (window.plus && (!window.webkit || !window.webkit.messageHandlers)) {
+            // 加载图片
             self._images[src].src = src
           } else {
             // 解决 PLUS-APP（wkwebview）以及 H5 图像跨域问题（H5图像响应头需包含access-control-allow-origin）
+            // 本地文件加载
             if (window.plus && src.indexOf('http://') !== 0 && src.indexOf('https://') !==
               0) {
               loadFile(src)
+              // base64图片地址
             } else if (/^data:.*,.*/.test(src)) {
               self._images[src].src = src
             } else {
+              // 网络加载
               loadUrl(src)
             }
           }
         }
       })
     },
+    /**
+     * 查看图片是否被加载
+     * 图片地址
+     * 
+     */
     checkImageLoaded: function (src, actions, callbackId, fn) {
       var self = this
       var image = this._images[src]

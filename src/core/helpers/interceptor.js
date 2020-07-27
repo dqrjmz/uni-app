@@ -133,12 +133,21 @@ function wrapperOptions (interceptor, options = {}) {
   return options
 }
 
+/**
+ * 包裹返回值
+ * @param {*} method 方法
+ * @param {*} returnValue 返回值 
+ */
 export function wrapperReturnValue (method, returnValue) {
   const returnValueHooks = []
+  // 全局拦截器的返回值是数组
   if (Array.isArray(globalInterceptors.returnValue)) {
+    // 添加到返回值的hook中
     returnValueHooks.push(...globalInterceptors.returnValue)
   }
+  // 作用域下的拦截器
   const interceptor = scopedInterceptors[method]
+  // 存在 && 返回值为数组
   if (interceptor && Array.isArray(interceptor.returnValue)) {
     returnValueHooks.push(...interceptor.returnValue)
   }

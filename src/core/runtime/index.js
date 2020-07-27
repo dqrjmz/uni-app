@@ -97,6 +97,9 @@ if (typeof Proxy !== 'undefined' && __PLATFORM__ !== 'app-plus') {
     })
   }
 
+  /**
+   * 添加观察者模式的api
+   */
   Object.keys(eventApi).forEach(name => {
     uni[name] = eventApi[name]
   })

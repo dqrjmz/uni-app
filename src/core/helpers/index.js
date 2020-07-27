@@ -1,4 +1,9 @@
+// 系统异步加载  系统异步错误
 const components = ['SystemAsyncLoading', 'SystemAsyncError']
+/**
+ * 是否是页面
+ * @param {*} vm 组件
+ */
 export function isPage (vm) {
   // 组件有父组件 并且 父组件的名称为PageBody
   if (vm.$parent && vm.$parent.$options.name === 'PageBody') {

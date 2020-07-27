@@ -165,6 +165,7 @@ if (pixelRatio !== 1) {
 }
 
 export function wrapper (canvas) {
+  // canvas元素的宽，高 * 分辨率
   canvas.width = canvas.offsetWidth * pixelRatio
   canvas.height = canvas.offsetHeight * pixelRatio
   canvas.getContext('2d').__hidpi__ = true
