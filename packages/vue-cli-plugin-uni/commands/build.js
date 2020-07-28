@@ -17,7 +17,11 @@ const modifyConfig = (config, fn) => {
     fn(config)
   }
 }
-
+/**
+ * 
+ * @param {*} api PluginApi 
+ * @param {*} options vue.config.js 
+ */
 module.exports = (api, options) => {
   api.registerCommand('uni-build', {
     description: 'build for production',

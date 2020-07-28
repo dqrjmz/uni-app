@@ -42,7 +42,6 @@
     ],
     "globalStyle": {
         "backgroundTextStyle": "light",
-        "navigationBarBackgroundColor": "fafafa",
         "navigationBarTitleText": "一个",
         "navigationBarTextStyle": "black"
     },

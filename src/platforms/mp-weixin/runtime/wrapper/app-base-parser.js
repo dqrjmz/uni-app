@@ -5,7 +5,6 @@ import {
   initMocks
 } from 'uni-wrapper/util'
 
-
 // 应用生命周期函数
 const hooks = [
   'onShow',

@@ -28,7 +28,7 @@ export function hasLifecycleHook (vueOptions = {}, hook) {
 
 /**
  * 序列化dataSet = {}
- * @param {*} dataset 
+ * @param {*} dataset
  */
 export function normalizeDataset (dataset = {}) {
   // ios8.x,9.x Object.assign({},dataset) 始终返回 {}
@@ -64,7 +64,7 @@ export function normalizeDataset (dataset = {}) {
 
 /**
  * 将upx 转换到px
- * @param {} str 
+ * @param {} str
  */
 export function upx2px (str) {
   str = str + ''

@@ -1,6 +1,5 @@
 import Vue from 'vue';
 
-// 保存函数引用，使用时避免原型链查找
 const _toString = Object.prototype.toString;
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
@@ -23,15 +22,19 @@ function hasOwn (obj, key) {
   return hasOwnProperty.call(obj, key)
 }
 
-function noop () {}
+function noop () { }
 
 /**
  * Create a cached version of a pure function.
+ * 使用闭包，缓存数据
  */
 function cached (fn) {
+  // 创建一个没有原型链的对象
   const cache = Object.create(null);
   return function cachedFn (str) {
+    // 获取当前属性的值
     const hit = cache[str];
+    // 值存在返回，不存在，进行添加
     return hit || (cache[str] = fn(str))
   }
 }
@@ -174,12 +177,21 @@ function wrapperOptions (interceptor, options = {}) {
   return options
 }
 
+/**
+ * 包裹返回值
+ * @param {*} method 方法
+ * @param {*} returnValue 返回值
+ */
 function wrapperReturnValue (method, returnValue) {
   const returnValueHooks = [];
+  // 全局拦截器的返回值是数组
   if (Array.isArray(globalInterceptors.returnValue)) {
+    // 添加到返回值的hook中
     returnValueHooks.push(...globalInterceptors.returnValue);
   }
+  // 作用域下的拦截器
   const interceptor = scopedInterceptors[method];
+  // 存在 && 返回值为数组
   if (interceptor && Array.isArray(interceptor.returnValue)) {
     returnValueHooks.push(...interceptor.returnValue);
   }
@@ -260,16 +272,21 @@ function isCallbackApi (name) {
 }
 
 function handlePromise (promise) {
+  // 调用Promise ，格式化返回值
   return promise.then(data => {
     return [null, data]
   })
     .catch(err => [err])
 }
 
+// 不能promise化的api
 function shouldPromise (name) {
   if (
+    // 上下文api
     isContextApi(name) ||
+    // 同步api
     isSyncApi(name) ||
+    // 回调api
     isCallbackApi(name)
   ) {
     return false
@@ -290,11 +307,22 @@ if (!Promise.prototype.finally) {
   };
 }
 
+/**
+ *
+ * @param {*} name
+ * @param {*} api
+ */
 function promisify (name, api) {
+  // 是否可以Promise化
   if (!shouldPromise(name)) {
+    // 不能直接返回
     return api
   }
+  /**
+   *
+   */
   return function promiseApi (options = {}, ...params) {
+    // 成功 失败 完成 是函数
     if (isFn(options.success) || isFn(options.fail) || isFn(options.complete)) {
       return wrapperReturnValue(name, invokeApi(name, api, options, ...params))
     }
@@ -330,6 +358,7 @@ function upx2px (number, newDeviceWidth) {
     checkDeviceWidth();
   }
 
+  // 数据类型转换
   number = Number(number);
   if (number === 0) {
     return 0
@@ -423,7 +452,6 @@ const todos = [
 ];
 const canIUses = [];
 
-
 const CALLBACKS = ['success', 'fail', 'cancel', 'complete'];
 
 function processCallback (methodName, method, returnValue) {
@@ -474,9 +502,12 @@ function processReturnValue (methodName, res, returnValue, keepReturnValue = fal
 }
 
 function wrapper (methodName, method) {
+  // protocols 对象是否存在实例属性 methodName
   if (hasOwn(protocols, methodName)) {
+    // 获取这个实例属性
     const protocol = protocols[methodName];
-    if (!protocol) { // 暂不支持的 api
+    // 暂不支持的 api
+    if (!protocol) {
       return function () {
         console.error(`微信小程序 暂不支持${methodName}`);
       }
@@ -487,6 +518,7 @@ function wrapper (methodName, method) {
         options = protocol(arg1);
       }
 
+      // 处理函数参数
       arg1 = processArgs(methodName, arg1, options.args, options.returnValue);
 
       const args = [arg1];
@@ -531,6 +563,9 @@ function createTodoApi (name) {
   }
 }
 
+/**
+ * 遍历api
+ */
 TODOS.forEach(function (name) {
   todoApis[name] = createTodoApi(name);
 });
@@ -618,18 +653,22 @@ var api = /*#__PURE__*/Object.freeze({
   __proto__: null
 });
 
+// 装饰者模式，保存对象
 // 小程序中的全局变量
 const MPPage = Page;
 const MPComponent = Component;
 
+// 自定义正则
 const customizeRE = /:/g;
 
 const customize = cached((str) => {
+  // 将 : 转换为 -
   return camelize(str.replace(customizeRE, '-'))
 });
 
 function initTriggerEvent (mpInstance) {
   {
+    // nextTick不能使用,直接返回
     if (!wx.canIUse('nextTick')) {
       return
     }
@@ -640,6 +679,11 @@ function initTriggerEvent (mpInstance) {
   };
 }
 
+/**
+ * 初始化钩子函数
+ * @param {*} name
+ * @param {*} options
+ */
 function initHook (name, options) {
   const oldHook = options[name];
   if (!oldHook) {
@@ -654,9 +698,23 @@ function initHook (name, options) {
   }
 }
 
+/**
+ * options 页面中的参数
+ * 修改对象
+ */
 Page = function (options = {}) {
+  // 生命周期已经初始化好了
   initHook('onLoad', options);
   return MPPage(options)
+};
+
+/**
+ * 组件的创建
+ */
+Component = function (options = {}) {
+  // 调用创建完成钩子函数
+  initHook('created', options);
+  return MPComponent(options)
 };
 
 const PAGE_EVENT_HOOKS = [
@@ -1178,6 +1236,7 @@ function handleEvent (event) {
   }
 }
 
+// 应用生命周期函数
 const hooks = [
   'onShow',
   'onHide',
@@ -1190,12 +1249,14 @@ function parseBaseApp (vm, {
   mocks,
   initRefs
 }) {
+  // 状态容器
   if (vm.$options.store) {
     Vue.prototype.$store = vm.$options.store;
   }
 
   Vue.prototype.mpHost = "mp-weixin";
 
+  // 混合全局
   Vue.mixin({
     beforeCreate () {
       if (!this.$options.mpType) {
@@ -1232,6 +1293,7 @@ function parseBaseApp (vm, {
         }
       }
 
+      // 组件实例
       this.$vm = vm;
 
       this.$vm.$mp = {
@@ -1264,6 +1326,7 @@ function parseBaseApp (vm, {
   return appOptions
 }
 
+//
 const mocks = ['__route__', '__wxExparserNodeId__', '__wxWebviewId__'];
 
 function findVmByVueId (vm, vuePid) {
@@ -1500,6 +1563,7 @@ function createComponent (vueOptions) {
   }
 }
 
+// 将todo api设置为false
 todos.forEach(todoApi => {
   protocols[todoApi] = false;
 });
@@ -1507,6 +1571,7 @@ todos.forEach(todoApi => {
 canIUses.forEach(canIUseApi => {
   const apiName = protocols[canIUseApi] && protocols[canIUseApi].name ? protocols[canIUseApi].name
     : canIUseApi;
+  // 不能使用的api就是
   if (!wx.canIUse(apiName)) {
     protocols[canIUseApi] = false;
   }
@@ -1515,6 +1580,9 @@ canIUses.forEach(canIUseApi => {
 let uni = {};
 
 if (typeof Proxy !== 'undefined' && "mp-weixin" !== 'app-plus') {
+  /**
+   * 将api代理到uni全局对象上
+   */
   uni = new Proxy({}, {
     get (target, name) {
       if (target[name]) {
@@ -1564,6 +1632,9 @@ if (typeof Proxy !== 'undefined' && "mp-weixin" !== 'app-plus') {
     });
   }
 
+  /**
+   * 添加观察者模式的api
+   */
   Object.keys(eventApi).forEach(name => {
     uni[name] = eventApi[name];
   });

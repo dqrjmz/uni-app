@@ -3,39 +3,39 @@ const hasOwnProperty = Object.prototype.hasOwnProperty
 
 /**
  * 数值小于10添加0，大于9.原值返回
- * @param {*} value 
+ * @param {*} value
  */
 const _completeValue = value => {
   return value > 9 ? value : ('0' + value)
 }
 
 // 是否是函数
-export function isFn(fn) {
+export function isFn (fn) {
   return typeof fn === 'function'
 }
 
 // 是否是字符串
-export function isStr(str) {
+export function isStr (str) {
   return typeof str === 'string'
 }
 
-export function isObject(obj) {
+export function isObject (obj) {
   return obj !== null && typeof obj === 'object'
 }
 
-export function isPlainObject(obj) {
+export function isPlainObject (obj) {
   return _toString.call(obj) === '[object Object]'
 }
 
 // 是否有自己属性
-export function hasOwn(obj, key) {
+export function hasOwn (obj, key) {
   return hasOwnProperty.call(obj, key)
 }
 
-export function noop() { }
+export function noop () { }
 
 // 获取数据的类型
-export function toRawType(val) {
+export function toRawType (val) {
   return _toString.call(val).slice(8, -1)
 }
 
@@ -43,10 +43,10 @@ export function toRawType(val) {
  * Create a cached version of a pure function.
  * 使用闭包，缓存数据
  */
-export function cached(fn) {
+export function cached (fn) {
   // 创建一个没有原型链的对象
   const cache = Object.create(null)
-  return function cachedFn(str) {
+  return function cachedFn (str) {
     // 获取当前属性的值
     const hit = cache[str]
     // 值存在返回，不存在，进行添加
@@ -62,7 +62,7 @@ export const camelize = cached((str) => {
   return str.replace(camelizeRE, (_, c) => c ? c.toUpperCase() : '')
 })
 
-export function setProperties(item, props, propsData) {
+export function setProperties (item, props, propsData) {
   props.forEach(function (name) {
     if (hasOwn(propsData, name)) {
       item[name] = propsData[name]
@@ -70,8 +70,7 @@ export function setProperties(item, props, propsData) {
   })
 }
 
-
-export function getLen(str = '') {
+export function getLen (str = '') {
   /* eslint-disable no-control-regex */
   // 16进制从 x00 - xff
   return ('' + str).replace(/[^\x00-\xff]/g, '**').length
@@ -82,7 +81,7 @@ export function getLen(str = '') {
  * @param {Date} date 日期对象
  * @param {string} mode 模式
  */
-export function formatDateTime({
+export function formatDateTime ({
   date = new Date(),
   mode = 'date'
 }) {
@@ -99,12 +98,12 @@ export function formatDateTime({
 
 /**
  * 更新元素的样式
- * @param {*} element dom对象 
+ * @param {*} element dom对象
  * @param {*} styles 样式配置对象
  */
-export function updateElementStyle(element, styles) {
+export function updateElementStyle (element, styles) {
   // 遍历样式配置对象
-  for (let attrName in styles) {
+  for (const attrName in styles) {
     // 给dom对象添加样式
     element.style[attrName] = styles[attrName]
   }
@@ -113,17 +112,17 @@ export function updateElementStyle(element, styles) {
 /**
  * 生成唯一码
  */
-export function guid() {
+export function guid () {
   // 对4294967296 乘以 （0 1） 向下取整 然后转为16进制
   return Math.floor(4294967296 * (1 + Math.random())).toString(16).slice(1)
 }
 
 /**
  * 防抖
- * @param {*} fn 
- * @param {*} delay 
+ * @param {*} fn
+ * @param {*} delay
  */
-export function debounce(fn, delay) {
+export function debounce (fn, delay) {
   let timeout
 
   const newFn = function () {
@@ -163,9 +162,9 @@ export function throttle (fn, wait) {
 
 /**
  * 将大写改为小写
- * @param {*} string 
+ * @param {*} string
  */
-export function kebabCase(string) {
+export function kebabCase (string) {
   return string.replace(/[A-Z]/g, str => '-' + str.toLowerCase())
 }
 

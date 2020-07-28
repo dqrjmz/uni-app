@@ -45,7 +45,6 @@ function handlePromise (promise) {
     .catch(err => [err])
 }
 
-
 // 不能promise化的api
 export function shouldPromise (name) {
   if (
@@ -75,9 +74,9 @@ if (!Promise.prototype.finally) {
 }
 
 /**
- * 
- * @param {*} name 
- * @param {*} api 
+ *
+ * @param {*} name
+ * @param {*} api
  */
 export function promisify (name, api) {
   // 是否可以Promise化
@@ -86,7 +85,7 @@ export function promisify (name, api) {
     return api
   }
   /**
-   * 
+   *
    */
   return function promiseApi (options = {}, ...params) {
     // 成功 失败 完成 是函数

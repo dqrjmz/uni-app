@@ -14,6 +14,7 @@ function parseComponents (vueComponentOptions) {
 const _toString = Object.prototype.toString;
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
+// 是否是函数
 function isFn (fn) {
   return typeof fn === 'function'
 }
@@ -22,19 +23,24 @@ function isPlainObject (obj) {
   return _toString.call(obj) === '[object Object]'
 }
 
+// 是否有自己属性
 function hasOwn (obj, key) {
   return hasOwnProperty.call(obj, key)
 }
 
-function noop () {}
+function noop () { }
 
 /**
  * Create a cached version of a pure function.
+ * 使用闭包，缓存数据
  */
 function cached (fn) {
+  // 创建一个没有原型链的对象
   const cache = Object.create(null);
   return function cachedFn (str) {
+    // 获取当前属性的值
     const hit = cache[str];
+    // 值存在返回，不存在，进行添加
     return hit || (cache[str] = fn(str))
   }
 }
@@ -49,6 +55,7 @@ const camelize = cached((str) => {
 
 const SOURCE_KEY = '__data__';
 
+// 小程序组件的生命周期钩子函数
 const COMPONENT_LIFECYCLE = {
   created: 'onServiceCreated',
   attached: 'onServiceAttached',
@@ -59,6 +66,7 @@ const COMPONENT_LIFECYCLE = {
 
 const COMPONENT_LIFECYCLE_KEYS = Object.keys(COMPONENT_LIFECYCLE);
 
+// 小程序页面生命周期钩子函数
 const PAGE_LIFETIMES = {
   show: 'onPageShow',
   hide: 'onPageHide',
@@ -67,6 +75,9 @@ const PAGE_LIFETIMES = {
 
 const PAGE_LIFETIMES_KEYS = Object.keys(PAGE_LIFETIMES);
 
+/**
+ * 小程序的生命周期
+ */
 const PAGE_LIFECYCLE = [
   'onLoad',
   'onShow',
@@ -83,18 +94,25 @@ const PAGE_LIFECYCLE = [
 
 function parsePageMethods (mpComponentOptions, vueComponentOptions) {
   const methods = Object.create(null);
+  // 获取小程序组件的选项键集合
   Object.keys(mpComponentOptions).forEach(key => {
+    // 获取键的值
     const value = mpComponentOptions[key];
+    // 是函数 && 生命周期中没有这个方法
     if (isFn(value) && PAGE_LIFECYCLE.indexOf(key) === -1) {
       methods[key] = value;
     }
   });
+  // 将小程序的用户自定义方法添加到vue组件的用户自定义方法
   vueComponentOptions.methods = methods;
 }
 
 function parsePageLifecycle (mpComponentOptions, vueComponentOptions) {
+  // 小程序组件的配置选项
   Object.keys(mpComponentOptions).forEach(key => {
+    // 生命周期中存在这个方法
     if (PAGE_LIFECYCLE.indexOf(key) !== -1) {
+      // 定义到vue组件上，小程序组件的生命周期
       vueComponentOptions[key] = mpComponentOptions[key];
     }
   });
@@ -681,6 +699,7 @@ function updateProperties (vm) {
 function initState (vm) {
   const instanceData = JSON.parse(JSON.stringify(vm.$options.mpOptions.data || {}));
 
+  // vm__data__ 小程序的data对象
   vm[SOURCE_KEY] = instanceData;
 
   const propertyDefinition = {
@@ -692,6 +711,7 @@ function initState (vm) {
     }
   };
 
+  // 给组件实例定义
   Object.defineProperties(vm, {
     data: propertyDefinition,
     properties: propertyDefinition
@@ -737,10 +757,12 @@ function initMethods (vm) {
 }
 
 function handleObservers (vm) {
+  // 获取组件的watch选项
   const watch = vm.$options.watch;
   if (!watch) {
     return
   }
+  //
   Object.keys(watch).forEach(name => {
     const observer = watch[name];
     if (observer.mounted) {
@@ -763,6 +785,7 @@ var polyfill = {
     this._$noop = noop;
   },
   created () { // properties 中可能会访问 methods,故需要在 created 中初始化
+    // 创建
     initState(this);
     initMethods(this);
     initRelations(this);
@@ -775,13 +798,20 @@ var polyfill = {
   }
 };
 
+// 全局添加路由属性
 global.__wxRoute = '';
+// 全局添加组建属性
 global.__wxComponents = Object.create(null);
+// 全局添加配置属性
 global.__wxVueOptions = Object.create(null);
 
 function Page (options) {
+  // 解析页面的配置对像
   const pageOptions = parsePage(options);
+  // 页面的mixins数组添加补丁
   pageOptions.mixins.unshift(polyfill);
+
+  // 将路由属性添加到
   pageOptions.mpOptions.path = global.__wxRoute;
   global.__wxComponents[global.__wxRoute] = pageOptions;
 }
@@ -796,10 +826,18 @@ function initRelationsHandler (vueComponentOptions) {
   });
 }
 
+/**
+ * 自定义组件
+ * @param {*} options 组件配置信息
+ */
 function Component (options) {
+  // 解析组件配置参数
   const componentOptions = parseComponent(options);
+  // 给组件混入补丁程序
   componentOptions.mixins.unshift(polyfill);
+  // 给组件添加路由属性
   componentOptions.mpOptions.path = global.__wxRoute;
+  //
   initRelationsHandler(componentOptions);
   global.__wxComponents[global.__wxRoute] = componentOptions;
 }
@@ -808,6 +846,7 @@ function Behavior (options) {
   return options
 }
 
+// 导出Vue中的nextTick方法
 const nextTick = Vue.nextTick;
 
 var index = uni.__$wx__;

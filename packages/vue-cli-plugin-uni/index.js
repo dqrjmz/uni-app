@@ -14,7 +14,13 @@ require('./lib/check-update')()
 const initBuildCommand = require('./commands/build')
 const initServeCommand = require('./commands/serve')
 
+/**
+ * 
+ * @param {*} api PluginApi 
+ * @param {*} options vue.config.js
+ */
 module.exports = (api, options) => {
+  // 初始化命令
   initServeCommand(api, options)
 
   initBuildCommand(api, options)

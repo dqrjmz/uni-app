@@ -37,7 +37,7 @@ export function disableScrollBounce ({
       // 延迟执行避免iOS13触摸卡死
       setTimeout(exec, 20)
     } else {
-      // 
+      //
       exec()
     }
   })

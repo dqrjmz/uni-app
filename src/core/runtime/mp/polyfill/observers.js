@@ -4,7 +4,7 @@ export function handleObservers (vm) {
   if (!watch) {
     return
   }
-  // 
+  //
   Object.keys(watch).forEach(name => {
     const observer = watch[name]
     if (observer.mounted) {

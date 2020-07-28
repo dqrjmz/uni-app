@@ -1,6 +1,6 @@
 /**
  * 给页面设置元数据
- * @param {*} param0 页面样式， 根节点字体大小 
+ * @param {*} param0 页面样式， 根节点字体大小
  */
 export function setPageMeta ({
   pageStyle,

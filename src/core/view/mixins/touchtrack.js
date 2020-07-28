@@ -1,13 +1,13 @@
 /**
  * 给元素添加监听
- * @param {*} element 
- * @param {*} type 
- * @param {*} callback 
- * @param {*} capture 
+ * @param {*} element
+ * @param {*} type
+ * @param {*} callback
+ * @param {*} capture
  */
 const addListenerToElement = function (element, type, callback, capture) {
   // 暂时忽略 capture
-  // 
+  //
   element.addEventListener(type, $event => {
     // 回调时函数
     if (typeof callback === 'function') {
@@ -33,7 +33,7 @@ export default {
      * 手势追踪
      * @param {*} element 元素
      * @param {*} method 方法
-     * @param {*} useCancel 
+     * @param {*} useCancel
      */
     touchtrack: function (element, method, useCancel) {
       const self = this
@@ -56,7 +56,7 @@ export default {
           touches: $event.touches,
           // 触摸点更改
           changedTouches: $event.changedTouches,
-          // 
+          //
           detail: {
             state,
             x0: x,
@@ -80,12 +80,12 @@ export default {
         hasTouchStart = true
         // 触摸点数量===1 && $eventOld 不存在
         if ($event.touches.length === 1 && !$eventOld) {
-          // 将事件赋值给 $eventOld 
+          // 将事件赋值给 $eventOld
           $eventOld = $event
           // 获取触摸点的坐标
           x0 = x1 = $event.touches[0].pageX
           y0 = y1 = $event.touches[0].pageY
-          // 
+          //
           return fn($event, 'start', x0, y0)
         }
       })
@@ -104,7 +104,7 @@ export default {
       addListenerToElement(element, 'touchmove', function ($event) {
         // 只有一个手势 存在 $eventOld
         if ($event.touches.length === 1 && $eventOld) {
-          // 
+          //
           const res = fn($event, 'move', $event.touches[0].pageX, $event.touches[0].pageY)
           // 获取触摸点的坐标
           x1 = $event.touches[0].pageX
@@ -114,7 +114,7 @@ export default {
       })
       // 鼠标移动事件监听
       const mouseMoveEventListener = this.__mouseMoveEventListener = function ($event) {
-        // 没有开始触摸事件 && 有鼠标按下 && 
+        // 没有开始触摸事件 && 有鼠标按下 &&
         if (!hasTouchStart && hasMouseDown && $eventOld) {
           // TODO target currentTarget touches changedTouches
           const res = fn($event, 'move', $event.pageX, $event.pageY)
@@ -128,7 +128,7 @@ export default {
       document.addEventListener('mousemove', mouseMoveEventListener)
       // 添加touchend事件
       addListenerToElement(element, 'touchend', function ($event) {
-        // 没有触摸点 && 
+        // 没有触摸点 &&
         if ($event.touches.length === 0 && $eventOld) {
           // 清理变量
           hasTouchStart = false
@@ -140,7 +140,7 @@ export default {
       const mouseUpEventListener = this.__mouseUpEventListener = function ($event) {
         // 鼠标按下为false
         hasMouseDown = false
-        // 没有触摸开始 && 
+        // 没有触摸开始 &&
         if (!hasTouchStart && $eventOld) {
           // TODO target currentTarget touches changedTouches
           $eventOld = null

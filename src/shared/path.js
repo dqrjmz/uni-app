@@ -1,6 +1,6 @@
 /**
  * 解析路径
- * @param {*} path 
+ * @param {*} path
  */
 export function parsePath (path) {
   // 哈希和查询字符串
@@ -9,7 +9,7 @@ export function parsePath (path) {
 
   // 找到哈希前缀
   const hashIndex = path.indexOf('#')
-  // 
+  //
   if (hashIndex >= 0) {
     // 获取哈希
     hash = path.slice(hashIndex)

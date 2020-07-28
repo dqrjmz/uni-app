@@ -71,4 +71,3 @@ module.exports = {
     new webpack.ProvidePlugin(provides)
   ]
 }
-

@@ -1,7 +1,7 @@
 /**
- * hex 颜色改 rgba 
+ * hex 颜色改 rgba
  * 字符串是不可变数据（不会被操作方法修改原始的字符串
- * @param {*} hex 
+ * @param {*} hex
  */
 export function hexToRgba (hex) {
   let r

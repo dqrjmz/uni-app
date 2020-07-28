@@ -10,6 +10,11 @@ const defaults = {
   https: false
 }
 
+/**
+ * 添加并初始化，vue-cli-service 的 uni-serve命令
+ * @param {*} api PluginApi
+ * @param {*} options vue.config.js 配置参数
+ */
 module.exports = (api, options) => {
   api.registerCommand('uni-serve', {
     description: 'start development server',
@@ -48,6 +53,7 @@ module.exports = (api, options) => {
     const isAbsoluteUrl = require('@vue/cli-service/lib/util/isAbsoluteUrl')
 
     // resolve webpack config
+    // 解析webpack 配置
     const webpackConfig = api.resolveWebpackConfig()
 
     // check for common config errors

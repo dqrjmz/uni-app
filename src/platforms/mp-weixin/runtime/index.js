@@ -31,8 +31,8 @@ function initTriggerEvent (mpInstance) {
 
 /**
  * 初始化钩子函数
- * @param {*} name 
- * @param {*} options 
+ * @param {*} name
+ * @param {*} options
  */
 function initHook (name, options) {
   const oldHook = options[name]

@@ -4,7 +4,7 @@ import {
 
 /**
  * 不能滚动
- * @param {*} evt 
+ * @param {*} evt
  */
 export function disableScroll (evt) {
   // 阻止默认事件
@@ -43,7 +43,7 @@ export function pageScrollTo ({
       window.scrollTo(0, scrollTop)
       return
     }
-    // 滚动高度 
+    // 滚动高度
     const distaince = scrollTop - window.scrollY
     // 帧动画
     requestAnimationFrame(function () {

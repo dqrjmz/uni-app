@@ -76,7 +76,6 @@ let currentPages = []
 function beforeEach (to, from, next, routes) {
   currentPages = getCurrentPages(true) // 每次 beforeEach 时获取当前currentPages，因为 afterEach 之后，获取不到上一个 page 了，导致无法调用 onUnload
 
-
   // 当前页面id
   const fromId = from.params.__id__
   // 下一个页面id

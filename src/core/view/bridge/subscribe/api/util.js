@@ -19,8 +19,8 @@ function findVmById (id, vm) {
 }
 /**
  * 找元素
- * @param {*} component 
- * @param {*} pageVm 
+ * @param {*} component
+ * @param {*} pageVm
  */
 export function findElm (component, pageVm) {
   if (!pageVm) {

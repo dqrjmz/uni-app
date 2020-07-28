@@ -31,7 +31,7 @@ function createTodoApi (name) {
 }
 
 /**
- * 遍历api 
+ * 遍历api
  */
 TODOS.forEach(function (name) {
   todoApis[name] = createTodoApi(name)

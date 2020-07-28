@@ -7,9 +7,9 @@ import {
 
 /**
  * 验证参数
- * @param {*} key 
- * @param {*} paramTypes 
- * @param {*} paramsData 
+ * @param {*} key
+ * @param {*} paramTypes
+ * @param {*} paramsData
  */
 export default function validateParam (key, paramTypes, paramsData) {
   const paramOptions = paramTypes[key]

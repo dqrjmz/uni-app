@@ -18,8 +18,8 @@ wx.createComponent({
 
 /**
  * 对象有自己的属性
- * @param {*} obj 
- * @param {*} key 
+ * @param {*} obj
+ * @param {*} key
  */
 function hasOwn (obj, key) {
   return Object.prototype.hasOwnProperty.call(obj, key)
@@ -36,7 +36,7 @@ module.exports = {
       state.componentGenerics = Object.create(null)
     }
 
-    // 
+    //
     state.componentGenerics[componentName] = true
 
     return {

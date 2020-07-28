@@ -136,7 +136,7 @@ function wrapperOptions (interceptor, options = {}) {
 /**
  * 包裹返回值
  * @param {*} method 方法
- * @param {*} returnValue 返回值 
+ * @param {*} returnValue 返回值
  */
 export function wrapperReturnValue (method, returnValue) {
   const returnValueHooks = []

@@ -1,6 +1,8 @@
 module.exports = (api, options, rootOptions) => {
+  // 获取插件的版本 uni-app框架的vue-cli插件
   const mainVersion = require('./package.json').version
   const version = '^' + mainVersion
+  // vue-cli GeneratorApi 的实例,生成器类（用来生成代码
   api.extendPackage(pkg => {
     delete pkg.postcss
     delete pkg.browserslist

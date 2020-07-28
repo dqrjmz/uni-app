@@ -1,7 +1,7 @@
 const isWeixin = window.wx &&
   window.wx.miniProgram &&
   /micromessenger/i.test(navigator.userAgent) &&
-  /miniProgram/i.test(navigator.userAgent)  // 根据用户代理判断是微信
+  /miniProgram/i.test(navigator.userAgent) // 根据用户代理判断是微信
 
 export function initWebviewApi (readyCallback) {
   if (!isWeixin) {

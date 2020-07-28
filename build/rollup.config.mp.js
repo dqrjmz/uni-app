@@ -33,14 +33,14 @@ const PLATFORMS = {
   }
 }
 
-// 获取平台类型
+// 获取平台类型，根据设置的环境变量，获取平台对象信息
 const platform = PLATFORMS[process.env.UNI_PLATFORM]
 
 // 构建入口文件
 let input = 'src/core/runtime/index.js'
 
 /**
- * 构建输出文件
+ * 构建输出文件，输出到对应的平台文件夹下的dist文件夹下
  * 模块类型未es module
  */
 const output = {
@@ -62,7 +62,7 @@ module.exports = {
   output,
   plugins: [
     /**
-     * 设置文件路径别名，简化书写
+     * 设置文件路径别名，简化导入模块时的书写
      */
     alias({
       entries: [{
@@ -79,11 +79,12 @@ module.exports = {
         replacement: path.resolve(__dirname, '../src/core/helpers')
       }]
     }),
+    // 替换全局变量
     replace({
       __GLOBAL__: platform.prefix, // 小程序前缀
       __PLATFORM_TITLE__: platform.title, // 小程序名称
-      __PLATFORM_PREFIX__: JSON.stringify(platform.prefix),
-      __PLATFORM__: JSON.stringify(process.env.UNI_PLATFORM)
+      __PLATFORM_PREFIX__: JSON.stringify(platform.prefix), // 序列化前缀
+      __PLATFORM__: JSON.stringify(process.env.UNI_PLATFORM) // 序列换平台信息
     })
   ],
   external: ['vue']

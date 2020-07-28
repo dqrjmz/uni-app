@@ -65,7 +65,7 @@ function processTouches (target, touches) {
 var tempCanvas
 /**
  * 获取临时canvas
- * 
+ *
  */
 function getTempCanvas (width = 0, height = 0) {
   // 临时canvas不存在
@@ -126,7 +126,7 @@ export default {
         }
         // 不能滚动 && 是touchmove事件
         if (this.disableScroll && event === 'touchmove') {
-          // 
+          //
           eventHandler.push(this._touchmove)
         }
         // 给事件添加处理函数
@@ -168,7 +168,7 @@ export default {
         var context = canvas.getContext('2d')
         // 获取图片数据（指定区域的像素）
         var imageData = context.getImageData(0, 0, canvas.width, canvas.height)
-        
+
         wrapper(this.$refs.canvas)
         // 将像素重新放回canvas
         context.putImageData(imageData, 0, 0)
@@ -358,7 +358,7 @@ export default {
             self._images[src].ready = true
           }
           /**
-           * 从Blob加载 
+           * 从Blob加载
            * @param {Blob} blob
            */
           function loadBlob (blob) {
@@ -432,7 +432,7 @@ export default {
     /**
      * 查看图片是否被加载
      * 图片地址
-     * 
+     *
      */
     checkImageLoaded: function (src, actions, callbackId, fn) {
       var self = this

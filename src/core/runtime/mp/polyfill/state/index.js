@@ -29,7 +29,7 @@ export function initState (vm) {
     }
   }
 
-  // 给组件实例定义 
+  // 给组件实例定义
   Object.defineProperties(vm, {
     data: propertyDefinition,
     properties: propertyDefinition

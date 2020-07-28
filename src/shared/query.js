@@ -92,7 +92,6 @@ export function stringifyQuery (obj, encodeStr = encode) {
   return res ? `?${res}` : ''
 }
 
-
 export function decodedQuery (query = {}) {
   const decodedQuery = {}
   Object.keys(query).forEach(name => {

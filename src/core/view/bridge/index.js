@@ -31,9 +31,9 @@ export function unsubscribe (event, callback) {
 
 /**
  * 触发事件
- * @param {*} event 
- * @param {*} args 
- * @param {*} pageId 
+ * @param {*} event
+ * @param {*} args
+ * @param {*} pageId
  */
 export function subscribeHandler (event, args, pageId) {
   if (process.env.NODE_ENV !== 'production') {

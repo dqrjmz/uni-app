@@ -10,7 +10,7 @@ import {
 
 /**
  * 获取根信息
- * @param {*} fields 
+ * @param {*} fields
  */
 function getRootInfo (fields) {
   const info = {}
@@ -39,8 +39,8 @@ function getRootInfo (fields) {
 
 /**
  * 获取节点信息
- * @param {*} el 
- * @param {*} fields 
+ * @param {*} el
+ * @param {*} fields
  */
 function getNodeInfo (el, fields) {
   const info = {}

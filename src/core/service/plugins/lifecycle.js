@@ -73,7 +73,6 @@ export function lifecycleMixin (Vue) {
       Object.keys(methods).forEach(methodName => {
         // 定义的方法在定义的生命周期函数中找到的
         if (LIFECYCLE_HOOKS.indexOf(methodName) !== -1) {
-
           extendOptions[methodName] = methods[methodName]
           delete methods[methodName]
         }

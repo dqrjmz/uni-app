@@ -6,6 +6,7 @@ const action = argv._[0]
 if (action === 'custom') {
   require('../lib/commands/custom')(argv)
 } else if (action === 'invoke') {
+  // 调用模块函数
   require('../lib/commands/invoke')(argv)
 } else {
   process.exit(0)

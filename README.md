@@ -80,3 +80,15 @@
 - 评测：[跨端开发框架深度横评之2020版](https://juejin.im/post/5e8e8d5a6fb9a03c6d3d9f42)
 - 评测：[深入测试一周，主流多端框架大比武](https://mp.weixin.qq.com/s/jIDEHfuMnED6HTfNgjsW4w)
 - [uni-app在App端和flutter、react native的比较](https://ask.dcloud.net.cn/article/36083)
+
+
+## Packages
+- yargs-parser
+```
+选项解析器
+
+var argv = require('yargs-parser')(process.argv.slice(2))
+console.log(argv)
+node example.js --foo=33 --bar hello
+{ _: [], foo: 33, bar: 'hello' }
+```
