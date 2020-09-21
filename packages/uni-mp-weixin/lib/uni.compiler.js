@@ -16,11 +16,12 @@ wx.createComponent({
 `
 }
 
-/**
- * 对象有自己的属性
- * @param {*} obj
- * @param {*} key
- */
+function generateCssCode (filename) {
+  return `
+@import "./${filename}"
+`
+}
+
 function hasOwn (obj, key) {
   return Object.prototype.hasOwnProperty.call(obj, key)
 }
@@ -39,11 +40,21 @@ module.exports = {
     //
     state.componentGenerics[componentName] = true
 
-    return {
-      type: componentName,
-      attr: props || {},
-      children: []
-    }
+    // 返回多个节点，支持作用域插槽当作普通插槽使用
+    return [
+      {
+        type: 'slot',
+        attr: {
+          name: slotName
+        },
+        children: []
+      },
+      {
+        type: componentName,
+        attr: props || {},
+        children: []
+      }
+    ]
   },
   resolveScopedSlots (slotName, {
     genCode,
@@ -74,7 +85,7 @@ module.exports = {
     }
     parentNode.attr.generic[slotName] = true
 
-    // 生成 scopedSlots 文件，包括 json,js,wxml,还需要更新 owner 的 usingComponents
+    // 生成 scopedSlots 文件，包括 json,js,wxml,wxss,还需要更新 owner 的 usingComponents
     if (!state.files) {
       state.files = {}
     }
@@ -113,6 +124,16 @@ module.exports = {
     }
     const jsContent = generateJsCode(genCode(t.objectExpression(objectProperties), true))
     state.files[jsFile] = jsContent
+
+    try {
+      // TODO 使用 getPlatformExts 在单元测试报错，改从 state.options.platform 判断
+      const { getPlatformExts } = require('@dcloudio/uni-cli-shared')
+      const styleExtname = getPlatformExts().style
+      const styleFile = resourcePath.replace(ownerName + extname, componentName + styleExtname)
+      const styleContent = generateCssCode(ownerName + styleExtname)
+
+      state.files[styleFile] = styleContent
+    } catch (error) {}
 
     if (!state.generic) {
       state.generic = []

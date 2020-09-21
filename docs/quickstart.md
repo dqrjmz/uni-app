@@ -123,7 +123,7 @@ HBuilderX 还提供了快捷运行菜单，可以按数字快速选择要运行�
 </div>
 出现如下界面，点击打包即可。
 <div align=center>
-  <img src="//img-cdn-qiniu.dcloud.net.cn/uniapp/doc/push.png"/>
+  <img src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-dc-site/001a20b0-d85a-11ea-81ea-f115fe74321c.png"/>
 </div>
 
 #### 打包为原生App（离线）
@@ -200,16 +200,16 @@ HBuilderX 还提供了快捷运行菜单，可以按数字快速选择要运行�
 - 目前仅windows平台支持。360浏览器自身不支持mac平台。
 
 
-**发布为快应用联盟：**
-1. 入驻快应用联盟，参考：[快应用联盟教程](https://www.quickapp.cn/)。
-2. 在HBuilderX中顶部菜单依次点击 "发行" => "快应用联盟"，即可在 ``/unpackage/dist/build/quickapp-webview`` 生成快应用联盟项目代码。
+**发布为快应用(webview)：**
+1. 入驻快应用(webview)，参考：[快应用(webview)教程](https://www.quickapp.cn/)。
+2. 在HBuilderX中顶部菜单依次点击 "发行" => "快应用联盟"，即可在 ``/unpackage/dist/build/quickapp-webview`` 生成快应用(webview)项目代码。
 <div align=center>
   <img src="https://img-cdn-qiniu.dcloud.net.cn/uniapp/doc/uni-app-run-release-quickapp-webview.png"/>
 </div>
 3. 在快应用联盟工具中，导入生成的快应用联盟项目，测试项目代码运行正常后，点击”构建“打包正式版，在[快应用联盟后台](https://www.quickapp.cn/)上传
 
 
-**发布为华为快应用：**
+**发布为快应用(webview) - 华为：**
 1. 入驻华为快应用，参考：[华为快应用教程](https://developer.huawei.com/consumer/cn/quickApp)。
 2. 在HBuilderX中顶部菜单依次点击 "发行" => "快应用-华为"，即可在 ``/unpackage/dist/build/quickapp-webview`` 生成华为快应用项目代码。
 <div align=center>
@@ -261,6 +261,14 @@ vue create -p dcloudio/uni-preset-vue#alpha my-alpha-project
 
 更多支持的下载方式，请参考这个插件的说明：[download-git-repo](https://www.npmjs.com/package/download-git-repo)
 
+#### 修改依赖为指定版本
+
+1. 查看 HBuilderX 对应的 NPM 依赖版本: 打开 [NPM版本记录](https://www.npmjs.com/package/@dcloudio/vue-cli-plugin-hbuilderx)，版本号 2.0.0- 后面是与 HBuilderX 对应的版本号且小版本不会超过9，比如 HBuilderX 2.7.5.20200518 对应的版本号 2.0.0-27520200518001，2.0.0-271420200618 对应的为 2.0.0-27920200618002。
+
+2. 批量修改 package.json 中 uni 相关依赖为指定的版本号（去掉版本号前面 ^）。
+
+3. 对于有变化的依赖进行增删，提示不存指定版本的依赖可以保留原始版本或者删除，运行时提示缺少的依赖自行安装。
+
 ### 运行、发布uni-app
 
 ```
@@ -280,7 +288,7 @@ npm run build:%PLATFORM%
 |mp-toutiao|字节跳动小程序|
 |mp-qq|qq 小程序|
 |mp-360|360 小程序|
-|quickapp-webview|快应用通用|
+|quickapp-webview|快应用(webview)|
 |quickapp-webview-union|快应用联盟|
 |quickapp-webview-huawei|快应用华为|
 
@@ -292,11 +300,11 @@ npm run build:%PLATFORM%
 - 原生渲染方式：[https://ask.dcloud.net.cn/article/37145](https://ask.dcloud.net.cn/article/37145)
 
 
-### 运行并发布快应用联盟@quickapp-webview
+### 运行并发布快应用(webview)@quickapp-webview
 HBuilderX 2.7.12+ 版支持
 
 
-### 运行并发布快应用-华为@quickapp-webview-huawei
+### 运行并发布快应用(webview)-华为@quickapp-webview-huawei
 HBuilderX 2.7.10+ 版支持
 
 华为快应用文档-小程序转快应用 [https://developer.huawei.com/consumer/cn/doc/development/quickApp-References/quickapp-filestructure](https://developer.huawei.com/consumer/cn/doc/development/quickApp-References/quickapp-filestructure)

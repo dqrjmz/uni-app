@@ -4,6 +4,11 @@
  */
 module.exports = [
   'uni-app',
+  'uni-layout',
+  'uni-content',
+  'uni-main',
+  'uni-left-window',
+  'uni-right-window',
   'uni-tabbar',
   'uni-page',
   'uni-page-head',

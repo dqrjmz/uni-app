@@ -17,7 +17,8 @@
 
 <pre v-pre="" data-lang="">
 	<code class="lang-" style="padding:0">
-┌─components            uni-app组件目录
+┌─cloudfunctions        云函数目录（阿里云为aliyun，腾讯云为tcb，详见<a href="https://uniapp.dcloud.io/uniCloud/">uniCloud</a>）
+│─components            符合vue组件规范的uni-app组件目录
 │  └─comp-a.vue         可复用的a组件
 ├─hybrid                存放本地网页的目录，<a href="/component/web-view">详见</a>
 ├─platforms             存放各平台专用页面的目录，<a href="/platform?id=%E6%95%B4%E4%BD%93%E7%9B%AE%E5%BD%95%E6%9D%A1%E4%BB%B6%E7%BC%96%E8%AF%91">详见</a>
@@ -138,6 +139,8 @@ background-image: url(../../static/logo.png);
 |onError|当 `uni-app` 报错时触发	|
 |onUniNViewMessage|对 ``nvue`` 页面发送的数据进行监听，可参考 [nvue 向 vue 通讯](/use-weex?id=nvue-向-vue-通讯)|
 |onUnhandledRejection|对未处理的 Promise 拒绝事件监听函数（2.8.1+）|
+|onPageNotFound|页面不存在监听函数|
+|onThemeChange|监听系统主题变化|
 
 **注意**
 
@@ -166,10 +169,10 @@ background-image: url(../../static/logo.png);
 |onNavigationBarSearchInputChanged|监听原生标题栏搜索输入框输入内容变化事件|App、H5|1.6.0|
 |onNavigationBarSearchInputConfirmed|监听原生标题栏搜索输入框搜索事件，用户点击软键盘上的“搜索”按钮时触发。|App、H5|1.6.0|
 |onNavigationBarSearchInputClicked|监听原生标题栏搜索输入框点击事件|App、H5|1.6.0|
-|onShareTimeline|监听用户点击右上角转发到朋友圈|微信小程序|uni-app 2.8.1+|
-|onAddToFavorites|监听用户点击右上角收藏|微信小程序|uni-app 2.8.1+|
+|onShareTimeline|监听用户点击右上角转发到朋友圈|微信小程序|2.8.1+|
+|onAddToFavorites|监听用户点击右上角收藏|微信小程序|2.8.1+|
 
-``onPageScroll`` 参数说明：f
+``onPageScroll`` 参数说明：
 
 |属性|类型|说明|
 |---|---|---|
@@ -602,6 +605,8 @@ domModule.addRule('fontFace', {
 ``uni-app`` 支持在 template 模板中嵌套 ``<template/>`` 和 ``<block/>``，用来进行 [列表渲染](/use?id=列表渲染) 和 [条件渲染](/use?id=条件渲染)。
 
  ``<template/>`` 和 ``<block/>`` 并不是一个组件，它们仅仅是一个包装元素，不会在页面中做任何渲染，只接受控制属性。
+ 
+ ``<block/>`` 在不同的平台表现存在一定差异，推荐统一使用 ``<template/>``。
  
 **代码示例**
  
@@ -1290,8 +1295,6 @@ export default {
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 |√(2.5.5+，仅支持vue，并要求v3编译器)|√|x|x|x|x|x|
 
-renderjs，以 vue 组件的写法运行在 view 层。
-
 ### 使用方式
 
 设置 script 节点的 lang 为 renderjs
@@ -1333,13 +1336,14 @@ renderjs，以 vue 组件的写法运行在 view 层。
 
 ### 注意事项
 
-* 可以使用 vue 组件的声明周期不可以使用 App、Page 的声明周期
-* 可以使用 dom、bom API，不可直接访问逻辑层数据，不可以使用 uni 相关接口（如：uni.request）
-* 视图层和逻辑层通讯方式与 [WXS](frame?id=wxs) 一致，另外可以通过 this.$ownerInstance 获取当前组件的 ComponentDescriptor 实例
-* 观测更新的数据在 view 层可以直接访问到
-* 不要直接引用大型类库，推荐通过动态创建 script 方式引用
-* view 层的页面引用资源的路径相对于根目录计算，例如：./static/test.js
-* 目前仅支持内联使用
+* 目前仅支持内联使用。
+* 不要直接引用大型类库，推荐通过动态创建 script 方式引用。
+* 可以使用 vue 组件的生命周期不可以使用 App、Page 的生命周期
+* 视图层和逻辑层通讯方式与 [WXS](frame?id=wxs) 一致，另外可以通过 this.$ownerInstance 获取当前组件的 ComponentDescriptor 实例。
+* 观测更新的数据在视图层可以直接访问到。
+* APP 端视图层的页面引用资源的路径相对于根目录计算，例如：./static/test.js。
+* APP 端可以使用 dom、bom API，不可直接访问逻辑层数据，不可以使用 uni 相关接口（如：uni.request）
+* H5 端逻辑层和视图层实际运行在同一个环境中，相当于使用 mixin 方式，可以直接访问逻辑层数据。
 
 
 ## 致谢

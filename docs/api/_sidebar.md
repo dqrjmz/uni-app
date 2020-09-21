@@ -108,8 +108,8 @@
 	* [CanvasContext](api/canvas/CanvasContext.md)
 	* [CanvasGradient](api/canvas/CanvasGradient.md)
 * 广告
-  * [激励视频广告](api/ad/rewarded-video-ad.md)
-  * [插屏广告](api/ad/interstitial-ad.md)
+  * [激励视频广告](api/a-d/rewarded-video.md)
+  * [插屏广告](api/a-d/interstitial.md)
 * 第三方服务
   * [获取服务供应商](api/plugins/provider.md)
   * [登录](api/plugins/login.md)
@@ -172,13 +172,13 @@
 	  <img src="//img-cdn-qiniu.dcloud.net.cn/uniapp/doc/qq@2x.png" width="20" height="20"/>
 	  <div class="contact-smg">
 	     <div>官方QQ交流群</div>
-	  <div>群33：498071674 &nbsp;<a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=_I92eKMoCSlGNrNMV-8Do8Uy7pi0CQSj&jump_from=webapi">点此加入</a></div>
+	  <div>群30：371046920 &nbsp;<a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=JSQWm37Rq5KrBVwt_88_YNv_SZwVSCUT&jump_from=webapi">点此加入</a></div>
 		<div>群35：713420817（2000人已满）</div>
 		<div>群34：530305531（2000人已满）</div>
-		<!-- <div>群33：498071674（2000人已满）</div> -->
+		<div>群33：498071674（2000人已满）</div>
 		<div>群32：166188631（2000人已满）</div>
 		<div>群31：567471669（2000人已满）</div>
-		<div>群30：371046920（2000人已满）</div>
+		<!-- <div>群30：371046920（2000人已满）</div> -->
 		<div>群29：202965481（2000人已满）</div>
 		<div>群28：166188776（2000人已满）</div>
 		<div>群27：811363410（2000人已满）</div>

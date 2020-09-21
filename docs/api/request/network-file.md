@@ -4,6 +4,8 @@
 
 > 在各个小程序平台运行时，网络相关的 API 在使用前需要配置域名白名单。
 
+**推荐开发者使用更好的API`uniCloud.uploadFile`，uniCloud提供了免费CDN和更好的易用性，包括安全的cdn直传。详见：[https://uniapp.dcloud.io/uniCloud/storage?id=uploadfile](https://uniapp.dcloud.io/uniCloud/storage?id=uploadfile)**
+
 **OBJECT 参数说明**
 
 |参数名|类型|必填|说明|平台差异说明|
@@ -26,6 +28,7 @@
 - hello uni-app中的客服反馈，支持多图上传。[uni-app插件市场](https://ext.dcloud.net.cn/)中也有多个封装的组件。
 - App平台选择和上传非图像、视频文件，参考[https://ask.dcloud.net.cn/article/35547](https://ask.dcloud.net.cn/article/35547)
 - 网络请求的 ``超时时间`` 可以统一在 ``manifest.json`` 中配置 [networkTimeout](/collocation/manifest?id=networktimeout)。
+- 支付宝小程序开发工具上传文件返回的http状态码为字符串形式，支付宝小程序真机返回的状态码为数字形式
 
 **files参数说明**
 

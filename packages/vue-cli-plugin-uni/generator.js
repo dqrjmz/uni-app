@@ -18,6 +18,7 @@ module.exports = (api, options, rootOptions) => {
         'dev:mp-baidu': 'cross-env NODE_ENV=development UNI_PLATFORM=mp-baidu vue-cli-service uni-build --watch',
         'dev:mp-alipay': 'cross-env NODE_ENV=development UNI_PLATFORM=mp-alipay vue-cli-service uni-build --watch',
         'dev:mp-toutiao': 'cross-env NODE_ENV=development UNI_PLATFORM=mp-toutiao vue-cli-service uni-build --watch',
+        'dev:mp-kuaishou': 'cross-env NODE_ENV=development UNI_PLATFORM=mp-kuaishou vue-cli-service uni-build --watch',
         'dev:quickapp-native': 'cross-env NODE_ENV=development UNI_PLATFORM=quickapp-native vue-cli-service uni-build --watch',
         'dev:quickapp-webview': 'cross-env NODE_ENV=development UNI_PLATFORM=quickapp-webview vue-cli-service uni-build --watch',
         'dev:quickapp-webview-huawei': 'cross-env NODE_ENV=development UNI_PLATFORM=quickapp-webview-huawei vue-cli-service uni-build --watch',
@@ -28,6 +29,7 @@ module.exports = (api, options, rootOptions) => {
         'build:mp-baidu': 'cross-env NODE_ENV=production UNI_PLATFORM=mp-baidu vue-cli-service uni-build',
         'build:mp-alipay': 'cross-env NODE_ENV=production UNI_PLATFORM=mp-alipay vue-cli-service uni-build',
         'build:mp-toutiao': 'cross-env NODE_ENV=production UNI_PLATFORM=mp-toutiao vue-cli-service uni-build',
+        'build:mp-kuaishou': 'cross-env NODE_ENV=production UNI_PLATFORM=mp-kuaishou vue-cli-service uni-build',
         'build:quickapp-native': 'cross-env NODE_ENV=production UNI_PLATFORM=quickapp-native vue-cli-service uni-build',
         'build:quickapp-webview': 'cross-env NODE_ENV=production UNI_PLATFORM=quickapp-webview vue-cli-service uni-build',
         'build:quickapp-webview-huawei': 'cross-env NODE_ENV=production UNI_PLATFORM=quickapp-webview-huawei vue-cli-service uni-build',
@@ -48,6 +50,7 @@ module.exports = (api, options, rootOptions) => {
       dependencies: {
         '@dcloudio/uni-app-plus': version,
         '@dcloudio/uni-h5': version,
+        '@dcloudio/uni-mp-vue': version,
         '@dcloudio/uni-mp-qq': version,
         '@dcloudio/uni-mp-weixin': version,
         '@dcloudio/uni-mp-baidu': version,
@@ -57,6 +60,7 @@ module.exports = (api, options, rootOptions) => {
         '@dcloudio/uni-quickapp-native': version,
         '@dcloudio/uni-quickapp-webview': version,
         '@dcloudio/uni-stat': version,
+        '@vue/shared': '^3.0.0-rc.4', // TODO
         flyio: '^0.6.2',
         vuex: '^3.2.0'
       },

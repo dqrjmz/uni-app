@@ -413,7 +413,8 @@ BindingX类似一种强化版的css，运行性能高，但没有js那样足够�
 				}, function(res) {
 					if (res.state === 'exit') {
 						Binding.unbind({
-							token: main_binding
+							token: main_binding.token,
+  						eventType: 'timing'
 						})
 					}
 				});
@@ -436,7 +437,8 @@ BindingX类似一种强化版的css，运行性能高，但没有js那样足够�
 				}, function(res) {
 					if (res.state === 'exit') {
 						Binding.unbind({
-							token: btn_binding
+							token: btn_binding.token,
+  						eventType: 'timing'
 						})
 					}
 				})
@@ -462,7 +464,8 @@ BindingX类似一种强化版的css，运行性能高，但没有js那样足够�
 				}, function(res) {
 					if (res.state === 'exit') {
 						Binding.unbind({
-							token: main_binding
+							token: main_binding.token,
+  						eventType: 'timing'
 						})
 					}
 				});
@@ -485,7 +488,8 @@ BindingX类似一种强化版的css，运行性能高，但没有js那样足够�
 				}, function(res) {
 					if (res.state === 'exit') {
 						Binding.unbind({
-							token: btn_binding
+							token: btn_binding.token,
+  						eventType: 'timing'
 						})
 					}
 				})
@@ -680,4 +684,26 @@ Android平台weex对阴影样式(`box-shadow`)支持不完善，如设置圆角�
 - 为了避免`elevation`属性的阴影效果与阴影样式(`box-shadow`)冲突，设置`elevation`属性后`box-shadow`样式失效
 - 使用`elevation`需要阴影元素的父元素大于阴影范围，否则会对阴影进行裁剪
 - IOS不支持`elevation`属性，请使用`box-shadow`设置阴影
+
+## iOS平台下拉组件refresh组件注意问题
+
+iOS平台默认情况下滚动容器组件（如list、waterfall组件）内容不足时，由于没有撑满容器的可视区域会导致无法上下滚动，此时无法操作下拉刷新功能，无法触发refresh组件的@refresh、@pullingdown事件。
+此时可在容器组件中配置alwaysScrollableVertical属性值为true来设置支持上下滚动，支持下拉刷新操作。
+
+**用法**
+```
+<list class="scroll-v list" enableBackToTop="true" scroll-y alwaysScrollableVertical="true">
+  <refresh class="refresh" @refresh="onrefresh()" @pullingdown="onpullingdown">
+    //refresh content
+  </refresh>
+  <cell v-for="(newsitem,index) in list" :key="newsitem.id">
+    //cell content
+  </cell>
+</list>
+```
+
+**注意**
+- Android平台不存在此问题
+
+
 

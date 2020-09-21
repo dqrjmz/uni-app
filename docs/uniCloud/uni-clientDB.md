@@ -1,6 +1,6 @@
 ## 简介
 
-每个查询业务，都要写一个云函数，很麻烦，也占用云函数的总数量。
+每个数据库操作，都要写一个云函数接口给前端，工作量很大，也占用云函数的总数量。
 
 本插件提供了一个通用的数据库查询云函数，由前端向云函数传递要查询的条件，比如查询哪个表、查询哪些字段、where条件和排序是什么。
 
@@ -18,6 +18,8 @@
 3. 安全，可控制权限
 4. 性能好
 
+注意：`clientDB`，不是操作客户端的数据库，而是操作uniCloud的云数据库；不是在客户端直接操作云数据库，而是在客户端写操作代码，在云端进行真正的数据库操作。
+
 本项目包括云函数和客户端两部分，需要搭配使用，具体请参考下面文档。
 
 插件地址：[https://ext.dcloud.net.cn/plugin?id=2314](https://ext.dcloud.net.cn/plugin?id=2314)
@@ -33,20 +35,20 @@
 
 <pre v-pre="" data-lang="">
 	<code class="lang-" style="padding:0">
-┌─cloudfunctions		云函数
-│  ├─common				公共模块
-|  │  └─uni-curd		数据库查询通用公共模块
-|  ├─gateway			在云函数中控制权限，并调用uni-curd完成查询
-|  └─db_init.json		初始化数据库
-├─js_sdk				前端公共js目录
-|  └─uni-clientDB		前端的js库，封装了查询语法
-├─pages					业务页面文件存放的目录
+┌─cloudfunctions    云函数
+│  ├─common         公共模块
+|  │  └─uni-curd    数据库查询通用公共模块
+|  ├─uni-clientDB   在云函数中控制权限，并调用uni-curd完成查询
+|  └─db_init.json   初始化数据库
+├─js_sdk            前端公共js目录
+|  └─uni-clientDB   前端的js库，封装了查询语法
+├─pages             业务页面文件存放的目录
 │  ├─index
-│  │  └─index.vue		index示例页面
-├─main.js				Vue初始化入口文件
-├─App.vue				应用配置，用来配置App全局样式以及监听 <a href="/frame?id=应用生命周期">应用生命周期</a>
-├─manifest.json			配置应用名称、appid、logo、版本等打包信息，<a href="/collocation/manifest">详见</a>
-└─pages.json			配置页面路由、导航条、选项卡等页面类信息，<a href="/collocation/pages">详见</a>
+│  │  └─index.vue   index示例页面
+├─main.js           Vue初始化入口文件
+├─App.vue           应用配置，用来配置App全局样式以及监听 <a href="/frame?id=应用生命周期">应用生命周期</a>
+├─manifest.json     配置应用名称、appid、logo、版本等打包信息，<a href="/collocation/manifest">详见</a>
+└─pages.json        配置页面路由、导航条、选项卡等页面类信息，<a href="/collocation/pages">详见</a>
 	</code>
 </pre>
 
@@ -67,7 +69,7 @@ const dbCmd = db.command
 
 // 使用uni-clientDB
 uniCloud.callFunction({
-	name: 'gateway',
+	name: 'uni-clientDB',
 	data: {
 		command: db.collection('list').where({
 			name: new RegExp('龚','g'),
@@ -111,7 +113,7 @@ exports.main = async (event, context) => {
 			command: event.command,
 			pagination: event.pagination,
 			rules: {
-				list: {
+				list: { // 数据表名
 					// CRUD权限
 					create: false,
 					read: true,
@@ -119,7 +121,7 @@ exports.main = async (event, context) => {
 					delete: false,
 					// 是否允许使用聚合
 					aggregate: false,
-					// 是否允许使用联表查询，联表查询时blockedField不会对被连接的集合生效
+					// 是否允许使用联表查询，联表查询时blockedField不会对被连接的数据表生效
 					lookup: false,
 					// 使用聚合时blockField不会覆盖客户端的project，而是在聚合第一阶段插入project，不使用聚合时会在最后阶段插入一个field（会覆盖客户端的field方法）
 					blockedField: ['extra'],
@@ -160,7 +162,7 @@ exports.main = async (event, context) => {
 
 **rules参数说明**
 
-rules下可以对不同的集合配置不同的权限，比如以下规则代表”集合list允许插入，集合goods允许更新“
+rules下可以对不同的数据表配置不同的权限，比如以下规则代表”数据表list允许插入，数据表goods允许更新“
 
 ```js
 {
@@ -203,7 +205,7 @@ rules下可以对不同的集合配置不同的权限，比如以下规则代表
 		useAggregate, // 是否使用了聚合
 		useLookup, // 是否使用了联表查询
 		type, // 操作类型，可能的值为create、read、update、delete
-		collection, // 当前集合名
+		collection, // 当前数据表名
 		methodList // 使用到的方法列表
 	},
 	stage: {
@@ -233,11 +235,18 @@ afterStageAppend: function({
 - 关于blockedField
   + 使用聚合时blockField不会覆盖客户端的project，而是在聚合第一阶段插入project
   + 不使用聚合时会在最后阶段插入一个field（会覆盖客户端的field方法）
+  + blockedField仅对读操作生效
 
 - 关于mixinCondition
   + mixinCondition内可以使用数据库操作符
   + 不使用聚合时mixinCondition会在没有where的时候在collection方法之后插入where，有where时会跟where条件进行合并，取原条件且mixinCondition。
   + 使用聚合时会在第一阶段插入match使用混入的条件，如果有blockedField会插入在blockedField对应的project之前
+  + mixinCondition会对除插入以外的所有操作生效
+  + 使用mixinCondition时客户端不可使用`collection('xxx').doc('xxx')`方法（1.0.8版本起即使有mixinCondition客户端也可以使用doc方法）
 
 - 关于联表查询
-  + 连接的集合也会受所配置的权限规则中对应集合规则限制，主要是read，目前连接的集合不会受blockedField限制
+  + 连接的数据表也会受所配置的权限规则中对应数据表规则限制，主要是read，目前连接的数据表不会受blockedField限制
+
+## 参考
+
+在线通讯录项目，完整的演示了如何基于clientDB在客户端代码里实现数据的增删改查，是学习clientDB的重要示例项目。该项目插件地址：[https://ext.dcloud.net.cn/plugin?id=2574](https://ext.dcloud.net.cn/plugin?id=2574)

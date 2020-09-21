@@ -11,7 +11,8 @@ const hooks = [
   'onHide',
   'onError',
   'onPageNotFound',
-  'onThemeChange'
+  'onThemeChange',
+  'onUnhandledRejection'
 ]
 
 export default function parseBaseApp (vm, {

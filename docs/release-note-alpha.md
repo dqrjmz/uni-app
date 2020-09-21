@@ -1,3 +1,138 @@
+#### 2.8.11.20200904-alpha
+* 【uni-app插件】
+  + App-Android 修复 2.8.9版引出的 uni-AD 小概率出现获取广告配置数据失败导致无法显示开屏广告的Bug
+* 【App插件(含5+App和uni-app的App端)】
+  + iOS平台 修复 2.8.9版升级 QQ SDK引出的 在部分手机上无法正常分享到 QQ 的Bug [详情](https://ask.dcloud.net.cn/question/103383)
+
+#### 2.8.10.20200903-alpha
+* 【uni-app插件】
+  + App-Android平台 修复 2.8.4版引出的 uni.request 请求默认超时时间过长的Bug
+* 【uniCloud】
+  + 修复 某些情况下，上传公共模块，UI卡顿的Bug
+  + 调整 阿里云放开文件上传类型限制
+
+#### 2.8.9.20200829-alpha
+* 【uni-app插件】
+  + 新增 uni.navigateTo 增加参数 events 支持页面间通信 [详情](https://uniapp.dcloud.net.cn/api/router?id=navigateto)
+  + App平台、H5平台 优化 image 组件支持 mode="heightFix"
+  + App平台 优化 uni.canvasToTempFilePath 提高执行速度
+  + App平台 修复 app.vue 生命周期 onshow 某些情况下无参数的Bug [详情](https://ask.dcloud.net.cn/question/103903)
+  + App平台 修复 input 组件修改 password 属性后 adjust-position 配置失效的Bug [详情](https://ask.dcloud.net.cn/question/103435)
+  + App平台 修复 临时文件未清理的Bug [详情](https://ask.dcloud.net.cn/question/103456)
+  + App平台 修复 nvue refresh 组件偶现下拉刷新结束后不复位的Bug [详情](https://github.com/dcloudio/uni-app/issues/1107)
+  + App-Android平台 修复 Android11 设备运行白屏的Bug [详情](https://ask.dcloud.net.cn/question/105319)
+  + App-Android平台 修复 2.8.4版引出的 uni.request 请求 cookie 与 webview 页面没有同步共享的Bug [详情](https://ask.dcloud.net.cn/question/103956)
+  + App-Android平台 修复 2.8.4版引出的 nvue 无法加载网络字体图标文件 iconfont 的Bug [详情](https://ask.dcloud.net.cn/question/104655)
+  + App-Android平台 修复 调用监听加速度、陀螺仪等 API 可能报`e.setInterval is not a function`错误的Bug [详情](https://ask.dcloud.net.cn/question/105584)
+  + App-Android平台 修复 没有获取到位置权限时，调用 uni.chooseLocation 可能导致应用闪退的Bug [详情](https://ask.dcloud.net.cn/question/105312)
+  + App-iOS平台 修复 scroll-view 组件在 iOS13 触摸交互卡顿的Bug [详情](https://ask.dcloud.net.cn/question/98881)
+  + App-iOS平台 修复 nvue map 组件 controltap 事件返回数据参数名不正确的Bug [详情](https://ask.dcloud.net.cn/question/99769)
+  + H5平台 优化 uni.previewImage 支持手势缩放
+  + H5平台 修复 多个 editor 组件会重复加载依赖的Bug
+  + H5平台 修复 从首页调用 uni.redirectTo 切换其他页面后首页未销毁的Bug [详情](https://ask.dcloud.net.cn/question/103503)
+  + H5平台 修复 切换页面导致 textarea 组件 auto-height 属性失效的Bug
+  + 小程序平台 修复 v-for 遍历复杂表达式不显示的Bug [#2012](https://github.com/dcloudio/uni-app/issues/2012)
+* 【uniCloud】
+  + 新增 本地运行 加入显示调试行号等信息
+  + 修复 当npm镜像源为淘宝源时，某些云函数或公共模块上传失败的Bug
+* 【App插件(含5+App和uni-app的App端)】
+  + 新增 uni-AD 支持快手联盟的开屏和激励视频广告
+  + 修复 下载文件设置的临时存储文件名过长时无法正常下载的Bug [详情](https://ask.dcloud.net.cn/question/103336)
+  + Android平台 修复 UniPush 在部分魅族手机可能无法获取cid的Bug [详情](https://ask.dcloud.net.cn/question/102774)
+  + Android平台 修复 设置targetversion为29时，从相册选择图片返回路径不正确的Bug [详情](https://ask.dcloud.net.cn/question/105269)
+  + Android平台 修复 设置targetversion为29时，在部分 Android10 设备无法正常定位的Bug
+  + iOS平台 更新 QQ 分享、登录SDK版本为3.3.9-Lite，解决分享到 QQ 显示未授权应用的问题
+  + iOS平台 修复 设置页面横屏 landscape 显示时，在 iPad 设备上不显示状态栏的Bug [详情](https://ask.dcloud.net.cn/question/103386)
+  + iOS平台 修复 视频播放控件 VideoPlayer 动态修改 objectFit 属性不生效的Bug
+
+#### 2.8.7.20200820-alpha
+* 【uni-app插件】
+  + App-Android平台 修复 调用 plus.io.requestFileSystem 概率性出现`Failed to find taskCenter`错误信息的Bug [详情](https://ask.dcloud.net.cn/question/103902)
+  + App-Android平台 修复 2.8.4版引出的 uni.request 请求 cookie 未正确处理可能引起网络请求失败的Bug [详情](https://ask.dcloud.net.cn/question/105139)
+  + App-Android平台 修复 2.8.4版引出的 uni.request 请求返回的 http 响应头数据中 key 名称变成小写的Bug [详情](https://ask.dcloud.net.cn/question/103995)
+  + 小程序平台 修复 v-for 中事件使用部分复杂的表达式编译报错的Bug
+  + 小程序平台 修复 v-for 中嵌套 v-if 时部分复杂表达式编译后运行报错的Bug [#2011](https://github.com/dcloudio/uni-app/issues/2011)
+  + 小程序平台 修复 修复部分自定义事件无参数时报错的Bug [#2021](https://github.com/dcloudio/uni-app/issues/2011)
+  + 微信小程序平台 修复 属性使用复杂的对象表达式小程序开发工具编译报错的Bug [详情](https://ask.dcloud.net.cn/question/103944)
+* 【uniCloud】
+  + 优化 云函数插件支持写入components、js_sdk、static目录
+  + web控制台 阿里云 新增 数据库集合导入导出功能 [详情](https://uniapp.dcloud.net.cn/uniCloud/cf-database?id=export)
+  + web控制台 腾讯云 新增 资源概况页面
+  + 短信发送 新增 3个通知类短信模板 [详情](https://uniapp.dcloud.net.cn/uniCloud/send-sms)
+* 【App插件(含5+App和uni-app的App端)】
+  + uni-AD 新增 信息流和激励视频的多广告源在App同次启动时随机穿插，可提升广告收益
+  + uni-AD 新增 设置开屏全屏显示
+  + Android平台 修复 uni-AD 开屏显示穿山甲广告点击跳过按钮后，再点击splash页面可能导致应用闪退的Bug [详情](https://ask.dcloud.net.cn/question/103601)
+  + iOS平台 更新 UniPush 使用的个推SDK版本为2.4.5.1，解决在部分设备上获取唯一标识可能重复的问题
+  + iOS平台 更新 uni-AD 腾讯广点通SDK版本为4.11.10，今日头条穿山甲SDK版本为3.1.0.5
+  + iOS平台 修复 直播推流 LivePusher 监听事件后不触发回调的Bug
+
+#### 2.8.4.20200805-alpha
+* 【uni-app插件】
+  + App平台、H5平台 优化 uni.setTabBarItem 支持 pagePath 配置
+  + App平台、H5平台 修复 picker 组件设置 value 为 -1 时表现异常的Bug [#1553](https://github.com/dcloudio/uni-app/issues/1553)
+  + App平台、H5平台 修复 editor 组件粘贴文字报错的Bug [详情](https://ask.dcloud.net.cn/question/102948)
+  + App平台 新增 支持蓝牙相关接口 uni.setBLEMTU、uni.getBLEDeviceRSSI
+  + App平台 优化 uni.request 支持返回 cookies 属性与微信小程序拉齐（基础库版本 2.10.0+）
+  + App平台 修复 ibeacon 相关事件回调不触发的Bug [详情](https://ask.dcloud.net.cn/question/102136)
+  + App平台 修复 当前 tab 页面不是配置的首页时，热刷新后 tabBar 消失的Bug [详情](https://ask.dcloud.net.cn/question/101612)
+  + App平台 修复 从 nvue 页面调用 uni.reLaunch 切换到 vue 页面后无法设置状态栏的Bug [详情](https://ask.dcloud.net.cn/question/102594)
+  + App-Android平台 更新 网络请求底层实现库 OKHttp 版本为3.12.11，提升 websocket 传输效率
+  + 【重要】App-Android平台 修复 targetSdkVersion 设置为 29 时在 Android10 运行白屏的Bug，满足谷歌应用商店上架对targetSdkVersion的要求 [详情](https://ask.dcloud.net.cn/question/103166)
+  + App-Android平台 修复 nvue input组件绑定值带小数点时显示异常的Bug [详情](https://ask.dcloud.net.cn/question/97745)
+  + App-iOS平台 修复 nvue 页面 在 iOS9 系统白屏的Bug
+  + H5平台 修复 picker 组件配置 mode="date" 且 fields="year" 时报错的Bug [#1687](https://github.com/dcloudio/uni-app/issues/1687)
+  + 小程序平台 修复 v-for 中方法使用复杂表达式报错的Bug [#373](https://github.com/dcloudio/uni-app/issues/373)
+  + 小程序平台 修复 v-for 中模板插值使用复杂表达式报错的Bug [详情](https://ask.dcloud.net.cn/question/102443)
+  + 小程序平台 修复 v-for 遍历对象表达式报错的Bug [#449](https://github.com/dcloudio/uni-app/issues/449)
+  + 小程序平台 修复 v-for 中属性值为对象表达式报错的Bug [#1450](https://github.com/dcloudio/uni-app/issues/1450)
+  + 小程序平台 修复 v-for 遍历数值时模板中有复杂表达式不显示的Bug
+  + 小程序平台 修复 v-if="false" 时标签内部的方法和过滤器仍然会执行的Bug [#334](https://github.com/dcloudio/uni-app/issues/334)
+  + 微信小程序平台、QQ小程序平台、字节跳动小程序平台 优化 自定义组件支持 v-show 指令 [#1724](https://github.com/dcloudio/uni-app/issues/1724)
+  + 支付宝小程序平台 修复 v-for 部分情况 key 不生效的Bug
+  + 支付宝小程序平台 修复 支持 uni.getSavedFileList 接口
+  + 支付宝小程序平台 修复 sjs 中 callMethod 不能正确调用的Bug
+  + 头条小程序平台 修复 修复解构插槽不显示的Bug [详情](https://ask.dcloud.net.cn/question/80187)
+  + uni-ui 新增 uni-list 组件的 clickable 属性，是否开启点击反馈
+  + uni-ui 新增 uni-list 组件的 link 属性，显示右侧箭头并开启点击反馈
+  + uni-ui 新增 uni-list 组件的 to 属性，直接跳转到指定页面
+  + uni-ui 新增 uni-list 组件的 border 属性，是否显示列表分割线
+  + uni-ui 新增 uni-rate 组件的 disabled 属性，可设置组件禁用状态（之前版本的不可点击状态）
+  + uni-ui 新增 uni-rate 组件的 disabledColor 属性，可设置禁用颜色
+  + uni-ui 新增 uni-rate 组件的 readonly 属性，可设置组件只读属性
+  + uni-ui 新增 uni-rate 组件的 allowHalf 属性，可设置组件是否开启半星选择
+  + uni-ui 新增 uni-rate 组件的 touchable 属性，可设置组件是否支持滑动手势
+  + uni-ui 修复 uni-rate 组件动态传值不更新的问题
+  + uni-ui 优化 uni-rate 组件的 value 属性可使用 v-model 双向绑定数据
+  + uni-ui 优化 uni-popup 组件的扩展组件支持 easycom
+  + uni-ui 新增 uni-swipe-action 组件的左侧滑动使用方式
+  + uni-ui 新增 uni-swipe-action 组件的插槽使用方式
+  + uni-ui 新增 uni-swipe-action 组件的 threshold 属性，可以控制滑动缺省值
+  + uni-ui 修复 uni-swipe-aciotn 组件的滚动页面时触发滑动的Bug
+  + uni-ui 优化 uni-swipe-action 组件的长列表滚动性能
+* 【uniCloud】
+  + 阿里云 新增 支持协作者本地运行云函数
+  + 修复 HBuilderX 2.8.0引出的 公共模块右键菜单 更新依赖本模块的云函数菜单丢失的Bug
+* 【App插件(含5+App和uni-app的App端)】
+  + 新增 蓝牙设置最大传输单元 setBLEMTU，获取设备信号强度 getBLEDeviceRSSI 等功能 [文档](https://www.html5plus.org/doc/zh_cn/bluetooth.html#plus.bluetooth.setBLEMTU)
+  + 修复 Webview窗口标题栏 titleNView 设置为透明样式时按钮的背景区域无法自适应的Bug
+  + Android平台 更新 UniPush 使用的个推SDK国内渠道版本为2.14.1.0，提升消息推送到达率
+  + Android平台 调整 UniPush 和 个推推送 谷歌渠道默认不显示隐私政策提示框 [详情](https://ask.dcloud.net.cn/article/36479)
+  + Android平台 修复 UniPush 谷歌渠道设置不显示隐私政策提示框可能导致获取推送标识信息失败的Bug
+  + Android平台 优化 native.js 自动回收对象 autoCollection 机制，避免应用长时间运行内存回收不及时的问题
+  + Android平台 修复 从相册图片中扫描二维码识别率低的Bug [详情](https://ask.dcloud.net.cn/question/88500)
+  + Android平台 修复 保存部分视频文件添加至相册可能无法正常显示的Bug [详情](https://ask.dcloud.net.cn/question/102669)
+  + Android平台 修复 自定义基座 wap2app 真机运行 tab 无法切换的Bug [详情](https://ask.dcloud.net.cn/question/102492)
+  + iOS平台 修复 直播推流 LivePusher 设置 whiteness 美白属性值不生效的Bug [详情](https://ask.dcloud.net.cn/question/102761)
+  + iOS平台 修复 状态栏样式设置为非沉浸式在 iPad 设备上横屏时状态栏显示不正常的Bug
+* 【uni小程序SDK】
+  + Android平台 优化 小程序后台运行功能，支持关闭多任务窗口 [详情](https://nativesupport.dcloud.net.cn/UniMPDocs/API/android?id=setenablebackground)
+  + Android平台 修复 小程序在manifest.json配置固定横屏或竖屏方向无效的Bug
+
+#### 2.8.3.20200727-alpha
+* 【uni-app插件】
+  + H5平台 修复 启用摇树优化后 audio 组件编译报错的Bug [#1943](https://github.com/dcloudio/uni-app/issues/1943)
+
 #### 2.8.2.20200724-alpha
 * 【uni-app插件】
   + 支付宝小程序平台 修复 使用 await/async 报错的Bug [详情](https://ask.dcloud.net.cn/question/101714)
@@ -34,7 +169,7 @@
   + 支付宝小程序平台 修复 作用域插槽不显示的Bug [#1253](https://github.com/dcloudio/uni-app/issues/1253)
   + 新建uni-app项目模板，新增来自插件市场腾讯云提供的discus!Q模板 [详情](https://ext.dcloud.net.cn/plugin?id=2336)
 * 【uniCloud】
-  + 【重要】新增 本地运行云函数，可连接远程数据库和云存储，大幅提升开发效率，同时方便数据导入导出 [详情](https://uniapp.dcloud.net.cn/uniCloud/local)
+  + 【重要】新增 本地运行云函数，可连接远程数据库和云存储，大幅提升开发效率，同时方便数据导入导出 [详情](https://uniapp.dcloud.net.cn/uniCloud/quickstart?id=runlocal)
   + 【重要】新增 插件市场支持云函数付费销售，欢迎插件作者们提交高质量可售卖插件
   + 【重要】新增 uniCloud.sendSms 短信发送能力，可方便、便宜的发送验证码短信 [详情](https://uniapp.dcloud.net.cn/uniCloud/send-sms)
   + 修复 2.7.12版本引出的支付宝小程序、百度小程序下使用 uniCloud 报错的Bug
@@ -214,7 +349,7 @@
   + 新增 原生导航标题栏 titleNView 的 searchInput 搜索框支持清除按钮
   + 修复 原生导航标题栏 titleNView 的 titleIcon 设置 base64 图标无法支持 gif 格式图片的Bug
   + Android平台 更新 uni-AD 腾讯广点通SDK版本为4.211.1081
-  + Android平台 更新 UniPush 使用的个推SDK版本为4.3.8.0
+  + Android平台 更新 UniPush 使用的个推SDK谷歌渠道版本为4.3.8.0
   + Android平台 修复 uni-AD 腾讯广点通开屏广告可能拉伸变形显示的Bug
   + Androad平台 修复 uni-AD 开屏广告在刘海屏手机上跳过按钮可能被遮挡的Bug
   + Android平台 修复 视频播放 video 全屏时在刘海屏手机上控制栏可能被遮挡的Bug

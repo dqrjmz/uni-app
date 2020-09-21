@@ -23,15 +23,17 @@
 
 激励视频广告组件是由客户端原生的图片、文本、视频控件组成的，层级最高，会覆盖在普通组件上。
 
+播放开始后提供6秒关闭功能，请注意：这个会对CPM有负向影响。请用开发者帐号的邮箱，将应用名称和APP ID邮件发送到bd@dcloud.io。
+
+
 ### 广告创建
 
-开发者可以调用 uni.createRewardedVideoAd 创建激励视频广告组件。该方法返回的是一个单例，该实例仅对当前页面有效，不允许跨页面使用。
+开发者可以调用 uni.createRewardedVideoAd 创建激励视频广告组件。
 
 激励视频广告组件默认是隐藏的，因此可以提前创建，以提前初始化组件。开发者可以在页面的 `onReady` 事件回调中创建广告实例，并在该页面的生命周期内重复调用该广告实例。
 
 ```
 <script>
-    let rewardedVideoAd = null;
     export default {
         data() {
             return {
@@ -39,23 +41,289 @@
             }
         },
         onReady() {
-            if(uni.createRewardedVideoAd) {
-                rewardedVideoAd = uni.createRewardedVideoAd({ adpid: '1507000689' }) // 仅用于HBuilder基座调试 adpid: '1507000689'
-                rewardedVideoAd.onLoad(() => {
-                    console.log('onLoad event')
-                })
-                rewardedVideoAd.onError((err) => {
-                    console.log('onError event', err)
-                })
-                rewardedVideoAd.onClose((res) => {
-                    console.log('onClose event', res)
-                })
-            }
+          this._isLoaded = false
+          rewardedVideoAd = this._rewardedVideoAd = uni.createRewardedVideoAd({ adpid: '1507000689' }) // 仅用于HBuilder基座调试 adpid: '1507000689'
+          rewardedVideoAd.onLoad(() => {
+            this._isLoaded = true
+            console.log('onLoad event')
+            // 当激励视频被关闭时，默认预载下一条数据，加载完成时仍然触发 `onLoad` 事件
+          })
+          rewardedVideoAd.onError((err) => {
+            console.log('onError event', err)
+          })
+          rewardedVideoAd.onClose((res) => {
+            console.log('onClose event', res)
+          })
         },
         methods: {
+          show() {
+            if (this._isLoaded) {
+              this._rewardedVideoAd.show()
+            }
+          }
         }
     }
 </script>
+```
+
+
+### 完整调用示例
+
+支持多页面重复调用，可以传入不同广告位，默认处理了Loading状态及快速点击调用问题
+
+```
+<script>
+  import AD from "ad.js"
+
+  export default {
+    data() {
+      return {
+        title: '激励视频广告'
+      }
+    },
+    onReady() {
+      // HBuilderX标准基座真机运行测试激励视频广告位标识（adpid）为：1507000689
+      // adpid: 1507000689 仅用于测试，发布时需要改为广告后台（https://uniad.dcloud.net.cn/）申请的 adpid
+      // 广告后台申请的广告位(adpid)需要自定义基座/云打包/本地打包后生效
+      this._adpid = 1507000689
+
+      // 可选预加载数据
+      // AD.load(this._adpid)
+    },
+    methods: {
+      showAd() {
+        AD.show(this._adpid, (res) => {
+          console.log("onclose")
+          console.log(res)
+
+          // 用户点击了【关闭广告】按钮
+          if (res && res.isEnded) {
+            // 正常播放结束
+            console.log("onClose " + res.isEnded);
+          } else {
+            // 播放中途退出
+            console.log("onClose " + res.isEnded);
+          }
+
+          // 可选预加载下一条广告数据，减少加载等待时间，调用此 API 不会显示loading，不影响业务
+          // AD.load(this._adpid)
+        }, (err) => {
+          // 广告无法显示，输出错误信息，可以采集数据上报以便分析
+          console.log(err) // {code: code, errMsg: message}
+        })
+      }
+    }
+  }
+</script>
+```
+
+```
+// ad.js
+class AdHelper {
+
+  constructor() {
+    this._ads = {}
+  }
+
+  load(adpid, onload, onerror) {
+    if (!adpid || this.isBusy(adpid)) {
+      return
+    }
+
+    this.get(adpid).load(onload, onerror)
+  }
+
+  show(adpid, onsuccess, onfail) {
+    if (!adpid || this.isBusy(adpid)) {
+      return
+    }
+
+    var ad = this.get(adpid)
+
+    uni.showLoading({
+      mask: true
+    })
+
+    ad.load(() => {
+      uni.hideLoading()
+      ad.show((e) => {
+        onsuccess && onsuccess(e)
+        // 关闭视频
+      })
+    }, (err) => {
+      uni.hideLoading()
+      onfail && onfail(err)
+    })
+  }
+
+  isBusy(adpid) {
+    return (this._ads[adpid] && this._ads[adpid].isLoading)
+  }
+
+  get(adpid) {
+    if (!this._ads[adpid]) {
+      this._ads[adpid] = new RewardedVideo({
+        adpid: adpid
+      })
+    }
+
+    return this._ads[adpid]
+  }
+}
+
+const eventNames = [
+  'load',
+  'close',
+  'verify',
+  'error'
+]
+
+const EXPIRED_TIME = 1000 * 60 * 30
+const ProviderType = {
+  CSJ: 'csj',
+  GDT: 'gdt'
+}
+
+const RETRY_COUNT = 1
+
+class RewardedVideo {
+  constructor(options = {}) {
+    this._isLoad = false
+    this._isLoading = false
+    this._lastLoadTime = 0
+    this._lastError = null
+    this._retryCount = 0
+
+    this._loadCallback = null
+    this._closeCallback = null
+    this._errorCallback = null
+
+    const rewardAd = this._rewardAd = plus.ad.createRewardedVideoAd(options)
+    rewardAd.onLoad((e) => {
+      this._isLoading = false
+      this._isLoad = true
+      this._lastLoadTime = Date.now()
+
+      this.onLoad()
+    })
+    rewardAd.onClose((e) => {
+      this._isLoad = false
+      this.onClose(e)
+    })
+    rewardAd.onVerify((e) => {
+      // e.isValid
+    })
+    rewardAd.onError(({
+      code,
+      message
+    }) => {
+      this._isLoading = false
+      const data = {
+        code: code,
+        errMsg: message
+      }
+
+      if (code === -5008) {
+        this._loadAd()
+        return
+      }
+
+      if (this._retryCount < RETRY_COUNT) {
+        this._retryCount += 1
+        this._loadAd()
+        return
+      }
+
+      this._lastError = data
+      this.onError(data)
+    })
+  }
+
+  get isExpired() {
+    return (this._lastLoadTime !== 0 && (Math.abs(Date.now() - this._lastLoadTime) > EXPIRED_TIME))
+  }
+
+  get isLoading() {
+    return this._isLoading
+  }
+
+  getProvider() {
+    return this._rewardAd.getProvider()
+  }
+
+  load(onload, onerror) {
+    this._loadCallback = onload
+    this._errorCallback = onerror
+
+    if (this._isLoading) {
+      return
+    }
+
+    if (this._isLoad) {
+      this.onLoad()
+      return
+    }
+
+    this._retryCount = 0
+
+    this._loadAd()
+  }
+
+  show(onclose) {
+    this._closeCallback = onclose
+
+    if (this._isLoading || !this._isLoad) {
+      return
+    }
+
+    if (this._lastError !== null) {
+      this.onError(this._lastError)
+      return
+    }
+
+    const provider = this.getProvider()
+    if (provider === ProviderType.CSJ && this.isExpired) {
+      this._loadAd()
+      return
+    }
+
+    this._rewardAd.show()
+  }
+
+  onLoad(e) {
+    if (this._loadCallback != null) {
+      this._loadCallback()
+    }
+  }
+
+  onClose(e) {
+    if (this._closeCallback != null) {
+      this._closeCallback({
+        isEnded: e.isEnded
+      })
+    }
+  }
+
+  onError(e) {
+    if (this._errorCallback != null) {
+      this._errorCallback(e)
+    }
+  }
+
+  destroy() {
+    this._rewardAd.destroy()
+  }
+
+  _loadAd() {
+    this._isLoad = false
+    this._isLoading = true
+    this._lastError = null
+    this._rewardAd.load()
+  }
+}
+
+export default new AdHelper()
+
 ```
 
 
@@ -246,18 +514,27 @@ code|message|
 -5002|无效的广告位标识adpid，请使用正确的adpid
 -5003|未开通广告，请在广告平台申请并确保已审核通过
 -5004|无广告模块，打包时请配置要使用的广告模块
--5005|广告加载失败，请尝试重新加载
+-5005|广告加载失败，请过段时间重新加载，否则可能触发系统策略导致流量收益下降
 -5006|广告未加载完成无法播放，请加载完成后再调show播放
 -5007|无法获取广告配置数据，请尝试重试
 -5008|广告已过期，请重新加载数据
 -5100|其他错误，聚合广告商内部错误
 
 
+**@error 详细错误码**
+
+- App端聚合的穿山甲(iOS)：[错误码](https://ad.oceanengine.com/union/media/union/download/detail?id=16&docId=5de8d574b1afac00129330d5&osType=ios)
+- App端聚合的穿山甲(Android)：[错误码](https://ad.oceanengine.com/union/media/union/download/detail?id=4&docId=5de8d9b925b16b00113af0ed&osType=android)
+- App端聚合的广点通(iOS)：[错误码](https://developers.adnet.qq.com/doc/ios/union/union_debug#%E9%94%99%E8%AF%AF%E7%A0%81)
+- App端聚合的广点通(Android)：[错误码](https://developers.adnet.qq.com/doc/android/union/union_debug#sdk%20%E9%94%99%E8%AF%AF%E7%A0%81)
+
+
 **注意事项**
+- 仅 V3 编译支持，参考项目 manifest.json 配置
 - 测试期间请使用测试 `adpid`，参考测试代码，如果无法显示换个时间再试
 - 多次调用 `RewardedVideoAd.onLoad()`、`RewardedVideoAd.onError()`、`RewardedVideoAd.onClose()` 等方法监听广告事件会产生多次事件回调，建议在创建广告后监听一次即可。
-- 仅 V3 编译支持，参考 manifest.json 配置
-- 为避免滥用广告资源，目前每个用户每天可观看激励式视频广告的次数有限，建议展示广告按钮前先判断广告是否拉取成功。(微信小程序、广点通有限制，穿山甲无限制)
+- 为避免滥用广告资源，目前每个用户每天可观看激励式视频广告的次数有限，建议展示广告按钮前先判断广告是否拉取成功。
+- App平台，建议每个广告商每个设备每天调用次数不超过`15`，中间要有间隔时间，否则可能触发系统策略导致流量收益下降
 
 **AD组件**
 文档地址：[https://uniapp.dcloud.io/component/ad](https://uniapp.dcloud.io/component/ad)

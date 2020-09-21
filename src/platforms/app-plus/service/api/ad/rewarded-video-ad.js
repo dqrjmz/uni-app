@@ -1,4 +1,3 @@
-
 const eventNames = [
   'load',
   'close',
@@ -7,6 +6,9 @@ const eventNames = [
 ]
 
 const ERROR_CODE_LIST = [-5001, -5002, -5003, -5004, -5005, -5006]
+const EXPIRED_TIME = 1000 * 60 * 30
+const EXPIRED_TEXT = { code: -5008, errMsg: '广告数据已过期，请重新加载' }
+const ProviderType = { CSJ: 'csj', GDT: 'gdt' }
 
 class RewardedVideoAd {
   constructor (options = {}) {
@@ -19,21 +21,28 @@ class RewardedVideoAd {
       }
     })
 
+    this._preload = options.preload !== undefined ? options.preload : true
     this._isLoad = false
     this._adError = ''
     this._loadPromiseResolve = null
     this._loadPromiseReject = null
+    this._lastLoadTime = 0
+
     const rewardAd = this._rewardAd = plus.ad.createRewardedVideoAd(options)
     rewardAd.onLoad((e) => {
       this._isLoad = true
+      this._lastLoadTime = Date.now()
       this._dispatchEvent('load', {})
+
       if (this._loadPromiseResolve != null) {
         this._loadPromiseResolve()
         this._loadPromiseResolve = null
       }
     })
     rewardAd.onClose((e) => {
-      this._loadAd()
+      if (this._preload) {
+        this._loadAd()
+      }
       this._dispatchEvent('close', { isEnded: e.isEnded })
     })
     rewardAd.onVerify && rewardAd.onVerify((e) => {
@@ -43,13 +52,24 @@ class RewardedVideoAd {
       const { code, message } = e
       const data = { code: code, errMsg: message }
       this._adError = message
+      if (code === -5008) {
+        this._isLoad = false
+      }
       this._dispatchEvent('error', data)
+      // TODO
       if ((code === -5005 || ERROR_CODE_LIST.index(code) === -1) && this._loadPromiseReject != null) {
         this._loadPromiseReject(data)
         this._loadPromiseReject = null
       }
     })
-    this._loadAd()
+
+    if (this._preload) {
+      this._loadAd()
+    }
+  }
+
+  get isExpired () {
+    return (this._lastLoadTime !== 0 && (Math.abs(Date.now() - this._lastLoadTime) > EXPIRED_TIME))
   }
 
   load () {
@@ -66,6 +86,15 @@ class RewardedVideoAd {
 
   show () {
     return new Promise((resolve, reject) => {
+      const provider = this.getProvider()
+      if (provider === ProviderType.CSJ && this.isExpired) {
+        this._isLoad = false
+        // TODO
+        this._dispatchEvent('error', EXPIRED_TEXT)
+        reject(new Error(EXPIRED_TEXT.errMsg))
+        return
+      }
+
       if (this._isLoad) {
         this._rewardAd.show()
         resolve()

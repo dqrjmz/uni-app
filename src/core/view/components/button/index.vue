@@ -71,7 +71,7 @@ export default {
         )
         return
       }
-      if (this.openType === 'feedback') {
+      if (this.openType === 'feedback' && __PLATFORM__ === 'app-plus') {
         const feedback = plus.webview.create(
           'https://service.dcloud.net.cn/uniapp/feedback.html',
           'feedback',

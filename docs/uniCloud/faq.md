@@ -8,9 +8,9 @@
 
 ### uniCloud稳定吗？DCloud服务器异常会影响我的线上业务吗？
 
-`uniCloud`是 DCloud 和阿里云、腾讯云等成熟云厂商合作推出的云服务产品，阿里云、腾讯云等提供云端基础资源，DCloud提供API设计、前端框架、IDE工具支持、管理控制台、插件生态等服务，开发者的云函数直接托管在阿里云等服务商平台。
+`uniCloud`是 DCloud 和阿里云、腾讯云等成熟云厂商合作推出的云服务产品，阿里云、腾讯云等提供云端基础资源，DCloud提供API设计、前端框架、IDE工具支持、管理控制台、插件生态等服务，开发者的云函数直接托管在阿里云等服务商的serverless平台。
 
-用户终端上的应用在运行时，直连云服务商平台，不会经过DCloud服务器，开发者无需担心因DCloud服务器负载而影响自己业务的问题。
+用户终端上的应用在运行时，直连云服务商serverless平台，不会经过DCloud服务器，开发者无需担心因DCloud服务器负载而影响自己业务的问题。
 
 ### 云函数 和 传统 Node.js 开发有何区别？
 
@@ -27,13 +27,21 @@
 ### uniCloud只支持uni-app，怎么开发web界面？
 
 uni-app本来也可以开发web界面，只是内置组件对宽屏没有自动适配而已。你可以：
-1. 新建uni-app项目，但不使用内置组件，而是直接用三方ui库，比如elementUI。这些基于vue的、适合宽屏使用的ui库可以直接用。至于js api，仍然使用uni的，比如uni.setStorage等。有多个可参考插件[GraceAdmin](https://ext.dcloud.net.cn/plugin?id=1347)、[基于elementUI的uniCloud示例](https://ext.dcloud.net.cn/plugin?id=1585)，均是基于uniCloud的pc端管理后台框架。
+1. 新建uni-app项目，但不使用内置组件，而是直接用三方ui库，比如elementUI。这些基于vue的、适合宽屏使用的ui库可以直接用。至于js api，仍然使用uni的，比如uni.setStorage等。
 2. 继续使用内置组件，自己处理pc适配：
     - 如果要多端适配界面，使用css的媒体查询处理适配。
     - 2.6.3起，uni内置组件支持了pc鼠标的滚动和drag。老版可以使用三方库替换touch的拖动为pc上的drag，比如touch-emulator.js。
     - uni-app的内置组件和api仅适配了webkit内核浏览器，ie和firefox可能有兼容问题。如有问题需自己写额外css或js适配。
 
 后续DCloud会进一步强化内置组件和uni-ui对PC浏览器的适配。
+
+如果是需要pc版admin的话，已经有很多现成插件了：
+- [baseCloud](https://ext.dcloud.net.cn/plugin?id=2481)
+- [coolAdmin](https://ext.dcloud.net.cn/plugin?id=2444)
+- [GraceAdmin](https://ext.dcloud.net.cn/plugin?id=1347)
+- [基于elementUI的uniCloud示例](https://ext.dcloud.net.cn/plugin?id=1585)，均是基于uniCloud的pc端管理后台框架。
+
+更多uniCloud Admin系统可搜索：[https://ext.dcloud.net.cn/search?q=admin&cat1=7&orderBy=UpdatedDate](https://ext.dcloud.net.cn/search?q=admin&cat1=7&orderBy=UpdatedDate)
 
 ### 可否通过http url方式访问云函数或云数据库？
 
@@ -56,12 +64,17 @@ nodejs的性能高于php，MongoDB的性能也优于mysql。
 php+mysql的优势在于生态，有很多现成的开源项目，可以大幅提高开发效率。而uniCloud将通过插件市场等一系列手段强化生态，给开发者提供更高效率的各种轮子。
 
 ### 支持websocket吗？
-websocket的实时特性导致serverless化比较复杂。还需要继续寻找合适方案。如果使用三方sdk服务，比如推送、腾讯或声网等实时音视频方案，由于是连接三方服务器，不是连接uniCloud，这些方案仍然可以继续使用。
+websocket的实时特性导致serverless化比较复杂，目前曲线方案有：
+1. 如果使用三方sdk服务，比如推送、腾讯或声网等实时音视频方案，由于是连接三方服务器，不是连接uniCloud，这些方案仍然可以继续使用。
+2. 一些三方专业的websocket服务也可以使用，比如：[https://ext.dcloud.net.cn/plugin?id=1334](https://ext.dcloud.net.cn/plugin?id=1334)
+3. 如果是im方面的需求，那么基于uniPush的im服务是非常推荐的选择：[https://ext.dcloud.net.cn/plugin?id=2670](https://ext.dcloud.net.cn/plugin?id=2670)
+4. 前端轮询获取服务器数据：[https://ext.dcloud.net.cn/plugin?id=2740](https://ext.dcloud.net.cn/plugin?id=2740)
 
 ### 如何导入老数据库的数据？
 - 方式1：可以在HBuilderX里用db_init.json来批量创建云数据库和插入表内容，[详见](https://uniapp.dcloud.io/uniCloud/cf-database?id=%e4%bd%bf%e7%94%a8db_initjson%e5%88%9d%e5%a7%8b%e5%8c%96%e9%a1%b9%e7%9b%ae%e6%95%b0%e6%8d%ae%e5%ba%93)
-- 方式2：在云函数里，使用nodejs标准写法，连接老数据库，如使用mysql的[插件](https://ext.dcloud.net.cn/plugin?id=1925)，把数据读出来，再批量写入云数据库
-- 方式3：将一个云函数URL化，用其他语言读取老数据库，通过http方式提交到云函数，云函数将接收到的数据存入云数据库
+- 方式2：阿里云支持在uniCloud web控制台界面直接导入导出数据
+- 方式3：在云函数里，使用nodejs标准写法，连接老数据库，如使用mysql的[插件](https://ext.dcloud.net.cn/plugin?id=1925)，把数据读出来，再批量写入云数据库
+- 方式4：将一个云函数URL化，用其他语言读取老数据库，通过http方式提交到云函数，云函数将接收到的数据存入云数据库
 
 ### 云函数访问时快时慢怎么回事？
 
@@ -80,7 +93,10 @@ websocket的实时特性导致serverless化比较复杂。还需要继续寻找�
 
 ### 发布H5时还得自己找个服务器部署前端网页，可以不用自己再找服务器吗？
 
-已支持[前端网页托管](https://uniapp.dcloud.io/uniCloud/hosting)。
+uniCloud支持[前端网页托管](https://uniapp.dcloud.io/uniCloud/hosting)，并且免费！
+
+- 如果你已经有备案过的域名，直接解析过来即可；
+- 如果你要新注册域名，目前通管局仍要求有固定ip才给域名备案，这个规定未考虑serverless模式，还得过些时候才可能更新。目前只能先买一个短期固定ip，通过备案后再解析到uniCloud。
 
 ### uniCloud云数据库如何实现全文检索
 
@@ -116,42 +132,55 @@ uniCloud.httpclient.request('https://example.com',{
 
 ### uniCloud费用贵不贵？
 
-目前uniCloud计费系统还未开发完毕，开发者目前可以免费使用uniCloud。未来uniCloud的商用定价，也会低于租用传统云主机的费用。
+uniCloud的阿里云目前是完全免费的。
+uniCloud的腾讯云免费提供一个服务空间，更多服务空间或更多资源消耗需要付费。付费价格同微信云开发定价。整体成本远低于传统服务器租用成本。详见：[https://uniapp.dcloud.io/uniCloud/price](https://uniapp.dcloud.io/uniCloud/price)
 
-开发者无需顾忌DCloud会先免费后收割：
-1. DCloud提供uniCloud的目标，就是给开发者更低门槛、更便宜的云开发能力，未来商用时的定价一定比传统云主机便宜，否则就失去做这个产品的意义；
-2. serverLess的成本天然低于传统云主机；
-3. DCloud是有信誉的大厂，拥有500万开发者和十亿手机活跃用户，多年来一直给开发者提供良心产品，从不失信。
-4. 即便uniCloud计费后，也会长期给开发者提供2个免费的服务空间。
-
-uniCloud免费期间，为避免资源滥用，有使用限制，见下。
+uniCloud的免费服务空间，为避免资源滥用，有使用限制，见下。
 
 **阿里云免费版限制如下**
 
 |资源类目						|限制						|说明	|
 |:-:							|:-:						|:-:	|
 |云函数并发限制	|1000个/服务空间|-		|
-|每个服务空间的云函数数量				|49个						|其实云函数支持单文件开发模式，即一个云函数内完成众多业务。		|
+|每个服务空间的云函数数量				|49个						|如何合并云函数见下一节		|
 
 **腾讯云免费版限制如下**
 
-|资源类别	|子类目						|限制					|说明																																							|
-|:-:			|:-:							|:-:					|:-:																																							|
-|云函数		|硬件资源用量			|4万GBs/月		|腾讯云最小计费粒度为256MB*100ms，即使用内存固定为256MB，运行时间以100ms为阶梯计算|
-|					|外网出流量				|1GB/月				|-																																								|
-|					|云函数并发限制		|1000个/云函数|超出此连接数的请求会直接失败。如有需求突破此限制，请发邮件到service@dcloud.io申请|
-|					|云函数数目				|50个					|其实云函数支持单文件开发模式，即一个云函数内完成众多业务。														|
-|云存储		|容量							|3GB					|-																																								|
-|					|下载操作次数			|150万/月			|-																																								|
-|					|上传操作次数			|60万/月			|-																																								|
-|					|CDN回源流量			|5GB/月				|-																																								|
-|CDN			|CDN流量					|4GB/月				|-																																								|
-|云数据库	|容量							|2GB					|-																																								|
-|					|读操作数					|5万次/天			|-																																								|
-|					|写操作数					|3万次/天			|-																																								|
+|资源类别	|子类目			|限制			|说明																				|
+|:-:		|:-:			|:-:			|:-:																				|
+|云函数		|硬件资源用量	|4万GBs/月		|腾讯云最小计费粒度为256MB*100ms，即使用内存固定为256MB，运行时间以100ms为阶梯计算	|
+|			|外网出流量		|1GB/月			|-																					|
+|			|云函数并发限制	|1000个/云函数	|超出此连接数的请求会直接失败。如有需求突破此限制，请发邮件到service@dcloud.io申请	|
+|			|云函数数目		|50个			|如何合并云函数见下一节																|
+|云存储		|容量			|3GB			|-																					|
+|			|下载操作次数	|150万/月		|-																					|
+|			|上传操作次数	|60万/月		|-																					|
+|			|CDN回源流量	|5GB/月			|-																					|
+|CDN		|CDN流量		|4GB/月			|-																					|
+|云数据库	|容量			|2GB			|-																					|
+|			|读操作数		|5万次/天		|-																					|
+|			|写操作数		|3万次/天		|-																					|
+
+**关于数据库读写次数：**修改或读取条数为0时也计算一次读写，即只要调用接口就计算一次。
+
+阿里云如有需求突破资源限制，请发邮件到service@dcloud.io请求协助。如果属于标杆案例，可以特批扩大免费资源。
 
 
-无论阿里云或腾讯云，如有需求突破资源限制，请发邮件到service@dcloud.io请求协助。如果属于标杆案例，可以申请特批免费；其他情况，可以手工付费。
+### 如何控制云函数数量？云函数是否可以按多级目录整理@merge-functions
+
+每个云函数是一个独立进程，不存在云函数级别的多级目录概念。
+
+每个云函数下可以有子目录，但它们都属于这个云函数的一部分，而不是另一个云函数。
+
+hx内置了资源管理器，可以在右边看云函数列表，界面更宽大。
+
+并且uniCloud有云函数总量限制，多级目录没有意义。
+
+实际开发中可以合并很多云函数，
+- 比如数据库操作用一个云函数：[https://ext.dcloud.net.cn/plugin?id=2314](https://ext.dcloud.net.cn/plugin?id=2314)
+- 比如用户相关的逻辑，应该使用uni-id插件，只占用一个云函数：[https://ext.dcloud.net.cn/plugin?id=2116](https://ext.dcloud.net.cn/plugin?id=2116)
+- 比如用单页路由方式的云函数：[https://ext.dcloud.net.cn/plugin?id=2204](https://ext.dcloud.net.cn/plugin?id=2204)
+
 
 ### 海外用户访问比较慢怎么办
 
@@ -159,3 +188,14 @@ uniCloud服务商为阿里云时支持配置全球加速，步骤如下：
 
 1. 参考[阿里云全球加速](https://help.aliyun.com/document_detail/153198.html)文档，开通服务并对`api.bspapp.com`进行加速
 2. [自行初始化uniCloud](uniCloud/init.md)传入endpoint参数，其值为开通全球加速的自有域名
+
+### 腾讯云提示当前实名主体已经有三个账号怎么办
+
+开通腾讯云服务空间时实名认证提示实名主体已有三个账号，这往往是开发者在微信小程序开发工具里不小心开通了多个免费的小程序云，此时可以参考以下流程注销不用的账号：
+
+1. 打开[腾讯云找回账号](https://cloud.tencent.com/services/forgotAccount)页面
+2. 选择找回账号方式为实名信息
+3. 操作完成之后可以看到自己实名信息对应的全部腾讯云账号
+4. 选择不使用的账号登录之后注销即可，参考文档：[注销腾讯云账号](https://cloud.tencent.com/document/product/378/30253)
+
+同时，如果付费购买腾讯云服务空间，每个账号可以最多拥有50个腾讯云服务空间（注意其中仅有一个享受免费额度）。

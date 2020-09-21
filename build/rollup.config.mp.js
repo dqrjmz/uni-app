@@ -23,6 +23,10 @@ const PLATFORMS = {
     prefix: 'tt',
     title: '头条小程序'
   },
+  'mp-kuaishou': {
+    prefix: 'ks',
+    title: '快手小程序'
+  },
   'quickapp-webview': {
     prefix: 'qa',
     title: '快应用(Webview)版'
@@ -66,6 +70,9 @@ module.exports = {
      */
     alias({
       entries: [{
+        find: 'uni-shared/query',
+        replacement: path.resolve(__dirname, '../src/shared/query.js')
+      }, {
         find: 'uni-shared',
         replacement: path.resolve(__dirname, '../src/shared/util.js')
       }, {

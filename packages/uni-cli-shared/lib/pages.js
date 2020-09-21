@@ -113,8 +113,8 @@ function isNVuePage (page, root = '') {
 }
 
 function isValidPage (page, root = '') {
-  if (typeof page === 'string') { // 不合法的配置
-    console.warn(`${page} 配置错误, 已被忽略, 查看文档: https://uniapp.dcloud.io/collocation/pages?id=pages`)
+  if (typeof page === 'string' || !page.path) { // 不合法的配置
+    console.warn('pages.json 页面配置错误, 已被忽略, 查看文档: https://uniapp.dcloud.io/collocation/pages?id=pages')
     return false
   }
   let pagePath = page.path
@@ -394,14 +394,13 @@ function initAutoImportComponents (easycom = {}) {
   }
   // 目前仅 mp-weixin 内置支持 page-meta 等组件
   if (process.env.UNI_PLATFORM !== 'mp-weixin') {
-    if (!usingAutoImportComponents['^page-meta$']) {
-      usingAutoImportComponents['^page-meta$'] =
-        '@dcloudio/uni-cli-shared/components/page-meta.vue'
-    }
-    if (!usingAutoImportComponents['^navigation-bar$']) {
-      usingAutoImportComponents['^navigation-bar$'] =
-        '@dcloudio/uni-cli-shared/components/navigation-bar.vue'
-    }
+    BUILT_IN_COMPONENTS.forEach(name => {
+      const easycomName = `^${name}$`
+      if (!usingAutoImportComponents[easycomName]) {
+        usingAutoImportComponents[easycomName] =
+          '@dcloudio/uni-cli-shared/components/' + name + '.vue'
+      }
+    })
   }
 
   const newUsingAutoImportComponentsJson = JSON.stringify(usingAutoImportComponents)
@@ -465,7 +464,20 @@ function parseUsingAutoImportComponents (usingAutoImportComponents) {
   }
   return autoImportComponents
 }
+
+const BUILT_IN_COMPONENTS = ['page-meta', 'navigation-bar', 'match-media']
+
+function isBuiltInComponent (name) {
+  return BUILT_IN_COMPONENTS.includes(name)
+}
+
+function isBuiltInComponentPath (modulePath) {
+  return !!BUILT_IN_COMPONENTS.find(name => modulePath.includes(name))
+}
+
 module.exports = {
+  isBuiltInComponent,
+  isBuiltInComponentPath,
   getMainEntry,
   getNVueMainEntry,
   parsePages,

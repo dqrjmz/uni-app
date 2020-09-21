@@ -79,7 +79,7 @@ App-nvue下如需使用canvas，暂未封装为uni API，可参考[文档](https
 
 ### CanvasContext.arc
 
-画一条弧线。创建一个圆可以用 ```arc()``` 方法指定其实弧度为0，终止弧度为 ```2 * Math.PI```。用 ```stroke()``` 或者 ```fill()``` 方法来在 ```canvas``` 中画弧线。
+画一条弧线。创建一个圆可以用 ```arc()``` 方法指定起始弧度为0，终止弧度为 ```2 * Math.PI```。用 ```stroke()``` 或者 ```fill()``` 方法来在 ```canvas``` 中画弧线。
 
 **参数**
 
@@ -292,7 +292,7 @@ ctx.draw()
 clearRect 并非画一个白色的矩形在地址区域，而是清空，为了有直观感受，对 canvas 加了一层背景色。
 
 ```javascript
-<canvas canvas-id="myCanvas" style="border: 1px solid; background: #123456;"/>
+<canvas canvas-id="myCanvas" id="myCanvas" style="border: 1px solid; background: #123456;"/>
 ```
 
 ```javascript

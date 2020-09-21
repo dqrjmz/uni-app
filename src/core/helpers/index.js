@@ -76,3 +76,15 @@ export function upx2px (str) {
   // 没有带着upx后缀，将字符串直接进行转换
   return parseInt(str) || 0
 }
+
+export function findExistsPageIndex (url) {
+  const pages = getCurrentPages()
+  let len = pages.length
+  while (len--) {
+    const page = pages[len]
+    if (page.$page && page.$page.fullPath === url) {
+      return len
+    }
+  }
+  return -1
+}

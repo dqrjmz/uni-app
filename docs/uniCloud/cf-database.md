@@ -11,13 +11,11 @@
 |行 row					|记录 record / doc|
 |列 column			|字段 field				|
 
-`uniCloud`云函数中可访问云数据库。
+**云数据库仅支持通过云函数可访问。如需要在客户端访问云数据库，需通过`clientDB`插件。该插件可以将所有数据库操作封装在一个云函数中，大幅提升开发效率，是uniCloud开发者的必备插件，详见：[https://uniapp.dcloud.io/uniCloud/uni-clientDB](https://uniapp.dcloud.io/uniCloud/uni-clientDB)**
 
-鉴于安全问题，暂不支持客户端直接访问数据库。
+**阿里云使用的mongoDB数据库版本为4.0，腾讯云使用的腾讯云自研的文档型数据库（兼容mongoDB 4.0版本）。请注意API的兼容性说明**
 
-**阿里云使用的mongoDB数据库版本为3.4，腾讯云使用的腾讯云自研的文档型数据库（兼容mongoDB 4.0版本）。此差异可能会导致本文档内的部分功能不能在阿里云使用，我们会进行标注，如果发现有遗漏欢迎向我们反馈**
-
-如果不想使用此数据库，可以自行连接其他数据库，如mysql/redis，用法可以参考：
+如果同时还想连接其他数据库，如mysql/redis，用法可以参考如下插件：
 
 - [云函数连接Mysql数据库示例](https://ext.dcloud.net.cn/plugin?id=1925)
 - [云函数连接Redis数据库示例](https://ext.dcloud.net.cn/plugin?id=1846)
@@ -50,7 +48,7 @@ db.createCollection(collectionName)
 
 阿里云的集合需提前在web控制台创建。
 
-## 使用db\_init.json初始化项目数据库@db_init
+## 使用db\_init.json初始化项目数据库@db-init
 
 自`HBuilderX 2.5.11`起`uniCloud`提供了`db_init.json`来方便开发者快速进行数据库的初始化操作，即在HBuilderX工具中，将本地数据直接同步到云数据库中。
 
@@ -102,6 +100,46 @@ uniCloud会在每天备份一次数据库，最多保留7天。
 4. 选择需要回档的集合（注意：回档后集合不能与现有集合重名，如需对集合重命名可以在集合列表处操作）
 
 ![数据库回档](https://img.cdn.aliyun.dcloud.net.cn/uni-app/uniCloud/unicloud-db-backup.jpg)
+
+## 数据导出@export
+
+**此功能暂时只有阿里云支持**
+
+此功能主要用于导出整个集合的数据
+
+**用法**
+
+1. 进入[uniCloud web控制台](https://unicloud.dcloud.net.cn/home)，选择服务空间，或者直接在HBuilderX云函数目录`cloudfunctions`上右键打开uniCloud web控制台
+2. 进入云数据库选择希望导入数据的集合
+3. 点击导出按钮
+4. 选择导出格式，如果选择csv格式还需要选择导出字段
+5. 点击确定按钮等待下载开始即可
+
+**注意**
+
+- 导出的json文件并非一般情况下的json，而是每行一条json数据的文本文件
+- 导出为csv时必须填写字段选项。字段之间使用英文逗号隔开。例如：`_id, name, age, gender`
+- 数据量较大时可能需要等待一段时间才可以开始下载
+
+## 数据导入@import
+
+**此功能暂时只有阿里云支持**
+
+之前uniCloud提供的`db_init.json`主要是为了对数据库进行初始化，并不适合导入大量数据。与`db_init.json`不同，数据导入功能可以导入大量数据，目前支持导出 CSV、JSON 格式的文件数据。
+
+**用法**
+
+1. 进入[uniCloud web控制台](https://unicloud.dcloud.net.cn/home)，选择服务空间，或者直接在HBuilderX云函数目录`cloudfunctions`上右键打开uniCloud web控制台
+2. 进入云数据库选择希望导入数据的集合
+3. 点击导入，选择json文件或csv文件
+4. 选择处理冲突模式（关于处理冲突模式请看下方注意事项）
+5. 点击确定按钮等待导入完成即可
+
+**注意**
+
+- 目前导入文件最大限制为50MB
+- 导入csv时数据类型会丢失，即所有字段均会作为字符串导入
+- 冲突处理模式为设定记录_id冲突时的处理方式，`insert`表示冲突时依旧导入记录但是是新插入一条，`upsert`表示冲突时更新已存在的记录
 
 ## 获取集合的引用
 
@@ -237,7 +275,7 @@ exports.main = async (event, context) => {
 
 ### 地理位置
 
-**阿里云暂不支持地理位置类型**
+**阿里云升级mongoDB为4.0版本后已支持地理位置**
 
 参考：[GEO地理位置](#GEO地理位置)
 
@@ -396,7 +434,6 @@ let res = await db.collection('goods').where({
 | 字段      | 类型    | 必填 | 说明                     |
 | --------- | ------- | ---- | ------------------------ |
 | total     | Integer | 否   | 计数结果                 |
-| requestId | string  | 否   | 请求序列号，用于错误排查 |
 
 
 
@@ -716,6 +753,13 @@ let res = await collection.where({
   _id: dbCmd.exists(true)
 }).remove()
 ```
+
+响应参数
+
+| 字段      | 类型    | 必填 | 说明                     |
+| --------- | ------- | ---- | ------------------------ |
+| deleted   | Integer | 否   | 删除的记录数量              |
+
 
 ## 更新文档
 
@@ -1206,13 +1250,6 @@ let res = await db.collection('comments').doc('comment-id').update({
 
 注意：**如果需要对类型为地理位置的字段进行搜索，一定要建立地理位置索引**。
 
-**平台差异说明**
-
-|阿里云	|腾讯云	|
-|----		|----		|
-|×			|√			|
-
-
 ### GEO数据类型
 
 #### Point
@@ -1499,7 +1536,7 @@ db.runTransaction(callback: function, times: number)
 
 ```javascript
 const db = uniCloud.database()
-const _ = db.command
+const dbCmd = db.command
 exports.main = async (event) => {
   try {
     const result = await db.runTransaction(async transaction => {
@@ -1509,15 +1546,11 @@ exports.main = async (event) => {
       if (aaaRes.data && bbbRes.data) {
         try {
           const updateAAARes = await transaction.collection('account').doc('aaa').update({
-            data: {
-              amount: _.inc(-10)
-            }
+            amount: dbCmd.inc(-10)
           })
 
           const updateBBBRes = await transaction.collection('account').doc('bbb').update({
-            data: {
-              amount: _.inc(10)
-            }
+            amount: dbCmd.inc(10)
           })
 
           console.log(`transaction succeeded`)
@@ -1576,7 +1609,7 @@ db.startTransaction()
 
 ```javascript
 const db = uniCloud.database()
-const _ = db.command
+const dbCmd = db.command
 
 exports.main = async (event) => {
   const transaction = await db.startTransaction()
@@ -1587,15 +1620,11 @@ exports.main = async (event) => {
 
     if (aaaRes.data && bbbRes.data) {
       const updateAAARes = await transaction.collection('account').doc('aaa').update({
-        data: {
-          amount: _.inc(-10)
-        }
+        amount: dbCmd.inc(-10)
       })
 
       const updateBBBRes = await transaction.collection('account').doc('bbb').update({
-        data: {
-          amount: _.inc(10)
-        }
+        amount: dbCmd.inc(10)
       })
 
       await transaction.commit()
@@ -2497,7 +2526,7 @@ WHERE <output array field> IN (SELECT *
 
 #### 自定义连接条件、拼接子查询
 
-**此用法阿里云暂不支持**
+阿里云升级mongoDB版本为4.0后已支持此写法
 
 如果需要指定除相等匹配之外的连接条件，或指定多个相等匹配条件，或需要拼接被连接集合的子查询结果，那可以使用如下定义：
 ```js
@@ -2809,7 +2838,8 @@ let res = await db.collection('orders').aggregate()
 - books 的 stock 字段 大于或等于 orders 的 quantityorders 字段
 ```js
 const db = cloud.database()
-const $ = db.command.aggregate
+const dbCmd = db.command
+const $ = dbCmd.aggregate
 let res = await db.collection('orders').aggregate()
   .lookup({
     from: 'books',
@@ -2818,7 +2848,7 @@ let res = await db.collection('orders').aggregate()
       order_quantity: '$quantity'
     },
     pipeline: $.pipeline()
-      .match(_.expr($.and([
+      .match(dbCmd.expr($.and([
         $.eq(['$title', '$$order_book']),
         $.gte(['$stock', '$$order_quantity'])
       ])))
@@ -2964,9 +2994,9 @@ match({
 ```
 ```js
 // 使用操作符
-const _ = db.command
+const dbCmd = db.command
 match({
-  age: _.gt(18)
+  age: dbCmd.gt(18)
 })
 ```
 
@@ -3006,12 +3036,12 @@ match 过滤出文档后，还可以与其他流水线阶段配合使用。
 
 比如下面这个例子，我们使用 group 进行搭配，计算 score 字段大于 80 的文档数量：
 ```js
-const _ = db.command
-const $ = _.aggregate
+const dbCmd = db.command
+const $ = dbCmd.aggregate
 let res = await db.collection('articles')
   .aggregate()
   .match({
-    score: _.gt(80)
+    score: dbCmd.gt(80)
   })
   .group({
       _id: null,
@@ -4103,7 +4133,7 @@ let res = await db.collection('todos').where({
       age: dbCmd.lt(2),
     }),
     dbCmd.elemMatch({
-      name: 'mall',
+      type: 'mall',
       age: dbCmd.gt(5),
     }),
   ]),
@@ -4307,8 +4337,6 @@ let res = await db.collection('restaurants').where({
 #### expr
 
 查询操作符，用于在查询语句中使用聚合表达式，方法接收一个参数，该参数必须为聚合表达式  
-
-**阿里云暂不支持**
       
 ##### 使用说明
  
@@ -4379,21 +4407,17 @@ let res = await db.collection('items').where(dbCmd.expr(
 ```js
 // 以下方法只会更新 style.color 为 red，而不是将 style 更新为 { color: 'red' }，即不影响 style 中的其他字段
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    style: {
-      color: 'red'
-    }
+  style: {
+    color: 'red'
   }
 })
 
 // 以下方法更新 style 为 { color: 'red', size: 'large' }
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    style: dbCmd.set({
-      color: 'red',
-      size: 'large'
-    })
-  }
+  style: dbCmd.set({
+    color: 'red',
+    size: 'large'
+  })
 })
 ```
 
@@ -4409,9 +4433,7 @@ let res = await db.collection('todos').doc('doc-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('todo-id').update({
-  data: {
-    style: dbCmd.remove()
-  }
+  style: dbCmd.remove()
 })
 ```
 
@@ -4431,9 +4453,7 @@ let res = await db.collection('todos').doc('todo-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('todo-id').update({
-  data: {
-    progress: dbCmd.inc(10)
-  }
+  progress: dbCmd.inc(10)
 })
 ```
 
@@ -4453,9 +4473,7 @@ let res = await db.collection('todos').doc('todo-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('todo-id').update({
-  data: {
-    progress: dbCmd.mul(10)
-  }
+  progress: dbCmd.mul(10)
 })
 ```
 
@@ -4471,9 +4489,7 @@ let res = await db.collection('todos').doc('todo-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    progress: dbCmd.min(50)
-  }
+  progress: dbCmd.min(50)
 })
 ```
 
@@ -4489,9 +4505,7 @@ let res = await db.collection('todos').doc('doc-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    progress: dbCmd.max(50)
-  }
+  progress: dbCmd.max(50)
 })
 ```
 
@@ -4505,9 +4519,7 @@ let res = await db.collection('todos').doc('doc-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    progress: dbCmd.rename('totalProgress')
-  }
+  progress: dbCmd.rename('totalProgress')
 })
 ```
 
@@ -4516,22 +4528,18 @@ let res = await db.collection('todos').doc('doc-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    someObject: {
-      someField: dbCmd.rename('someObject.renamedField')
-    }
+  someObject: {
+    someField: dbCmd.rename('someObject.renamedField')
   }
 })
 ```
-或：  
 
+或：
  
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    'someObject.someField': dbCmd.rename('someObject.renamedField')
-  }
+  'someObject.someField': dbCmd.rename('someObject.renamedField')
 })
 ```
 
@@ -4577,9 +4585,7 @@ let res = await db.collection('todos').doc('doc-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    tags: dbCmd.push(['mini-program', 'cloud'])
-  }
+  tags: dbCmd.push(['mini-program', 'cloud'])
 })
 ```
 
@@ -4588,42 +4594,37 @@ let res = await db.collection('todos').doc('doc-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    tags: dbCmd.push({
-      each: ['mini-program', 'cloud'],
-      position: 1,
-    })
-  }
+  tags: dbCmd.push({
+    each: ['mini-program', 'cloud'],
+    position: 1,
+  })
 })
 ```
 
 ##### 示例 3：排序
- 插入后对整个数组做排序  
+
+插入后对整个数组做排序  
 
  
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    tags: dbCmd.push({
-      each: ['mini-program', 'cloud'],
-      sort: 1,
-    })
-  }
+  tags: dbCmd.push({
+    each: ['mini-program', 'cloud'],
+    sort: 1,
+  })
 })
 ```
-不插入，只对数组做排序  
 
+不插入，只对数组做排序  
  
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    tags: dbCmd.push({
-      each: [],
-      sort: 1,
-    })
-  }
+  tags: dbCmd.push({
+    each: [],
+    sort: 1,
+  })
 })
 ```
 如果字段是对象数组，可以如下根据元素对象里的字段进行排序：  
@@ -4632,17 +4633,15 @@ let res = await db.collection('todos').doc('doc-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    tags: dbCmd.push({
-      each: [
-        { name: 'miniprogram', weight: 8 },
-        { name: 'cloud', weight: 6 },
-      ],
-      sort: {
-        weight: 1,
-      },
-    })
-  }
+  tags: dbCmd.push({
+    each: [
+      { name: 'miniprogram', weight: 8 },
+      { name: 'cloud', weight: 6 },
+    ],
+    sort: {
+      weight: 1,
+    },
+  })
 })
 ```
 
@@ -4653,12 +4652,10 @@ let res = await db.collection('todos').doc('doc-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    tags: dbCmd.push({
-      each: ['mini-program', 'cloud'],
-      slice: -2,
-    })
-  }
+  tags: dbCmd.push({
+    each: ['mini-program', 'cloud'],
+    slice: -2,
+  })
 })
 ```
 
@@ -4667,14 +4664,12 @@ let res = await db.collection('todos').doc('doc-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    tags: dbCmd.push({
-      each: ['mini-program', 'cloud'],
-      position: 1,
-      slice: 2,
-      sort: 1,
-    })
-  }
+  tags: dbCmd.push({
+    each: ['mini-program', 'cloud'],
+    position: 1,
+    slice: 2,
+    sort: 1,
+  })
 })
 ```
 
@@ -4688,9 +4683,7 @@ let res = await db.collection('todos').doc('doc-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    tags: dbCmd.pop()
-  }
+  tags: dbCmd.pop()
 })
 ```
 
@@ -4704,9 +4697,7 @@ let res = await db.collection('todos').doc('doc-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    tags: dbCmd.unshift(['mini-program', 'cloud'])
-  }
+  tags: dbCmd.unshift(['mini-program', 'cloud'])
 })
 ```
 
@@ -4720,9 +4711,7 @@ let res = await db.collection('todos').doc('doc-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    tags: dbCmd.shift()
-  }
+  tags: dbCmd.shift()
 })
 ```
 
@@ -4736,9 +4725,7 @@ let res = await db.collection('todos').doc('doc-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    tags: dbCmd.pull('database')
-  }
+  tags: dbCmd.pull('database')
 })
 ```
 
@@ -4747,9 +4734,7 @@ let res = await db.collection('todos').doc('doc-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    tags: dbCmd.pull(dbCmd.in(['database', 'cloud']))
-  }
+  tags: dbCmd.pull(dbCmd.in(['database', 'cloud']))
 })
 ```
 
@@ -4768,12 +4753,10 @@ let res = await db.collection('todos').doc('doc-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    places: dbCmd.pull({
-      area: dbCmd.gt(100),
-      age: dbCmd.lt(2),
-    })
-  }
+  places: dbCmd.pull({
+    area: dbCmd.gt(100),
+    age: dbCmd.lt(2),
+  })
 })
 ```
 
@@ -4803,14 +4786,12 @@ let res = await db.collection('todos').doc('doc-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    cities: dbCmd.pull({
-      places: dbCmd.elemMatch({
-        area: dbCmd.gt(100),
-        age: dbCmd.lt(2),
-      })
+  cities: dbCmd.pull({
+    places: dbCmd.elemMatch({
+      area: dbCmd.gt(100),
+      age: dbCmd.lt(2),
     })
-  }
+  })
 })
 ```
 
@@ -4826,9 +4807,7 @@ let res = await db.collection('todos').doc('doc-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    tags: dbCmd.pullAll(['database', 'cloud'])
-  }
+  tags: dbCmd.pullAll(['database', 'cloud'])
 })
 ```
 
@@ -4844,28 +4823,23 @@ let res = await db.collection('todos').doc('doc-id').update({
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    tags: dbCmd.addToSet('database')
-  }
+  tags: dbCmd.addToSet('database')
 })
 ```
 
 ##### 示例代码 2：添加多个元素
- 需传入一个对象，其中有一个字段 `each`，其值为数组，每个元素就是要添加的元素  
+
+需传入一个对象，其中有一个字段 `each`，其值为数组，每个元素就是要添加的元素  
 
  
 ```js
 const dbCmd = db.command
 let res = await db.collection('todos').doc('doc-id').update({
-  data: {
-    tags: dbCmd.addToSet({
-      each: ['database', 'cloud']
-    })
-  }
+  tags: dbCmd.addToSet({
+    each: ['database', 'cloud']
+  })
 })
 ```
-
-
 
 ## 聚合操作符@aggregate-operator
 
@@ -4875,9 +4849,9 @@ let res = await db.collection('todos').doc('doc-id').update({
 
 聚合操作符。返回一个数字的绝对值。  
 
-      
-#####  API 说明
- 语法如下：  
+##### API 说明
+
+语法如下：  
 
  
 ```js
@@ -7969,12 +7943,6 @@ db.collection('items').aggregate()
 #### mergeObjects
 
 聚合操作符。将多个文档合并为单个文档。  
-
-**平台差异说明**
-
-|阿里云	|腾讯云	|
-|----		|----		|
-|×			|√			|
 
 #####  API 说明
  使用形式如下：
