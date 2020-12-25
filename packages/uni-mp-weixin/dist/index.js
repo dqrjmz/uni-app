@@ -133,6 +133,7 @@ function wrapperHook (hook) {
 }
 
 function isPromise (obj) {
+  // 存在 函数或者对象 有then函数
   return !!obj && (typeof obj === 'object' || typeof obj === 'function') && typeof obj.then === 'function'
 }
 
@@ -176,12 +177,21 @@ function wrapperOptions (interceptor, options = {}) {
   return options
 }
 
+/**
+ * 包裹返回值
+ * @param {*} method 方法
+ * @param {*} returnValue 返回值
+ */
 function wrapperReturnValue (method, returnValue) {
   const returnValueHooks = [];
+  // 全局拦截器的返回值是数组
   if (Array.isArray(globalInterceptors.returnValue)) {
+    // 添加到返回值的hook中
     returnValueHooks.push(...globalInterceptors.returnValue);
   }
+  // 作用域下的拦截器
   const interceptor = scopedInterceptors[method];
+  // 存在 && 返回值为数组
   if (interceptor && Array.isArray(interceptor.returnValue)) {
     returnValueHooks.push(...interceptor.returnValue);
   }
@@ -485,6 +495,8 @@ var navigateTo = {
   }
 };
 
+// 系统异步加载  系统异步错误
+
 function findExistsPageIndex (url) {
   const pages = getCurrentPages();
   let len = pages.length;
@@ -633,9 +645,12 @@ function processReturnValue (methodName, res, returnValue, keepReturnValue = fal
 }
 
 function wrapper (methodName, method) {
+  // protocols 对象是否存在实例属性 methodName
   if (hasOwn(protocols, methodName)) {
+    // 获取这个实例属性
     const protocol = protocols[methodName];
-    if (!protocol) { // 暂不支持的 api
+    // 暂不支持的 api
+    if (!protocol) {
       return function () {
         console.error(`微信小程序 暂不支持${methodName}`);
       }
@@ -646,6 +661,7 @@ function wrapper (methodName, method) {
         options = protocol(arg1);
       }
 
+      // 处理函数参数
       arg1 = processArgs(methodName, arg1, options.args, options.returnValue);
 
       const args = [arg1];
@@ -666,6 +682,10 @@ function wrapper (methodName, method) {
   }
   return method
 }
+
+/**
+ * 待实现的api uni.xxx
+ */
 
 const todoApis = Object.create(null);
 
@@ -691,6 +711,9 @@ function createTodoApi (name) {
   }
 }
 
+/**
+ * 遍历api
+ */
 TODOS.forEach(function (name) {
   todoApis[name] = createTodoApi(name);
 });
@@ -734,6 +757,7 @@ var extraApi = /*#__PURE__*/Object.freeze({
   getProvider: getProvider
 });
 
+// 单例，IIFE
 const getEmitter = (function () {
   let Emitter;
   return function getUniEmitter () {
@@ -826,6 +850,15 @@ Page = function (options = {}) {
   // 生命周期已经初始化好了
   initHook('onLoad', options);
   return MPPage(options)
+};
+
+/**
+ * 组件的创建
+ */
+Component = function (options = {}) {
+  // 调用创建完成钩子函数
+  initHook('created', options);
+  return MPComponent(options)
 };
 
 const PAGE_EVENT_HOOKS = [
@@ -1362,6 +1395,7 @@ function handleEvent (event) {
   }
 }
 
+// 应用生命周期函数
 const hooks = [
   'onShow',
   'onHide',
@@ -1375,12 +1409,14 @@ function parseBaseApp (vm, {
   mocks,
   initRefs
 }) {
+  // 状态容器
   if (vm.$options.store) {
     Vue.prototype.$store = vm.$options.store;
   }
 
   Vue.prototype.mpHost = "mp-weixin";
 
+  // 混合全局
   Vue.mixin({
     beforeCreate () {
       if (!this.$options.mpType) {
@@ -1417,6 +1453,7 @@ function parseBaseApp (vm, {
         }
       }
 
+      // 组件实例
       this.$vm = vm;
 
       this.$vm.$mp = {
@@ -1449,6 +1486,7 @@ function parseBaseApp (vm, {
   return appOptions
 }
 
+//
 const mocks = ['__route__', '__wxExparserNodeId__', '__wxWebviewId__'];
 
 function findVmByVueId (vm, vuePid) {
@@ -1550,45 +1588,57 @@ function createApp (vm) {
   return vm
 }
 
+// 编码预留的规则
 const encodeReserveRE = /[!'()*]/g;
+// 编码预留的替换
 const encodeReserveReplacer = c => '%' + c.charCodeAt(0).toString(16);
 const commaRE = /%2C/g;
 
 // fixed encodeURIComponent which is more conformant to RFC3986:
 // - escapes [!'()*]
 // - preserve commas
+// 给字符串进行编码
 const encode = str => encodeURIComponent(str)
   .replace(encodeReserveRE, encodeReserveReplacer)
   .replace(commaRE, ',');
 
+// 序列化查询字符串
 function stringifyQuery (obj, encodeStr = encode) {
+  // 获取对象的key，进行遍历
   const res = obj ? Object.keys(obj).map(key => {
     const val = obj[key];
-
+    // 对象的属性不存在返回
     if (val === undefined) {
       return ''
     }
 
+    // 对象的属性为null, 将key返回
     if (val === null) {
       return encodeStr(key)
     }
 
+    // 值为数组
     if (Array.isArray(val)) {
       const result = [];
+      // 遍历数组
       val.forEach(val2 => {
+        // 元素为空的返回
         if (val2 === undefined) {
           return
         }
+        // 元素为null的进行编码，添加到数组中
         if (val2 === null) {
           result.push(encodeStr(key));
         } else {
           result.push(encodeStr(key) + '=' + encodeStr(val2));
         }
       });
+      // 将数组使用&符号进行连接
       return result.join('&')
     }
-
+    // 编码key 和value
     return encodeStr(key) + '=' + encodeStr(val)
+    // 过滤掉长度为0 的编译过的
   }).filter(x => x.length > 0).join('&') : null;
   return res ? `?${res}` : ''
 }
@@ -1748,6 +1798,7 @@ function createComponent (vueOptions) {
   }
 }
 
+// 将todo api设置为false
 todos.forEach(todoApi => {
   protocols[todoApi] = false;
 });
@@ -1755,6 +1806,7 @@ todos.forEach(todoApi => {
 canIUses.forEach(canIUseApi => {
   const apiName = protocols[canIUseApi] && protocols[canIUseApi].name ? protocols[canIUseApi].name
     : canIUseApi;
+  // 不能使用的api就是
   if (!wx.canIUse(apiName)) {
     protocols[canIUseApi] = false;
   }
@@ -1763,6 +1815,9 @@ canIUses.forEach(canIUseApi => {
 let uni = {};
 
 if (typeof Proxy !== 'undefined' && "mp-weixin" !== 'app-plus') {
+  /**
+   * 将api代理到uni全局对象上
+   */
   uni = new Proxy({}, {
     get (target, name) {
       if (hasOwn(target, name)) {
@@ -1796,6 +1851,9 @@ if (typeof Proxy !== 'undefined' && "mp-weixin" !== 'app-plus') {
     }
   });
 } else {
+  /**
+   * 将api添加到uni全局对象上
+   */
   Object.keys(baseApi).forEach(name => {
     uni[name] = baseApi[name];
   });
@@ -1809,6 +1867,9 @@ if (typeof Proxy !== 'undefined' && "mp-weixin" !== 'app-plus') {
     });
   }
 
+  /**
+   * 添加观察者模式的api
+   */
   Object.keys(eventApi).forEach(name => {
     uni[name] = eventApi[name];
   });
@@ -1824,6 +1885,7 @@ if (typeof Proxy !== 'undefined' && "mp-weixin" !== 'app-plus') {
   });
 }
 
+// wx
 wx.createApp = createApp;
 wx.createPage = createPage;
 wx.createComponent = createComponent;

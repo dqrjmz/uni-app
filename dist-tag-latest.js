@@ -12,6 +12,7 @@ if (!version) {
 (async function() {
   for (let i = 0; i < pkgs.length; i++) {
     console.log(`npm dist-tag add @dcloudio/${pkgs[i]}@${version} latest`);
+    // 修改包发布的tag
     await shellExec(`npm dist-tag add @dcloudio/${pkgs[i]}@${version} latest`)
   }
 })();
