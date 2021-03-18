@@ -6,7 +6,6 @@
     <div
       ref="container"
       class="uni-video-container"
-      @click="triggerControls"
       @touchstart="touchstart"
       @touchend="touchend"
       @touchmove="touchmove"
@@ -25,6 +24,7 @@
         class="uni-video-video"
         webkit-playsinline
         playsinline
+        @click="triggerControls"
         @durationchange="onDurationChange"
         @loadedmetadata="onLoadedMetadata"
         @progress="onProgress"
@@ -83,7 +83,7 @@
           class="uni-video-danmu-button"
           @click.stop="triggerDanmu"
         >
-          弹幕
+          {{ $$t("uni.video.danmu") }}
         </div>
         <div
           v-show="showFullscreenBtn"
@@ -116,7 +116,7 @@
         class="uni-video-toast"
       >
         <div class="uni-video-toast-title">
-          音量
+          {{ $$t("uni.video.volume") }}
         </div>
         <svg
           class="uni-video-toast-icon"
@@ -153,11 +153,9 @@
           {{ currentTimeNew|time }} / {{ durationTime|time }}
         </div>
       </div>
-    </div>
-    <div
-      style="position: absolute; top: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none;"
-    >
-      <slot />
+      <div class="uni-video-slots">
+        <slot />
+      </div>
     </div>
   </uni-video>
 </template>
@@ -169,6 +167,9 @@ import {
 import {
   supportsPassive
 } from 'uni-shared'
+import {
+  i18nMixin
+} from 'uni-core/helpers/i18n'
 
 const passiveOptions = supportsPassive ? {
   passive: false
@@ -199,7 +200,7 @@ export default {
       return str
     }
   },
-  mixins: [subscriber, interact],
+  mixins: [i18nMixin, subscriber, interact],
   props: {
     id: {
       type: String,
@@ -808,6 +809,16 @@ uni-video[hidden] {
   align-items: center;
   background-color: rgba(1, 1, 1, 0.5);
   z-index: 1;
+}
+
+.uni-video-slots {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 .uni-video-cover-play-button {

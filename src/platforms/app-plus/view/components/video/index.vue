@@ -56,7 +56,11 @@ const attrs = [
   'pageGesture',
   'enableProgressGesture',
   'showPlayBtn',
-  'showCenterPlayBtn'
+  'showCenterPlayBtn',
+  'showLoading',
+  'codec',
+  'httpCache',
+  'playStrategy'
 ]
 
 export default {
@@ -144,6 +148,22 @@ export default {
     showCenterPlayBtn: {
       type: [Boolean, String],
       default: true
+    },
+    showLoading: {
+      type: [Boolean, String],
+      default: true
+    },
+    codec: {
+      type: String,
+      default: 'hardware'
+    },
+    httpCache: {
+      type: [Boolean, String],
+      default: false
+    },
+    playStrategy: {
+      type: [Number, String],
+      default: 0
     }
   },
   computed: {

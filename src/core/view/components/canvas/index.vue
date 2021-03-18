@@ -9,7 +9,16 @@
       width="300"
       height="150"
     />
-    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden;">
+    <div
+      style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      "
+    >
       <slot />
     </div>
     <v-uni-resize-sensor
@@ -29,53 +38,32 @@ import {
 } from 'uni-helpers/hidpi'
 
 import saveImage from 'uni-platform/helpers/save-image'
+import { getSameOriginUrl } from 'uni-platform/helpers/file'
 
 function resolveColor (color) {
-  // 复制颜色
   color = color.slice(0)
-  // 透明度计算
   color[3] = color[3] / 255
-  // 返回颜色
   return 'rgba(' + color.join(',') + ')'
 }
 
-/**
- * 处理触摸点
- * @param {} targt 目标对象
- * @param {} touches 触摸点
-  */
 function processTouches (target, touches) {
-  // 遍历touches 类数组
   return ([]).map.call(touches, (touch) => {
-    // 获取目标对象的尺寸
     var boundingClientRect = target.getBoundingClientRect()
-    // 返回处理后的触摸点
     return {
       identifier: touch.identifier,
-      // 手指与canvas左边的距离
       x: touch.clientX - boundingClientRect.left,
-      // 手指与canvas上边的距离
       y: touch.clientY - boundingClientRect.top
     }
   })
 }
 
 var tempCanvas
-/**
- * 获取临时canvas
- *
- */
 function getTempCanvas (width = 0, height = 0) {
-  // 临时canvas不存在
   if (!tempCanvas) {
-    // 创建一个canvas
     tempCanvas = document.createElement('canvas')
   }
-  // 设置宽度
   tempCanvas.width = width
-  // 设置高度
   tempCanvas.height = height
-  // 返回canvas dom 对象
   return tempCanvas
 }
 
@@ -102,18 +90,12 @@ export default {
       return this.canvasId
     },
     _listeners () {
-      // 创建一个 合并 this.$listeners 对象的新对象
       var $listeners = Object.assign({}, this.$listeners)
-      // 监听的事件
       var events = ['touchstart', 'touchmove', 'touchend']
-      // 遍历事件
       events.forEach(event => {
-        // 获取当前事件的处理函数
         var existing = $listeners[event]
         var eventHandler = []
-        // 现存函数
         if (existing) {
-          // 添加处理函数
           eventHandler.push(($event) => {
             this.$trigger(event, Object.assign({}, $event, {
               touches: processTouches($event.currentTarget, $event.touches),
@@ -122,12 +104,9 @@ export default {
             }))
           })
         }
-        // 不能滚动 && 是touchmove事件
         if (this.disableScroll && event === 'touchmove') {
-          //
           eventHandler.push(this._touchmove)
         }
-        // 给事件添加处理函数
         $listeners[event] = eventHandler
       })
       return $listeners
@@ -138,10 +117,7 @@ export default {
     this._images = {}
   },
   mounted () {
-    this._resize({
-      width: this.$refs.sensor.$el.offsetWidth,
-      height: this.$refs.sensor.$el.offsetHeight
-    })
+    this._resize()
   },
   beforeDestroy () {
     const canvas = this.$refs.canvas
@@ -158,33 +134,19 @@ export default {
       }
     },
     _resize () {
-      // 获取 canvas dom
       var canvas = this.$refs.canvas
-      // 宽 高都大于 0
       if (canvas.width > 0 && canvas.height > 0) {
-        // 创建2d 上下文
         var context = canvas.getContext('2d')
-        // 获取图片数据（指定区域的像素）
         var imageData = context.getImageData(0, 0, canvas.width, canvas.height)
-
-        wrapper(this.$refs.canvas)
-        // 将像素重新放回canvas
+        wrapper(canvas)
         context.putImageData(imageData, 0, 0)
       } else {
-        wrapper(this.$refs.canvas)
+        wrapper(canvas)
       }
     },
-    /**
-     * 触摸移动
-     * @param {} event
-     */
     _touchmove (event) {
-      // 阻止默认事件
       event.preventDefault()
     },
-    /**
-     * 新为改变
-     */
     actionsChanged ({
       actions,
       reserve,
@@ -198,9 +160,7 @@ export default {
         this._actionsDefer.push([actions, reserve, callbackId])
         return
       }
-      // 获取canvas节点
       var canvas = this.$refs.canvas
-      // 获取2d的上下文
       var c2d = canvas.getContext('2d')
       if (!reserve) {
         c2d.fillStyle = '#000000'
@@ -262,24 +222,21 @@ export default {
             data.forEach(function (color_, method_) {
               c2d[_[method_]] = _[method_] === 'shadowColor' ? resolveColor(color_) : color_
             })
-          } else {
-            if (method1 === 'fontSize') {
-              c2d.font = c2d.font.replace(/\d+\.?\d*px/, data[0] + 'px')
-            } else {
-              if (method1 === 'lineDash') {
-                c2d.setLineDash(data[0])
-                c2d.lineDashOffset = data[1] || 0
-              } else {
-                if (method1 === 'textBaseline') {
-                  if (data[0] === 'normal') {
-                    data[0] = 'alphabetic'
-                  }
-                  c2d[method1] = data[0]
-                } else {
-                  c2d[method1] = data[0]
-                }
-              }
+          } else if (method1 === 'fontSize') {
+            const font = c2d.__font__ || c2d.font
+            c2d.__font__ = c2d.font = font.replace(/\d+\.?\d*px/, data[0] + 'px')
+          } else if (method1 === 'lineDash') {
+            c2d.setLineDash(data[0])
+            c2d.lineDashOffset = data[1] || 0
+          } else if (method1 === 'textBaseline') {
+            if (data[0] === 'normal') {
+              data[0] = 'alphabetic'
             }
+            c2d[method1] = data[0]
+          } else if (method1 === 'font') {
+            c2d.__font__ = c2d.font = data[0]
+          } else {
+            c2d[method1] = data[0]
           }
         } else if (method === 'fillPath' || method === 'strokePath') {
           method = method.replace(/Path/, '')
@@ -319,7 +276,7 @@ export default {
         }
       }
       if (!this.actionsWaiting && callbackId) {
-        UniViewJSBridge.publishHandler('onDrawCanvas', {
+        UniViewJSBridge.publishHandler('onCanvasMethodCallback', {
           callbackId,
           data: {
             errMsg: 'drawCanvas:ok'
@@ -349,86 +306,27 @@ export default {
          * 加载图像
          */
         function loadImage () {
-          // 创建一个图片实例
-          self._images[src] = new Image()
-          // 给图片对象绑定加载事件
-          self._images[src].onload = function () {
-            self._images[src].ready = true
-          }
-          /**
-           * 从Blob加载
-           * @param {Blob} blob
-           */
-          function loadBlob (blob) {
-            self._images[src].src = (window.URL || window.webkitURL).createObjectURL(blob)
-          }
-          /**
-           * 从本地文件加载
-           * @param {string} path 文件路径
-           */
-          function loadFile (path) {
-            var bitmap = new plus.nativeObj.Bitmap('bitmap' + Date.now())
-            bitmap.load(path, function () {
-              self._images[src].src = bitmap.toBase64Data()
-              bitmap.clear()
-            }, function () {
-              bitmap.clear()
-              console.error('preloadImage error')
-            })
-          }
-          /**
-           * 从网络加载
-           * @param {string} url 文件地址
-           */
-          function loadUrl (url) {
-            function plusDownload () {
-              plus.downloader.createDownload(url, {
-                filename: '_doc/uniapp_temp/download/'
-              }, function (d, status) {
-                if (status === 200) {
-                  loadFile(d.filename)
-                } else {
-                  self._images[src].src = src
-                }
-              }).start()
-            }
-            var xhr = new XMLHttpRequest()
-            xhr.open('GET', url, true)
-            xhr.responseType = 'blob'
-            xhr.onload = function () {
-              if (this.status === 200) {
-                loadBlob(this.response)
-              }
-            }
-            xhr.onerror = __PLATFORM__ === 'app-plus' ? plusDownload : function () {
-              self._images[src].src = src
-            }
-            xhr.send()
+          const image = self._images[src] = new Image()
+          image.onload = function () {
+            image.ready = true
           }
 
-          if (__PLATFORM__ === 'app-plus' && (!window.webkit || !window.webkit.messageHandlers)) {
-            self._images[src].src = src
-          } else {
-            // 解决 PLUS-APP（wkwebview）以及 H5 图像跨域问题（H5图像响应头需包含access-control-allow-origin）
-            if (__PLATFORM__ === 'app-plus' && src.indexOf('http://') !== 0 && src.indexOf('https://') !==
-              0 && !/^data:.*,.*/.test(src)) {
-              loadFile(src)
-              // base64图片地址
-            } else if (/^data:.*,.*/.test(src)) {
-              self._images[src].src = src
-            } else {
-              // 网络加载
-              loadUrl(src)
+          // 安卓 WebView 除本地路径无跨域问题
+          if (__PLATFORM__ === 'app-plus' && navigator.vendor === 'Google Inc.') {
+            if (src.indexOf('file://') === 0) {
+              image.crossOrigin = 'anonymous'
             }
+            image.src = src
+            return
           }
+          getSameOriginUrl(src).then(src => {
+            image.src = src
+          }).catch(() => {
+            image.src = src
+          })
         }
       })
     },
-    /**
-     * 查看图片是否被加载
-     * 图片地址
-     *
-     */
     checkImageLoaded: function (src, actions, callbackId, fn) {
       var self = this
       var image = this._images[src]
@@ -471,71 +369,68 @@ export default {
     }) {
       const canvas = this.$refs.canvas
       let data
-      if (!width) {
-        width = canvas.offsetWidth - x
+      const maxWidth = canvas.offsetWidth - x
+      width = width ? Math.min(width, maxWidth) : maxWidth
+      const maxHeight = canvas.offsetHeight - y
+      height = height ? Math.min(height, maxHeight) : maxHeight
+      if (!hidpi) {
+        if (!destWidth && !destHeight) {
+          destWidth = Math.round(width * pixelRatio)
+          destHeight = Math.round(height * pixelRatio)
+        } else if (!destWidth) {
+          destWidth = Math.round(width / height * destHeight)
+        } else if (!destHeight) {
+          destHeight = Math.round(height / width * destWidth)
+        }
+      } else {
+        destWidth = width
+        destHeight = height
       }
-      if (!height) {
-        height = canvas.offsetHeight - y
+      const newCanvas = getTempCanvas(destWidth, destHeight)
+      const context = newCanvas.getContext('2d')
+      if (type === 'jpeg' || type === 'jpg') {
+        type = 'jpeg'
+        context.fillStyle = '#fff'
+        context.fillRect(0, 0, destWidth, destHeight)
       }
+      context.__hidpi__ = true
+      context.drawImageByCanvas(canvas, x, y, width, height, 0, 0, destWidth, destHeight, false)
+      let result
       try {
-        if (!hidpi) {
-          if (!destWidth && !destHeight) {
-            destWidth = Math.round(width * pixelRatio)
-            destHeight = Math.round(height * pixelRatio)
-          } else if (!destWidth) {
-            destWidth = Math.round(width / height * destHeight)
-          } else if (!destHeight) {
-            destHeight = Math.round(height / width * destWidth)
-          }
-        } else {
-          destWidth = width
-          destHeight = height
-        }
-        const newCanvas = getTempCanvas(destWidth, destHeight)
-        const context = newCanvas.getContext('2d')
-        if (type === 'jpeg' || type === 'jpg') {
-          type = 'jpeg'
-          context.fillStyle = '#fff'
-          context.fillRect(0, 0, destWidth, destHeight)
-        }
-        context.__hidpi__ = true
-        context.drawImageByCanvas(canvas, x, y, width, height, 0, 0, destWidth, destHeight, false)
+        let compressed
         if (dataType === 'base64') {
           data = newCanvas.toDataURL(`image/${type}`, qualit)
         } else {
           const imgData = context.getImageData(0, 0, destWidth, destHeight)
-          // fix [...]展开TypedArray在低版本手机报错的问题，使用Array.prototype.slice
-          data = Array.prototype.slice.call(imgData.data)
-        }
-        newCanvas.height = newCanvas.width = 0
-        context.__hidpi__ = false
-      } catch (error) {
-        if (!callbackId) {
-          return
-        }
-        UniViewJSBridge.publishHandler('onCanvasMethodCallback', {
-          callbackId,
-          data: {
-            errMsg: 'canvasGetImageData:fail'
+          if (__PLATFORM__ === 'app-plus') {
+            const pako = require('pako')
+            data = pako.deflateRaw(imgData.data, { to: 'string' })
+            compressed = true
+          } else {
+            // fix [...]展开TypedArray在低版本手机报错的问题，使用Array.prototype.slice
+            data = Array.prototype.slice.call(imgData.data)
           }
-        }, this.$page.id)
-        return
-      }
-      if (!callbackId) {
-        return {
+        }
+        result = {
+          errMsg: 'canvasGetImageData:ok',
           data,
+          compressed,
           width: destWidth,
           height: destHeight
         }
+      } catch (error) {
+        result = {
+          errMsg: `canvasGetImageData:fail ${error}`
+        }
+      }
+      newCanvas.height = newCanvas.width = 0
+      context.__hidpi__ = false
+      if (!callbackId) {
+        return result
       } else {
         UniViewJSBridge.publishHandler('onCanvasMethodCallback', {
           callbackId,
-          data: {
-            errMsg: 'canvasGetImageData:ok',
-            data,
-            width: destWidth,
-            height: destHeight
-          }
+          data: result
         }, this.$page.id)
       }
     },
@@ -545,6 +440,7 @@ export default {
       y,
       width,
       height,
+      compressed,
       callbackId
     }) {
       try {
@@ -553,6 +449,10 @@ export default {
         }
         const canvas = getTempCanvas(width, height)
         const context = canvas.getContext('2d')
+        if (__PLATFORM__ === 'app-plus' && compressed) {
+          const pako = require('pako')
+          data = pako.inflateRaw(data)
+        }
         context.putImageData(new ImageData(new Uint8ClampedArray(data), width, height), 0, 0)
         this.$refs.canvas.getContext('2d').drawImage(canvas, x, y, width, height)
         canvas.height = canvas.width = 0
@@ -600,7 +500,7 @@ export default {
         UniViewJSBridge.publishHandler('onCanvasMethodCallback', {
           callbackId,
           data: {
-            errMsg: 'toTempFilePath:fail'
+            errMsg: res.errMsg.replace('canvasPutImageData', 'toTempFilePath')
           }
         }, this.$page.id)
         return

@@ -63,12 +63,29 @@ function generateAutoComponentsCode (autoComponents, dynamic = false) {
     // 统一转换为驼峰命名
     name = name.replace(/-(\w)/g, (_, str) => str.toUpperCase())
     if (dynamic) {
-      components.push(`'${name}': function(){return import(/* webpackChunkName: "${getWebpackChunkName(source)}" */'${source}')}`)
+      components.push(
+        `'${name}': function(){return import(/* webpackChunkName: "${getWebpackChunkName(source)}" */'${source}')}`
+      )
     } else {
       components.push(`'${name}': require('${source}').default`)
     }
   })
-  return `var components = {${components.join(',')}}`
+  if (process.env.NODE_ENV === 'production') {
+    return `var components = {${components.join(',')}}`
+  }
+  return `var components;
+try{
+  components = {${components.join(',')}}
+}catch(e){
+  if(e.message.indexOf('Cannot find module') !== -1 && e.message.indexOf('.vue') !== -1){
+    console.error(e.message)
+    console.error('1. 排查组件名称拼写是否正确')
+    console.error('2. 排查组件是否符合 easycom 规范，文档：https://uniapp.dcloud.net.cn/collocation/pages?id=easycom')
+    console.error('3. 若组件不符合 easycom 规范，需手动引入，并在 components 中注册该组件')
+  } else {
+    throw e
+  }
+}`
 }
 
 function compileTemplate (source, options, compile) {
@@ -88,6 +105,9 @@ function compileTemplate (source, options, compile) {
 
 const compilerModule = {
   preTransformNode (el, options) {
+    if (el.tag === 'match-media' && process.env.UNI_PLATFORM !== 'mp-weixin') {
+      el.tag = 'uni-match-media'
+    }
     if (process.env.UNI_PLATFORM === 'quickapp-native') {
       // 排查所有标签
       (options.isUnaryTag.autoComponents || (options.isUnaryTag.autoComponents = new Set())).add(el.tag)

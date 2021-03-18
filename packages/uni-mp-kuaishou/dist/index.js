@@ -231,7 +231,7 @@ const promiseInterceptor = {
 };
 
 const SYNC_API_RE =
-  /^\$|sendNativeEvent|restoreGlobal|getCurrentSubNVue|getMenuButtonBoundingClientRect|^report|interceptors|Interceptor$|getSubNVueById|requireNativePlugin|upx2px|hideKeyboard|canIUse|^create|Sync$|Manager$|base64ToArrayBuffer|arrayBufferToBase64/;
+  /^\$|Window$|WindowStyle$|sendNativeEvent|restoreGlobal|getCurrentSubNVue|getMenuButtonBoundingClientRect|^report|interceptors|Interceptor$|getSubNVueById|requireNativePlugin|upx2px|hideKeyboard|canIUse|^create|Sync$|Manager$|base64ToArrayBuffer|arrayBufferToBase64/;
 
 const CONTEXT_API_RE = /^create|Manager$/;
 
@@ -527,10 +527,45 @@ var previewImage = {
   }
 };
 
+const UUID_KEY = '__DC_STAT_UUID';
+let deviceId;
+function addUuid (result) {
+  deviceId = deviceId || ks.getStorageSync(UUID_KEY);
+  if (!deviceId) {
+    deviceId = Date.now() + '' + Math.floor(Math.random() * 1e7);
+    ks.setStorage({
+      key: UUID_KEY,
+      data: deviceId
+    });
+  }
+  result.deviceId = deviceId;
+}
+
+function addSafeAreaInsets (result) {
+  if (result.safeArea) {
+    const safeArea = result.safeArea;
+    result.safeAreaInsets = {
+      top: safeArea.top,
+      left: safeArea.left,
+      right: result.windowWidth - safeArea.right,
+      bottom: result.windowHeight - safeArea.bottom
+    };
+  }
+}
+
+var getSystemInfo = {
+  returnValue: function (result) {
+    addUuid(result);
+    addSafeAreaInsets(result);
+  }
+};
+
 const protocols = {
   navigateTo,
   redirectTo,
-  previewImage
+  previewImage,
+  getSystemInfo,
+  getSystemInfoSync: getSystemInfo
 };
 const todos = [
   'vibrate'
@@ -558,7 +593,7 @@ function processArgs (methodName, fromArgs, argsOption = {}, returnValue = {}, k
           keyOption = keyOption(fromArgs[key], fromArgs, toArgs);
         }
         if (!keyOption) { // 不支持的参数
-          console.warn(`快手小程序 ${methodName}暂不支持${key}`);
+          console.warn(`The '${methodName}' method of platform '快手小程序' does not support option '${key}'`);
         } else if (isStr(keyOption)) { // 重写参数 key
           toArgs[keyOption] = fromArgs[key];
         } else if (isPlainObject(keyOption)) { // {name:newName,value:value}可重新指定参数 key:value
@@ -593,7 +628,7 @@ function wrapper (methodName, method) {
     const protocol = protocols[methodName];
     if (!protocol) { // 暂不支持的 api
       return function () {
-        console.error(`快手小程序 暂不支持${methodName}`);
+        console.error(`Platform '快手小程序' does not support '${methodName}'.`);
       }
     }
     return function (arg1, arg2) { // 目前 api 最多两个参数
@@ -640,7 +675,7 @@ function createTodoApi (name) {
     complete
   }) {
     const res = {
-      errMsg: `${name}:fail:暂不支持 ${name} 方法`
+      errMsg: `${name}:fail method '${name}' not supported`
     };
     isFn(fail) && fail(res);
     isFn(complete) && complete(res);
@@ -674,7 +709,7 @@ function getProvider ({
     isFn(success) && success(res);
   } else {
     res = {
-      errMsg: 'getProvider:fail:服务[' + service + ']不存在'
+      errMsg: 'getProvider:fail service not found'
     };
     isFn(fail) && fail(res);
   }
@@ -754,16 +789,19 @@ function initHook (name, options) {
     };
   }
 }
+if (!MPPage.__$wrappered) {
+  MPPage.__$wrappered = true;
+  Page = function (options = {}) {
+    initHook('onLoad', options);
+    return MPPage(options)
+  };
+  Page.after = MPPage.after;
 
-Page = function (options = {}) {
-  initHook('onLoad', options);
-  return MPPage(options)
-};
-
-Component = function (options = {}) {
-  initHook('created', options);
-  return MPComponent(options)
-};
+  Component = function (options = {}) {
+    initHook('created', options);
+    return MPComponent(options)
+  };
+}
 
 const PAGE_EVENT_HOOKS = [
   'onPullDownRefresh',
@@ -1274,7 +1312,7 @@ function handleEvent (event) {
             }
             handler.once = true;
           }
-          const params = processEventArgs(
+          let params = processEventArgs(
             this.$vm,
             event,
             eventArray[1],
@@ -1282,9 +1320,13 @@ function handleEvent (event) {
             isCustom,
             methodName
           );
+          params = Array.isArray(params) ? params : [];
           // 参数尾部增加原始事件对象用于复杂表达式内获取额外数据
-          // eslint-disable-next-line no-sparse-arrays
-          ret.push(handler.apply(handlerCtx, (Array.isArray(params) ? params : []).concat([, , , , , , , , , , event])));
+          if (/=\s*\S+\.eventParams\s*\|\|\s*\S+\[['"]event-params['"]\]/.test(handler.toString())) {
+            // eslint-disable-next-line no-sparse-arrays
+            params = params.concat([, , , , , , , , , , event]);
+          }
+          ret.push(handler.apply(handlerCtx, params));
         }
       });
     }
@@ -1303,13 +1345,33 @@ const hooks = [
   'onShow',
   'onHide',
   'onError',
-  'onPageNotFound'
+  'onPageNotFound',
+  'onThemeChange',
+  'onUnhandledRejection'
 ];
+
+function initEventChannel$1 () {
+  Vue.prototype.getOpenerEventChannel = function () {
+    if (!this.__eventChannel__) {
+      this.__eventChannel__ = new EventChannel();
+    }
+    return this.__eventChannel__
+  };
+  const callHook = Vue.prototype.__call_hook;
+  Vue.prototype.__call_hook = function (hook, args) {
+    if (hook === 'onLoad' && args && args.__id__) {
+      this.__eventChannel__ = getEventChannel(args.__id__);
+      delete args.__id__;
+    }
+    return callHook.call(this, hook, args)
+  };
+}
 
 function parseBaseApp (vm, {
   mocks,
   initRefs
 }) {
+  initEventChannel$1();
   if (vm.$options.store) {
     Vue.prototype.$store = vm.$options.store;
   }
@@ -1333,7 +1395,12 @@ function parseBaseApp (vm, {
 
       delete this.$options.mpType;
       delete this.$options.mpInstance;
-
+      if (this.mpType === 'page') { // hack vue-i18n
+        const app = getApp();
+        if (app.$vm && app.$vm.$i18n) {
+          this._i18n = app.$vm.$i18n;
+        }
+      }
       if (this.mpType !== 'app') {
         initRefs(this);
         initMocks(this, mocks);
@@ -1379,17 +1446,19 @@ function parseBaseApp (vm, {
   return appOptions
 }
 
-/* 快手也使用__wxExparserNodeId__和__wxWebviewId__ */
 const mocks = ['__route__', '__wxExparserNodeId__', '__wxWebviewId__'];
 
 function findVmByVueId (vm, vuePid) {
   const $children = vm.$children;
-  // 优先查找直属
-  let parentVm = $children.find(childVm => childVm.$scope._$vueId === vuePid);
-  if (parentVm) {
-    return parentVm
+  // 优先查找直属(反向查找:https://github.com/dcloudio/uni-app/issues/1200)
+  for (let i = $children.length - 1; i >= 0; i--) {
+    const childVm = $children[i];
+    if (childVm.$scope._$vueId === vuePid) {
+      return childVm
+    }
   }
   // 反向递归查找
+  let parentVm;
   for (let i = $children.length - 1; i >= 0; i--) {
     parentVm = findVmByVueId($children[i], vuePid);
     if (parentVm) {
@@ -1410,16 +1479,21 @@ function initRelation (detail) {
   this.triggerEvent('__l', detail);
 }
 
+function selectAllComponents (mpInstance, selector, $refs) {
+  const components = mpInstance.selectAllComponents(selector);
+  components.forEach(component => {
+    const ref = component.dataset.ref;
+    $refs[ref] = component.$vm || component;
+  });
+}
+
 function initRefs (vm) {
   const mpInstance = vm.$scope;
   Object.defineProperty(vm, '$refs', {
     get () {
       const $refs = {};
-      const components = mpInstance.selectAllComponents('.vue-ref');
-      components.forEach(component => {
-        const ref = component.dataset.ref;
-        $refs[ref] = component.$vm || component;
-      });
+      selectAllComponents(mpInstance, '.vue-ref', $refs);
+      // TODO 暂不考虑 for 中的 scoped
       const forComponents = mpInstance.selectAllComponents('.vue-ref-in-for');
       forComponents.forEach(component => {
         const ref = component.dataset.ref;
@@ -1459,23 +1533,56 @@ function parseApp (vm) {
   })
 }
 
+function parseApp$1 (vm) {
+  return parseApp(vm)
+}
+
 function createApp (vm) {
-  Vue.prototype.getOpenerEventChannel = function () {
-    if (!this.__eventChannel__) {
-      this.__eventChannel__ = new EventChannel();
-    }
-    return this.__eventChannel__
-  };
-  const callHook = Vue.prototype.__call_hook;
-  Vue.prototype.__call_hook = function (hook, args) {
-    if (hook === 'onLoad' && args && args.__id__) {
-      this.__eventChannel__ = getEventChannel(args.__id__);
-      delete args.__id__;
-    }
-    return callHook.call(this, hook, args)
-  };
-  App(parseApp(vm));
+  App(parseApp$1(vm));
   return vm
+}
+
+const encodeReserveRE = /[!'()*]/g;
+const encodeReserveReplacer = c => '%' + c.charCodeAt(0).toString(16);
+const commaRE = /%2C/g;
+
+// fixed encodeURIComponent which is more conformant to RFC3986:
+// - escapes [!'()*]
+// - preserve commas
+const encode = str => encodeURIComponent(str)
+  .replace(encodeReserveRE, encodeReserveReplacer)
+  .replace(commaRE, ',');
+
+function stringifyQuery (obj, encodeStr = encode) {
+  const res = obj ? Object.keys(obj).map(key => {
+    const val = obj[key];
+
+    if (val === undefined) {
+      return ''
+    }
+
+    if (val === null) {
+      return encodeStr(key)
+    }
+
+    if (Array.isArray(val)) {
+      const result = [];
+      val.forEach(val2 => {
+        if (val2 === undefined) {
+          return
+        }
+        if (val2 === null) {
+          result.push(encodeStr(key));
+        } else {
+          result.push(encodeStr(key) + '=' + encodeStr(val2));
+        }
+      });
+      return result.join('&')
+    }
+
+    return encodeStr(key) + '=' + encodeStr(val)
+  }).filter(x => x.length > 0).join('&') : null;
+  return res ? `?${res}` : ''
 }
 
 function parseBaseComponent (vueComponentOptions, {
@@ -1486,7 +1593,8 @@ function parseBaseComponent (vueComponentOptions, {
 
   const options = {
     multipleSlots: true,
-    addGlobalClass: true
+    addGlobalClass: true,
+    ...(vueOptions.options || {})
   };
 
   const componentOptions = {
@@ -1531,7 +1639,7 @@ function parseBaseComponent (vueComponentOptions, {
         }
       },
       detached () {
-        this.$vm.$destroy();
+        this.$vm && this.$vm.$destroy();
       }
     },
     pageLifetimes: {
@@ -1550,6 +1658,10 @@ function parseBaseComponent (vueComponentOptions, {
       __e: handleEvent
     }
   };
+  // externalClasses
+  if (vueOptions.externalClasses) {
+    componentOptions.externalClasses = vueOptions.externalClasses;
+  }
 
   if (Array.isArray(vueOptions.wxsCallMethods)) {
     vueOptions.wxsCallMethods.forEach(callMethod => {
@@ -1572,6 +1684,10 @@ function parseComponent (vueComponentOptions) {
   })
 }
 
+function parseComponent$1 (vueComponentOptions) {
+  return parseComponent(vueComponentOptions)
+}
+
 const hooks$1 = [
   'onShow',
   'onHide',
@@ -1584,13 +1700,19 @@ function parseBasePage (vuePageOptions, {
   isPage,
   initRelation
 }) {
-  const pageOptions = parseComponent(vuePageOptions);
+  const pageOptions = parseComponent$1(vuePageOptions);
 
   initHooks(pageOptions.methods, hooks$1, vuePageOptions);
 
-  pageOptions.methods.onLoad = function (args) {
-    this.$vm.$mp.query = args; // 兼容 mpvue
-    this.$vm.__call_hook('onLoad', args);
+  pageOptions.methods.onLoad = function (query) {
+    this.options = query;
+    const copyQuery = Object.assign({}, query);
+    delete copyQuery.__id__;
+    this.$page = {
+      fullPath: '/' + (this.route || this.is) + stringifyQuery(copyQuery)
+    };
+    this.$vm.$mp.query = query; // 兼容 mpvue
+    this.$vm.__call_hook('onLoad', query);
   };
 
   return pageOptions
@@ -1603,16 +1725,55 @@ function parsePage (vuePageOptions) {
   })
 }
 
+function parsePage$1 (vuePageOptions) {
+  return parsePage(vuePageOptions)
+}
+
 function createPage (vuePageOptions) {
   {
-    return Component(parsePage(vuePageOptions))
+    return Component(parsePage$1(vuePageOptions))
   }
 }
 
 function createComponent (vueOptions) {
   {
-    return Component(parseComponent(vueOptions))
+    return Component(parseComponent$1(vueOptions))
   }
+}
+
+function createSubpackageApp (vm) {
+  const appOptions = parseApp$1(vm);
+  const app = getApp({
+    allowDefault: true
+  });
+  const globalData = app.globalData;
+  if (globalData) {
+    Object.keys(appOptions.globalData).forEach(name => {
+      if (!hasOwn(globalData, name)) {
+        globalData[name] = appOptions.globalData[name];
+      }
+    });
+  }
+  Object.keys(appOptions).forEach(name => {
+    if (!hasOwn(app, name)) {
+      app[name] = appOptions[name];
+    }
+  });
+  if (isFn(appOptions.onShow) && ks.onAppShow) {
+    ks.onAppShow((...args) => {
+      appOptions.onShow.apply(app, args);
+    });
+  }
+  if (isFn(appOptions.onHide) && ks.onAppHide) {
+    ks.onAppHide((...args) => {
+      appOptions.onHide.apply(app, args);
+    });
+  }
+  if (isFn(appOptions.onLaunch)) {
+    const args = ks.getLaunchOptionsSync && ks.getLaunchOptionsSync();
+    appOptions.onLaunch.call(app, args);
+  }
+  return vm
 }
 
 todos.forEach(todoApi => {
@@ -1694,8 +1855,9 @@ if (typeof Proxy !== 'undefined' && "mp-kuaishou" !== 'app-plus') {
 ks.createApp = createApp;
 ks.createPage = createPage;
 ks.createComponent = createComponent;
+ks.createSubpackageApp = createSubpackageApp;
 
 var uni$1 = uni;
 
 export default uni$1;
-export { createApp, createComponent, createPage };
+export { createApp, createComponent, createPage, createSubpackageApp };

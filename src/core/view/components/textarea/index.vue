@@ -1,11 +1,8 @@
 <template>
-  <uni-textarea
-    @change.stop
-    v-on="$listeners"
-  >
+  <uni-textarea v-on="$listeners">
     <div class="uni-textarea-wrapper">
       <div
-        v-show="!(composition||valueSync.length)"
+        v-show="!(composing || valueSync.length)"
         ref="placeholder"
         :style="placeholderStyle"
         :class="placeholderClass"
@@ -19,7 +16,7 @@
       />
       <div class="uni-textarea-compute">
         <div
-          v-for="(item,index) in valueCompute"
+          v-for="(item, index) in valueCompute"
           :key="index"
           v-text="item.trim() ? item : '.'"
         />
@@ -29,33 +26,51 @@
         />
       </div>
       <textarea
+        v-if="!disabled || !fixColor"
         ref="textarea"
         v-model="valueSync"
         v-keyboard
+        v-field
         :disabled="disabled"
         :maxlength="maxlengthNumber"
-        :autofocus="autoFocus || focus"
-        :class="{'uni-textarea-textarea-fix-margin': fixMargin}"
-        :style="{'overflow-y': autoHeight? 'hidden':'auto'}"
+        :class="{ 'uni-textarea-textarea-fix-margin': fixMargin }"
+        :style="{ 'overflow-y': autoHeight ? 'hidden' : 'auto' }"
+        :enterkeyhint="confirmType"
         class="uni-textarea-textarea"
-        @compositionstart="_compositionstart"
-        @compositionend="_compositionend"
-        @input.stop="_input"
-        @focus="_focus"
-        @blur="_blur"
-        @touchstart.passive="_touchstart"
+        @change.stop
+        @compositionstart.stop="_onCompositionstart"
+        @compositionend.stop="_onCompositionend"
+        @input.stop="_onInput"
+        @focus="_onFocus"
+        @blur="_onBlur"
+        @touchstart.passive="_onTouchstart"
+        @keyup.enter="_onKeyUpEnter"
+        @keydown.enter="_onKeyDownEnter"
+      />
+      <!-- fix: 禁止 readonly 状态获取焦点 -->
+      <textarea
+        v-if="disabled && fixColor"
+        ref="textarea"
+        :value="valueSync"
+        tabindex="-1"
+        :readonly="disabled"
+        :maxlength="maxlengthNumber"
+        :class="{ 'uni-textarea-textarea-fix-margin': fixMargin }"
+        :style="{ 'overflow-y': autoHeight ? 'hidden' : 'auto' }"
+        class="uni-textarea-textarea"
+        @focus="($event) => $event.target.blur()"
       />
     </div>
   </uni-textarea>
 </template>
 <script>
 import {
-  baseInput
+  field
 } from 'uni-mixins'
 const DARK_TEST_STRING = '(prefers-color-scheme: dark)'
 export default {
   name: 'Textarea',
-  mixins: [baseInput],
+  mixins: [field],
   props: {
     name: {
       type: String,
@@ -70,14 +85,6 @@ export default {
       default: ''
     },
     disabled: {
-      type: [Boolean, String],
-      default: false
-    },
-    focus: {
-      type: [Boolean, String],
-      default: false
-    },
-    autoFocus: {
       type: [Boolean, String],
       default: false
     },
@@ -104,17 +111,23 @@ export default {
     selectionEnd: {
       type: [Number, String],
       default: -1
+    },
+    confirmType: {
+      type: String,
+      default: ''
     }
   },
   data () {
     return {
       valueComposition: '',
-      composition: false,
+      composing: false,
       focusSync: this.focus,
       height: 0,
       focusChangeSource: '',
       // iOS 13 以下版本需要修正边距
-      fixMargin: String(navigator.platform).indexOf('iP') === 0 && String(navigator.vendor).indexOf('Apple') === 0 && window.matchMedia(DARK_TEST_STRING).media !== DARK_TEST_STRING
+      fixMargin: String(navigator.platform).indexOf('iP') === 0 && String(navigator.vendor).indexOf('Apple') === 0 && window.matchMedia(DARK_TEST_STRING).media !== DARK_TEST_STRING,
+      // Safari 14 以上修正禁用状态颜色
+      fixColor: String(navigator.vendor).indexOf('Apple') === 0 && CSS.supports('image-orientation:from-image')
     }
   },
   computed: {
@@ -135,20 +148,16 @@ export default {
       return isNaN(selectionEnd) ? -1 : selectionEnd
     },
     valueCompute () {
-      return (this.composition ? this.valueComposition : this.valueSync).split('\n')
+      return (this.composing ? this.valueComposition : this.valueSync).split('\n')
+    },
+    isDone () {
+      return ['done', 'go', 'next', 'search', 'send'].includes(this.confirmType)
     }
   },
   watch: {
     focus (val) {
       if (val) {
         this.focusChangeSource = 'focus'
-        if (this.$refs.textarea) {
-          this.$refs.textarea.focus()
-        }
-      } else {
-        if (this.$refs.textarea) {
-          this.$refs.textarea.blur()
-        }
       }
     },
     focusSync (val) {
@@ -208,7 +217,18 @@ export default {
     })
   },
   methods: {
-    _focus: function ($event) {
+    _onKeyDownEnter: function ($event) {
+      if (this.isDone) {
+        $event.preventDefault()
+      }
+    },
+    _onKeyUpEnter: function ($event) {
+      if (this.isDone) {
+        this._confirm($event)
+        this.$refs.textarea.blur()
+      }
+    },
+    _onFocus: function ($event) {
       this.focusSync = true
       this.$trigger('focus', $event, {
         value: this.valueSync
@@ -225,18 +245,27 @@ export default {
         this.$refs.textarea.selectionEnd = this.$refs.textarea.selectionStart = this.cursorNumber
       }
     },
-    _blur: function ($event) {
+    _onBlur: function ($event) {
+      // iOS 输入法 compositionend 事件可能晚于 blur
+      if (this.composing) {
+        this.composing = false
+        this._onInput($event, true)
+      }
       this.focusSync = false
       this.$trigger('blur', $event, {
         value: this.valueSync,
         cursor: this.$refs.textarea.selectionEnd
       })
     },
-    _compositionstart ($event) {
-      this.composition = true
+    _onCompositionstart ($event) {
+      this.composing = true
     },
-    _compositionend ($event) {
-      this.composition = false
+    _onCompositionend ($event) {
+      if (this.composing) {
+        this.composing = false
+        // 部分输入法 compositionend 事件可能晚于 input
+        this._onInput($event)
+      }
     },
     // 暂无完成按钮，此功能未实现
     _confirm ($event) {
@@ -249,21 +278,21 @@ export default {
         value: this.valueSync
       })
     },
-    _touchstart () {
+    _onTouchstart () {
       this.focusChangeSource = 'touch'
     },
     _resize ({ height }) {
       this.height = height
     },
-    _input ($event) {
-      if (this.composition) {
+    _onInput ($event, force) {
+      if (this.composing) {
         this.valueComposition = $event.target.value
         return
       }
       this.$triggerInput($event, {
         value: this.valueSync,
         cursor: this.$refs.textarea.selectionEnd
-      })
+      }, force)
     },
     _getFormData () {
       return {
@@ -338,7 +367,6 @@ uni-textarea[hidden] {
   background: none;
   color: inherit;
   opacity: 1;
-  -webkit-text-fill-color: currentcolor;
   font: inherit;
   line-height: inherit;
   letter-spacing: inherit;
@@ -352,5 +380,9 @@ uni-textarea[hidden] {
   width: auto;
   right: 0;
   margin: 0 -3px;
+}
+.uni-textarea-textarea:disabled {
+  /* 用于重置iOS14以下禁用状态文字颜色 */
+  -webkit-text-fill-color: currentcolor;
 }
 </style>

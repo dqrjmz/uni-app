@@ -19,7 +19,8 @@ const {
 
 const {
   hasOwn,
-  parseStyle
+  parseStyle,
+  trimMPJson
 } = require('../util')
 
 function defaultCopy (name, value, json) {
@@ -112,7 +113,8 @@ const platformJson2ProjectJson = {
   projectname: defaultCopy,
   packOptions: defaultCopy,
   debugOptions: defaultCopy,
-  scripts: defaultCopy
+  scripts: defaultCopy,
+  cloudbaseRoot: defaultCopy
 }
 
 function copyToJson (json, fromJson, options) {
@@ -245,14 +247,14 @@ module.exports = function (pagesJson, manifestJson, project = {}) {
       return {
         app: {
           name: 'app',
-          content: app
+          content: trimMPJson(app)
         }
       }
     }
     return {
       app: {
         name: 'app',
-        content: app
+        content: trimMPJson(app)
       },
       project: {
         name: 'project.config',
@@ -311,7 +313,7 @@ module.exports = function (pagesJson, manifestJson, project = {}) {
     return {
       app: {
         name: 'app',
-        content: app
+        content: trimMPJson(app)
       },
       project: {
         name: 'project.config',

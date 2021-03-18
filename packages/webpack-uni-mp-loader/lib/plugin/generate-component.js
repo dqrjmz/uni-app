@@ -6,8 +6,7 @@ const {
   getPlatformExts
 } = require('@dcloudio/uni-cli-shared')
 const {
-  getComponentSet,
-  getJsonFile
+  getComponentSet
 } = require('@dcloudio/uni-cli-shared/lib/cache')
 
 const {
@@ -61,7 +60,7 @@ function findComponentModuleId (modules, concatenatedModules, resource, altResou
 
 let lastComponents = []
 // TODO 解决方案不太理想
-module.exports = function generateComponent (compilation) {
+module.exports = function generateComponent (compilation, jsonpFunction = 'webpackJsonp') {
   const curComponents = []
   const components = getComponentSet()
   if (components.size) {
@@ -89,11 +88,7 @@ module.exports = function generateComponent (compilation) {
           let resource = normalizePath(path.resolve(process.env.UNI_INPUT_DIR, '..', modulePath))
           const altResource = normalizePath(path.resolve(process.env.UNI_INPUT_DIR, modulePath))
 
-          if (
-            /^win/.test(process.platform) &&
-            modulePath.includes('@dcloudio') &&
-            isBuiltInComponentPath(modulePath)
-          ) {
+          if (modulePath.includes('@dcloudio') && isBuiltInComponentPath(modulePath)) {
             resource = normalizePath(path.resolve(process.env.UNI_CLI_CONTEXT, modulePath))
           }
 
@@ -113,7 +108,7 @@ module.exports = function generateComponent (compilation) {
           }
           const source = beforeCode + origSource +
             `
-;(${globalVar}["webpackJsonp"] = ${globalVar}["webpackJsonp"] || []).push([
+;(${globalVar}["${jsonpFunction}"] = ${globalVar}["${jsonpFunction}"] || []).push([
     '${chunkName}',
     {
         '${chunkName}':(function(module, exports, __webpack_require__){
@@ -137,7 +132,7 @@ module.exports = function generateComponent (compilation) {
         origSource = origSource.trim ? origSource.trim() : ''
         const result = origSource.match(/^@import ["'](.+?)["']$/)
         if (result) {
-          const stylePath = path.join(path.dirname(name), result[1])
+          const stylePath = normalizePath(path.join(path.dirname(name), result[1]))
           if (Object.keys(assets).includes(stylePath)) {
             styleImports[stylePath] = styleImports[stylePath] || []
             styleImports[stylePath].push(name)
@@ -155,11 +150,12 @@ module.exports = function generateComponent (compilation) {
       if (name.endsWith(fixExtname)) {
         const source = assets[name].source()
         const [ownerName, parentName, componentName, slotName] = source.split(',')
-        const json = getJsonFile(ownerName)
-        if (json) {
-          const data = JSON.parse(json)
+        const json = assets[ownerName + '.json']
+        const jsonSource = json.source()
+        if (jsonSource) {
+          const data = JSON.parse(jsonSource)
           const usingComponents = data.usingComponents || {}
-          const componentPath = path.relative('/', usingComponents[parentName])
+          const componentPath = normalizePath(path.relative('/', usingComponents[parentName]))
           const slots = fixSlots[componentPath] = fixSlots[componentPath] || {}
           const slot = slots[slotName] = slots[slotName] || {}
           slot[componentName] = '/' + name.replace(fixExtname, '')
@@ -225,7 +221,7 @@ function addComponent (name) {
   if (fs.existsSync(bakJson)) {
     try {
       fs.renameSync(bakJson, path.join(process.env.UNI_OUTPUT_DIR, name + '.json'))
-    } catch (e) {}
+    } catch (e) { }
   }
 }
 
@@ -233,5 +229,5 @@ function removeUnusedComponent (name) {
   try {
     fs.renameSync(path.join(process.env.UNI_OUTPUT_DIR, name + '.json'), path.join(process.env.UNI_OUTPUT_DIR, name +
       '.bak.json'))
-  } catch (e) {}
+  } catch (e) { }
 }

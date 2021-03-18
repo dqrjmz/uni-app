@@ -95,6 +95,15 @@ export default {
     })
     initClick(this.$el)
     initScrollBounce()
+
+    let $vm = this
+    while ($vm) {
+      const scopeId = $vm.$options._scopeId
+      if (scopeId) {
+        this.$refs.indicator.setAttribute(scopeId, '')
+      }
+      $vm = $vm.$parent
+    }
   },
   methods: {
     _setItemHeight (height) {
@@ -284,15 +293,6 @@ export default {
     /* top: 102px; */
     top: 50%;
     transform: translateY(-50%);
-  }
-
-  .uni-picker-view-indicator,
-  .uni-picker-view-mask {
-    position: absolute;
-    left: 0;
-    width: 100%;
-    z-index: 3;
-    pointer-events: none;
   }
 
   .uni-picker-view-content {

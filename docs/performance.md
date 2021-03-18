@@ -25,7 +25,7 @@ h5和小程序平台，以及app-vue，视图层是webview。而app-nvue的视�
 
 Android上小程序大多自带了一个几十M的chromium webview，而App端没办法带这么大体积的三方包，所以App端默认使用了Android system webview，这个系统webview跟随手机不同而有差异。当然App端也支持使用腾讯X5引擎，此时可以在Android端统一视图层。
 
-所以uni-app的js基本没有不同手机的兼容问题（因为js引擎自带了），而视图层的css，在app-vue上使用系统webview时会有手机浏览器的css兼容问题。此时或者不要用太细的css语法，或者集成腾讯x5引擎。
+所以uni-app的js基本没有不同手机的兼容问题（因为js引擎自带了），而视图层的css，在app-vue上使用系统webview时会有手机浏览器的css兼容问题。此时或者不要用太新的css语法，或者集成腾讯x5引擎。
 
 ###### 逻辑层和视图层分离的利与弊
 
@@ -60,7 +60,7 @@ uni-app支持把wxs编译到微信小程序、App和H5中。
 
 在app-nvue里，逻辑层和视图层的折损一样存在。包括react native也有这个问题。所以也千万别以为原生渲染就多么高级。
 
-weex提供了一套[bindingx](https://uniapp.dcloud.io/use-weex?id=nvue-%e9%87%8c%e4%bd%bf%e7%94%a8-bindingx)机制，可以在js里一次性传一个表达式给原生层，由原生层解析后根据指令操作原生的视图层，避免反复跨层通信。这个技术在uni-app里也可以使用。
+weex提供了一套[bindingx](https://uniapp.dcloud.io/nvue-api?id=nvue-%e9%87%8c%e4%bd%bf%e7%94%a8-bindingx)机制，可以在js里一次性传一个表达式给原生层，由原生层解析后根据指令操作原生的视图层，避免反复跨层通信。这个技术在uni-app里也可以使用。
 
 bindingx作为一种表达式，它的功能不及js强大，但手势监听、动画还是可以实现的，比如uni ui的swiperAction组件在app-nvue下运行时会自动启用bindingx，以实现流畅跟手。
 
@@ -93,6 +93,7 @@ app-nvue和h5不存在此问题。造成差异的原因是小程序目前只提�
 ##### 长列表
 - 长列表中如果每个item有一个点赞按钮，点击后点赞数字+1，此时点赞组件必须是一个单独引用的组件，才能做到差量数据更新。否则会造成整个列表数据重载。
 - 长列表中每个item并不一定需要做成组件，取决于你的业务中是否需要差量更新某一行item的数据，如没有此类需求则不应该引入大量组件。（点击item后背景变色，属于css调整，没有更新data数据和渲染，不涉及这个问题）
+- 单个组件中存在大量数据时（比如长列表），在App和小程序端数据更新时会消耗较多时间，建议使用组件对数据进行分页，将变更限制更小范围。可以参考：[长列表优化示例](https://ext.dcloud.net.cn/plugin?id=2863#detail)
 - app端nvue的长列表应该使用list组件，有自动的渲染资源回收机制。vue页面使用页面滚动的性能，好于使用scroll-view的区域滚动。uni ui封装了uList组件，在app-nvue下使用了list组件，在其他环境使用页面滚动，自动适配，强烈推荐开发者使用，避免自己写的不好产生性能问题。
 - 如需要左右滑动的长列表，请在HBuilderX新建uni-app项目选新闻模板，那是一个标杆实现。自己用swiper和scroll-view做很容易引发性能问题。
 
@@ -139,7 +140,7 @@ Android上popin动画时，老窗体会有一个半透明消失的效果。这�
 
 ##### 使用nvue代替vue
 
-在 App 端 ```uni-app``` 的 nvue 页面可是基于weex升级改造的原生渲染引擎，实现了页面原生渲染能力、提高了页面流畅性。若对页面性能要求较高可以使用此方式开发，详见：[nvue](/use-weex)。
+在 App 端 ```uni-app``` 的 nvue 页面可是基于weex升级改造的原生渲染引擎，实现了页面原生渲染能力、提高了页面流畅性。若对页面性能要求较高可以使用此方式开发，详见：[nvue](/nvue-outline)。
 
 ##### 优化启动速度
 

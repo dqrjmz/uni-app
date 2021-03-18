@@ -231,7 +231,7 @@ const promiseInterceptor = {
 };
 
 const SYNC_API_RE =
-  /^\$|sendNativeEvent|restoreGlobal|getCurrentSubNVue|getMenuButtonBoundingClientRect|^report|interceptors|Interceptor$|getSubNVueById|requireNativePlugin|upx2px|hideKeyboard|canIUse|^create|Sync$|Manager$|base64ToArrayBuffer|arrayBufferToBase64/;
+  /^\$|Window$|WindowStyle$|sendNativeEvent|restoreGlobal|getCurrentSubNVue|getMenuButtonBoundingClientRect|^report|interceptors|Interceptor$|getSubNVueById|requireNativePlugin|upx2px|hideKeyboard|canIUse|^create|Sync$|Manager$|base64ToArrayBuffer|arrayBufferToBase64/;
 
 const CONTEXT_API_RE = /^create|Manager$/;
 
@@ -493,6 +493,67 @@ var redirectTo = {
   }
 };
 
+function setStorageSync (key, data) {
+  return my.setStorageSync({
+    key,
+    data
+  })
+}
+function getStorageSync (key) {
+  const result = my.getStorageSync({
+    key
+  });
+  // 支付宝平台会返回一个 success 值，但是目前测试的结果这个始终是 true。当没有存储数据的时候，其它平台会返回空字符串。
+  return result.data !== null ? result.data : ''
+}
+function removeStorageSync (key) {
+  return my.removeStorageSync({
+    key
+  })
+}
+
+const UUID_KEY = '__DC_STAT_UUID';
+let deviceId;
+function addUuid (result) {
+  deviceId = deviceId || getStorageSync(UUID_KEY);
+  if (!deviceId) {
+    deviceId = Date.now() + '' + Math.floor(Math.random() * 1e7);
+    my.setStorage({
+      key: UUID_KEY,
+      data: deviceId
+    });
+  }
+  result.deviceId = deviceId;
+}
+
+function addSafeAreaInsets (result) {
+  if (result.safeArea) {
+    const safeArea = result.safeArea;
+    result.safeAreaInsets = {
+      top: safeArea.top,
+      left: safeArea.left,
+      right: result.windowWidth - safeArea.right,
+      bottom: result.windowHeight - safeArea.bottom
+    };
+  }
+}
+
+function normalizePlatform (result) {
+  let platform = result.platform ? result.platform.toLowerCase() : 'devtools';
+  if (!~['android', 'ios'].indexOf(platform)) {
+    platform = 'devtools';
+  }
+  result.platform = platform;
+}
+
+var getSystemInfo = {
+  returnValue: function (result) {
+    addUuid(result);
+    addSafeAreaInsets(result);
+    normalizePlatform(result);
+  }
+};
+
 // 不支持的 API 列表
 const todos = [
   'preloadPage',
@@ -560,14 +621,6 @@ function _handleNetworkInfo (result) {
       break
   }
   return {}
-}
-
-function _handleSystemInfo (result) {
-  let platform = result.platform ? result.platform.toLowerCase() : 'devtools';
-  if (!~['android', 'ios'].indexOf(platform)) {
-    platform = 'devtools';
-  }
-  result.platform = platform;
 }
 
 const protocols = { // 需要做转换的 API 列表
@@ -854,11 +907,6 @@ const protocols = { // 需要做转换的 API 列表
       text: 'data'
     }
   },
-  pageScrollTo: {
-    args: {
-      duration: false
-    }
-  },
   login: {
     name: 'getAuthCode',
     returnValue (result) {
@@ -915,12 +963,8 @@ const protocols = { // 需要做转换的 API 列表
   stopGyroscope: {
     name: 'offGyroscopeChange'
   },
-  getSystemInfo: {
-    returnValue: _handleSystemInfo
-  },
-  getSystemInfoSync: {
-    returnValue: _handleSystemInfo
-  },
+  getSystemInfo: getSystemInfo,
+  getSystemInfoSync: getSystemInfo,
   // 文档没提到，但是实测可用。
   canvasToTempFilePath: {
     returnValue (result) {
@@ -962,6 +1006,7 @@ const protocols = { // 需要做转换的 API 列表
       result.userName = info.fullname;
       result.provinceName = info.prov;
       result.cityName = info.city;
+      result.countyName = info.area;
       result.detailInfo = info.address;
       result.telNumber = info.mobilePhone;
       result.errMsg = result.resultStatus;
@@ -990,7 +1035,7 @@ function processArgs (methodName, fromArgs, argsOption = {}, returnValue = {}, k
           keyOption = keyOption(fromArgs[key], fromArgs, toArgs);
         }
         if (!keyOption) { // 不支持的参数
-          console.warn(`支付宝小程序 ${methodName}暂不支持${key}`);
+          console.warn(`The '${methodName}' method of platform '支付宝小程序' does not support option '${key}'`);
         } else if (isStr(keyOption)) { // 重写参数 key
           toArgs[keyOption] = fromArgs[key];
         } else if (isPlainObject(keyOption)) { // {name:newName,value:value}可重新指定参数 key:value
@@ -1025,7 +1070,7 @@ function wrapper (methodName, method) {
     const protocol = protocols[methodName];
     if (!protocol) { // 暂不支持的 api
       return function () {
-        console.error(`支付宝小程序 暂不支持${methodName}`);
+        console.error(`Platform '支付宝小程序' does not support '${methodName}'.`);
       }
     }
     return function (arg1, arg2) { // 目前 api 最多两个参数
@@ -1072,7 +1117,7 @@ function createTodoApi (name) {
     complete
   }) {
     const res = {
-      errMsg: `${name}:fail:暂不支持 ${name} 方法`
+      errMsg: `${name}:fail method '${name}' not supported`
     };
     isFn(fail) && fail(res);
     isFn(complete) && complete(res);
@@ -1106,7 +1151,7 @@ function getProvider ({
     isFn(success) && success(res);
   } else {
     res = {
-      errMsg: 'getProvider:fail:服务[' + service + ']不存在'
+      errMsg: 'getProvider:fail service not found'
     };
     isFn(fail) && fail(res);
   }
@@ -1153,23 +1198,96 @@ var eventApi = /*#__PURE__*/Object.freeze({
   $emit: $emit
 });
 
-function setStorageSync (key, data) {
-  return my.setStorageSync({
-    key,
-    data
-  })
-}
-function getStorageSync (key) {
-  const result = my.getStorageSync({
-    key
-  });
-  // 支付宝平台会返回一个 success 值，但是目前测试的结果这个始终是 true。当没有存储数据的时候，其它平台会返回空字符串。
-  return result.data !== null ? result.data : ''
-}
-function removeStorageSync (key) {
-  return my.removeStorageSync({
-    key
-  })
+function createMediaQueryObserver () {
+  const mediaQueryObserver = {};
+  const {
+    windowWidth,
+    windowHeight
+  } = my.getSystemInfoSync();
+
+  const orientation = windowWidth < windowHeight ? 'portrait' : 'landscape';
+
+  mediaQueryObserver.observe = (options, callback) => {
+    let matches = true;
+    for (const item in options) {
+      const itemValue = item === 'orientation' ? options[item] : Number(options[item]);
+      if (options[item] !== '') {
+        if (item === 'width') {
+          if (itemValue === windowWidth) {
+            matches = true;
+          } else {
+            matches = false;
+            callback(matches);
+            return matches
+          }
+        }
+        if (item === 'minWidth') {
+          if (windowWidth >= itemValue) {
+            matches = true;
+          } else {
+            matches = false;
+            callback(matches);
+            return matches
+          }
+        }
+        if (item === 'maxWidth') {
+          if (windowWidth <= itemValue) {
+            matches = true;
+          } else {
+            matches = false;
+            callback(matches);
+            return matches
+          }
+        }
+
+        if (item === 'height') {
+          if (itemValue === windowHeight) {
+            matches = true;
+          } else {
+            matches = false;
+            callback(matches);
+            return matches
+          }
+        }
+        if (item === 'minHeight') {
+          if (windowHeight >= itemValue) {
+            matches = true;
+          } else {
+            matches = false;
+            callback(matches);
+            return matches
+          }
+        }
+        if (item === 'maxHeight') {
+          if (windowHeight <= itemValue) {
+            matches = true;
+          } else {
+            matches = false;
+            callback(matches);
+            return matches
+          }
+        }
+
+        if (item === 'orientation') {
+          if (options[item] === orientation) {
+            matches = true;
+          } else {
+            matches = false;
+            callback(matches);
+            return matches
+          }
+        }
+      }
+    }
+    callback(matches);
+
+    return matches
+  };
+
+  mediaQueryObserver.disconnect = () => {
+  };
+
+  return mediaQueryObserver
 }
 
 function startGyroscope (params) {
@@ -1257,12 +1375,13 @@ function createIntersectionObserver (component, options) {
 
 var api = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  setStorageSync: setStorageSync,
-  getStorageSync: getStorageSync,
-  removeStorageSync: removeStorageSync,
   startGyroscope: startGyroscope,
   createSelectorQuery: createSelectorQuery,
-  createIntersectionObserver: createIntersectionObserver
+  createIntersectionObserver: createIntersectionObserver,
+  createMediaQueryObserver: createMediaQueryObserver,
+  setStorageSync: setStorageSync,
+  getStorageSync: getStorageSync,
+  removeStorageSync: removeStorageSync
 });
 
 const PAGE_EVENT_HOOKS = [
@@ -1425,25 +1544,9 @@ function initBehaviors (vueOptions, initBehavior) {
       }
     });
   }
-  if (isPlainObject(vueExtends) && vueExtends.props) {
-    behaviors.push(
-      initBehavior({
-        properties: initProperties(vueExtends.props, true)
-      })
-    );
+  { // alipay 重复定义props会报错,下边的代码对于其他平台也没有意义，保险起见，仅对alipay做处理
+    return
   }
-  if (Array.isArray(vueMixins)) {
-    vueMixins.forEach(vueMixin => {
-      if (isPlainObject(vueMixin) && vueMixin.props) {
-        behaviors.push(
-          initBehavior({
-            properties: initProperties(vueMixin.props, true)
-          })
-        );
-      }
-    });
-  }
-  return behaviors
 }
 
 function parsePropType (key, type, defaultValue, file) {
@@ -1764,7 +1867,7 @@ function handleEvent (event) {
             }
             handler.once = true;
           }
-          const params = processEventArgs(
+          let params = processEventArgs(
             this.$vm,
             event,
             eventArray[1],
@@ -1772,9 +1875,13 @@ function handleEvent (event) {
             isCustom,
             methodName
           );
+          params = Array.isArray(params) ? params : [];
           // 参数尾部增加原始事件对象用于复杂表达式内获取额外数据
-          // eslint-disable-next-line no-sparse-arrays
-          ret.push(handler.apply(handlerCtx, (Array.isArray(params) ? params : []).concat([, , , , , , , , , , event])));
+          if (/=\s*\S+\.eventParams\s*\|\|\s*\S+\[['"]event-params['"]\]/.test(handler.toString())) {
+            // eslint-disable-next-line no-sparse-arrays
+            params = params.concat([, , , , , , , , , , event]);
+          }
+          ret.push(handler.apply(handlerCtx, params));
         }
       });
     }
@@ -1798,10 +1905,28 @@ const hooks = [
   'onUnhandledRejection'
 ];
 
+function initEventChannel$1 () {
+  Vue.prototype.getOpenerEventChannel = function () {
+    if (!this.__eventChannel__) {
+      this.__eventChannel__ = new EventChannel();
+    }
+    return this.__eventChannel__
+  };
+  const callHook = Vue.prototype.__call_hook;
+  Vue.prototype.__call_hook = function (hook, args) {
+    if (hook === 'onLoad' && args && args.__id__) {
+      this.__eventChannel__ = getEventChannel(args.__id__);
+      delete args.__id__;
+    }
+    return callHook.call(this, hook, args)
+  };
+}
+
 function parseBaseApp (vm, {
   mocks,
   initRefs
 }) {
+  initEventChannel$1();
   if (vm.$options.store) {
     Vue.prototype.$store = vm.$options.store;
   }
@@ -1825,7 +1950,12 @@ function parseBaseApp (vm, {
 
       delete this.$options.mpType;
       delete this.$options.mpInstance;
-
+      if (this.mpType === 'page') { // hack vue-i18n
+        const app = getApp();
+        if (app.$vm && app.$vm.$i18n) {
+          this._i18n = app.$vm.$i18n;
+        }
+      }
       if (this.mpType !== 'app') {
         initRefs(this);
         initMocks(this, mocks);
@@ -1972,20 +2102,6 @@ function initRefs () {
 
 }
 
-function initBehavior ({
-  properties
-}) {
-  const props = {};
-
-  Object.keys(properties).forEach(key => {
-    props[key] = properties[key].value;
-  });
-
-  return {
-    props
-  }
-}
-
 function initRelation (detail) {
   this.props.onVueInit(detail);
 }
@@ -2059,6 +2175,36 @@ function handleRef (ref) {
   if (!ref) {
     return
   }
+  if (ref.props['data-com-type'] === 'wx') {
+    const eventProps = {};
+    let refProps = ref.props;
+    // 初始化支付宝小程序组件事件
+    Object.keys(refProps).forEach(key => {
+      const handler = refProps[key];
+      const res = key.match(/^on([A-Z])(\S*)/);
+      if (res && typeof handler === 'function' && handler.name === 'bound handleEvent') {
+        const event = res && (res[1].toLowerCase() + res[2]);
+        refProps[key] = eventProps[key] = function () {
+          const props = Object.assign({}, refProps);
+          props[key] = handler;
+          // 由于支付宝事件可能包含多个参数，不使用微信小程序事件格式
+          delete props['data-com-type'];
+          triggerEvent.bind({ props })(event, {
+            __args__: [...arguments]
+          });
+        };
+      }
+    });
+    // 处理 props 重写
+    Object.defineProperty(ref, 'props', {
+      get () {
+        return refProps
+      },
+      set (value) {
+        refProps = Object.assign(value, eventProps);
+      }
+    });
+  }
   const refName = ref.props['data-ref'];
   const refInForName = ref.props['data-ref-in-for'];
   if (refName) {
@@ -2069,18 +2215,20 @@ function handleRef (ref) {
 }
 
 function triggerEvent (type, detail, options) {
-  const handler = this.props[customize('on-' + type)];
+  const handler = this.props && this.props[customize('on-' + type)];
   if (!handler) {
     return
   }
 
   const eventOpts = this.props['data-event-opts'];
   const eventParams = this.props['data-event-params'];
+  const comType = this.props['data-com-type'];
 
   const target = {
     dataset: {
       eventOpts,
-      eventParams
+      eventParams,
+      comType
     }
   };
 
@@ -2187,20 +2335,6 @@ function parseApp (vm) {
 }
 
 function createApp (vm) {
-  Vue.prototype.getOpenerEventChannel = function () {
-    if (!this.__eventChannel__) {
-      this.__eventChannel__ = new EventChannel();
-    }
-    return this.__eventChannel__
-  };
-  const callHook = Vue.prototype.__call_hook;
-  Vue.prototype.__call_hook = function (hook, args) {
-    if (hook === 'onLoad' && args && args.__id__) {
-      this.__eventChannel__ = getEventChannel(args.__id__);
-      delete args.__id__;
-    }
-    return callHook.call(this, hook, args)
-  };
   App(parseApp(vm));
   return vm
 }
@@ -2264,7 +2398,7 @@ function parsePage (vuePageOptions) {
   const [VueComponent, vueOptions] = initVueComponent(Vue, vuePageOptions);
 
   const pageOptions = {
-    mixins: initBehaviors(vueOptions, initBehavior),
+    mixins: initBehaviors(vueOptions),
     data: initData(vueOptions, Vue.prototype),
     onLoad (query) {
       const properties = this.props;
@@ -2312,7 +2446,8 @@ function parsePage (vuePageOptions) {
     },
     __r: handleRef,
     __e: handleEvent,
-    __l: handleLink$1
+    __l: handleLink$1,
+    triggerEvent
   };
 
   initHooks(pageOptions, hooks$1, vuePageOptions);
@@ -2401,7 +2536,7 @@ function parseComponent (vueComponentOptions) {
   });
 
   const componentOptions = {
-    mixins: initBehaviors(vueOptions, initBehavior),
+    mixins: initBehaviors(vueOptions),
     data: initData(vueOptions, Vue.prototype),
     props,
     didMount () {
@@ -2456,6 +2591,41 @@ function createComponent (vueOptions) {
   {
     return my.defineComponent(parseComponent(vueOptions))
   }
+}
+
+function createSubpackageApp (vm) {
+  const appOptions = parseApp(vm);
+  const app = getApp({
+    allowDefault: true
+  });
+  const globalData = app.globalData;
+  if (globalData) {
+    Object.keys(appOptions.globalData).forEach(name => {
+      if (!hasOwn(globalData, name)) {
+        globalData[name] = appOptions.globalData[name];
+      }
+    });
+  }
+  Object.keys(appOptions).forEach(name => {
+    if (!hasOwn(app, name)) {
+      app[name] = appOptions[name];
+    }
+  });
+  if (isFn(appOptions.onShow) && my.onAppShow) {
+    my.onAppShow((...args) => {
+      appOptions.onShow.apply(app, args);
+    });
+  }
+  if (isFn(appOptions.onHide) && my.onAppHide) {
+    my.onAppHide((...args) => {
+      appOptions.onHide.apply(app, args);
+    });
+  }
+  if (isFn(appOptions.onLaunch)) {
+    const args = my.getLaunchOptionsSync && my.getLaunchOptionsSync();
+    appOptions.onLaunch.call(app, args);
+  }
+  return vm
 }
 
 todos.forEach(todoApi => {
@@ -2537,8 +2707,9 @@ if (typeof Proxy !== 'undefined' && "mp-alipay" !== 'app-plus') {
 my.createApp = createApp;
 my.createPage = createPage;
 my.createComponent = createComponent;
+my.createSubpackageApp = createSubpackageApp;
 
 var uni$1 = uni;
 
 export default uni$1;
-export { createApp, createComponent, createPage };
+export { createApp, createComponent, createPage, createSubpackageApp };

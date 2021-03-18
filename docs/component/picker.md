@@ -2,24 +2,25 @@
 
 从底部弹起的滚动选择器。支持五种选择器，通过mode来区分，分别是普通选择器，多列选择器，时间选择器，日期选择器，省市区选择器，默认是普通选择器。
 
-**普通选择器**
+#### 普通选择器
 
 ``mode = selector``
 
 **属性说明**
 
-|属性名|类型|默认值|说明|
-|:-|:-|:-|:-|
-|range|Array / Array＜Object＞|[]|mode为 selector 或 multiSelector 时，range 有效|
-|range-key|String||当 range 是一个 Array＜Object＞ 时，通过 range-key 来指定 Object 中 key 的值作为选择器显示内容|
-|value|Number|0|value 的值表示选择了 range 中的第几个（下标从 0 开始）|
-|@change|EventHandle||value 改变时触发 change 事件，event.detail = {value: value}|
-|disabled|Boolean|false|是否禁用|
-|@cancel|EventHandle||取消选择或点遮罩层收起 picker 时触发|
+|属性名|类型|默认值|说明|平台差异说明|
+|:-|:-|:-|:-|:-|
+|range|Array / Array＜Object＞|[]|mode为 selector 或 multiSelector 时，range 有效||
+|range-key|String||当 range 是一个 Array＜Object＞ 时，通过 range-key 来指定 Object 中 key 的值作为选择器显示内容||
+|value|Number|0|value 的值表示选择了 range 中的第几个（下标从 0 开始）||
+|selector-type|String|auto|大屏时UI类型，支持 picker、select、auto，默认在 iPad 以 picker 样式展示而在 PC 以 select 样式展示|H5 2.9.9+|
+|@change|EventHandle||value 改变时触发 change 事件，event.detail = {value: value}||
+|disabled|Boolean|false|是否禁用||
+|@cancel|EventHandle||取消选择或点遮罩层收起 picker 时触发||
 
-- picker在各平台的实现是有UI差异的，有的平台如百度、支付宝小程序的Android端是从中间弹出的；有的平台支持循环滚动如微信、百度小程序；有的平台没有取消按钮如App端。但均不影响功能使用。
+- picker在各平台的实现是有UI差异的，有的平台如百度、支付宝小程序的Android端是从中间弹出的；有的平台支持循环滚动如百度小程序；有的平台没有取消按钮如App-iOS端。但均不影响功能使用。
 
-**多列选择器**
+#### 多列选择器
 
 ``mode = multiSelector``
 
@@ -47,7 +48,7 @@
 - 由于 JavaScript 的限制 vue 不能观测如下方式设置 value：``this.value[0] = 0`` （[vue 注意事项](https://cn.vuejs.org/v2/guide/list.html#注意事项)），解决方式参考：[hello-uniapp 示例](https://github.com/dcloudio/hello-uniapp/commit/59264474172a591c865431d02a2a1e3583978827)
 - 微信开发工具的pc模拟器有可能出现拖动数据错乱，使用真机正常
 
-**时间选择器**
+#### 时间选择器
 
 ``mode = time``
 
@@ -70,7 +71,7 @@
 |@cancel|EventHandle||取消选择时触发||
 |disabled|Boolean|false|是否禁用|&nbsp;|
 
-**日期选择器**
+#### 日期选择器
 
 ``mode = date``
 
@@ -80,7 +81,7 @@
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 |√|√|√|√|√|√|√|
 
-- 日期选择在App端调用的是os的原生日期选择控件，在不同平台有不同的ui表现。
+日期选择默认在App端和H5端（PC版Chrome以及PC版FireFox）调用的是os的原生日期选择控件，在不同平台有不同的ui表现，当配置fields参数后使用统一的展示方式。
 
 **属性说明**
 
@@ -102,7 +103,7 @@
 |month|选择器粒度为月份|
 |day|选择器粒度为天|
 
-**省市区选择器**
+#### 省市区选择器
 
 ``mode = region``
 
@@ -112,7 +113,7 @@
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 |x|x|√|x|√|√|√|
 
-- 因省市区选择器包含大量数据，占用体积，并非所有应用都需要，且很多城市数据有自维护需求，所以在App和H5平台没有内置。可以基于多列picker或picker-view，自行填充城市数据，插件市场有较多类似插件，[详见](https://ext.dcloud.net.cn/search?q=%E5%9F%8E%E5%B8%82%E9%80%89%E6%8B%A9)。注意基于多列picker方式的地区选择不能运行在支付宝小程序上，只有基于picker-view的可以全端运行。这些插件中，比较推荐的是[SimpleJalon的地址联动选择插件](https://ext.dcloud.net.cn/plugin?id=1084)，它可以同时兼容app-nvue、app-vue、h5、及各端小程序。
+- 小程序平台在引擎层面内置了省市区数据。但省市区包含大量数据，占用体积，并非所有应用都需要，且很多城市数据有自维护需求，所以在App和H5平台没有在前端内置这些数据。可以基于多列picker或picker-view，自行填充城市数据。插件市场有较多类似插件，[详见](https://ext.dcloud.net.cn/search?q=%E5%9F%8E%E5%B8%82%E9%80%89%E6%8B%A9)。注意基于多列picker方式的地区选择不能运行在支付宝小程序上，只有基于picker-view的可以全端运行。尤其推荐插件[uni-data-picker](https://ext.dcloud.net.cn/plugin?id=3796)，自带省市区的联网数据，自带懒加载。
 
 |属性名|类型|默认值|说明|
 |:-|:-|:-|:-|
@@ -225,7 +226,7 @@ export default {
 }
 ```
 
-![uniapp](https://img-cdn-qiniu.dcloud.net.cn/uniapp/doc/img/picker.png?t=201857)
+![uniapp](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/42826b40-4f30-11eb-b680-7980c8a877b8.png)
 
 示例代码说明：以上示例代码从hello uni-app示例中复制，涉及的css样式在hello uni-app的app.vue和uni.css中
 
@@ -233,4 +234,14 @@ export default {
 
 **注意**
 - 在picker内容还在滚动时或滚动回弹动画还未结束时，点确定关闭弹出的picker，数据无法及时更新。需等待一下，或手动触停滚动再点确定。所有平台均如此
-- 如果需要在PC端使用`picker`，需注意pc端没有touchmove事件，可以配置[H5模版](https://uniapp.dcloud.io/collocation/manifest?id=h5-template)，并引入[touch-emulator.js](https://github.com/dcloudio/touchemulator)来解决。hello uni-app的pc版也是使用了这个方案。
+
+**扩展**
+- uni ui提供了增强版`<uni-data-picker>`组件，详见：[https://ext.dcloud.net.cn/plugin?id=3796](https://ext.dcloud.net.cn/plugin?id=3796)
+- 该组件优势如下：
+  * 符合[datacom](/component/datacom)规范，只需传入data，就可以自动生成界面
+  * 符合[uni-forms](https://ext.dcloud.net.cn/plugin?id=2773)，表单校验规范
+  * 突破多列picker的3列限制，可以承载更多列数据
+  * 选择区域面积更高更大
+  * 支持多列数据分级加载，比如省市区选择，先选择省，然后动态联网加载该省的市。
+  * uniCloud自带了[opendb](https://gitee.com/dcloud/opendb)表，[opendb-city-china](https://gitee.com/dcloud/opendb/tree/master/collection/opendb-city-china)，包括全国的省市区数据。在`<uni-data-picker>`组件上可直接绑定该数据，生成全端可用的、联网懒加载的省市区选择。
+  * unicloud数据库提供了[DB Schema](https://uniapp.dcloud.io/uniCloud/schema)，还提供了[schema2code](https://uniapp.dcloud.net.cn/uniCloud/schema?id=autocode)自动生成全套表单页面，包括界面、校验逻辑、提交入库。在schema中配置字段的格式，比如在用户地址表[uni-id-address](https://gitee.com/dcloud/opendb/tree/master/collection/uni-id-address)的字段`area_code`配置值域指向[opendb-city-china](https://gitee.com/dcloud/opendb/tree/master/collection/opendb-city-china)表，即可自动生成该用户地址的生成页面

@@ -23,7 +23,7 @@ function createTodoApi (name) {
     complete
   }) {
     const res = {
-      errMsg: `${name}:fail:暂不支持 ${name} 方法`
+      errMsg: `${name}:fail method '${name}' not supported`
     }
     isFn(fail) && fail(res)
     isFn(complete) && complete(res)

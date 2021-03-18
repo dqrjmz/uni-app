@@ -27,6 +27,17 @@ describe('mp:compiler-extra', () => {
         }
       }
     )
+    assertCodegen(
+      /* eslint-disable no-template-curly-in-string */
+      '<view v-for="(item, index) in a.test()" :key="index">{{item}}</view>',
+      '<block wx:for="{{a.test()}}" wx:for-item="item" wx:for-index="index" wx:key="index"><view>{{item}}</view></block>',
+      'with(this){}', {
+        filterModules: {
+          t: {},
+          a: {}
+        }
+      }
+    )
   })
 
   it('generate scopeId', () => {
@@ -336,6 +347,11 @@ describe('mp:compiler-extra', () => {
       '<view v-for="(item,index) in list" :key="index"><view @click="$test.test(item,item.length,undefined)"></view></view>',
       '<block wx:for="{{list}}" wx:for-item="item" wx:for-index="index" wx:key="index"><view><view data-event-opts="{{[[\'tap\',[[\'e0\',[\'$event\']]]]]}}" data-event-params="{{({item})}}" bindtap="__e"></view></view></block>',
       'with(this){if(!_isMounted){e0=function($event,item){var _temp=arguments[arguments.length-1].currentTarget.dataset,_temp2=_temp.eventParams||_temp["event-params"],item=_temp2.item;var _temp,_temp2;return $test.test(item,item.length,undefined)}}}'
+    )
+    assertCodegen(
+      '<view v-for="(item,index) in list" :key="index"><view @click="event=>showEventInfo(event,item)"></view></view>',
+      '<block wx:for="{{list}}" wx:for-item="item" wx:for-index="index" wx:key="index"><view><view data-event-opts="{{[[\'tap\',[[\'e0\',[\'$event\']]]]]}}" data-event-params="{{({item})}}" bindtap="__e"></view></view></block>',
+      'with(this){if(!_isMounted){e0=(event,item,...args)=>{var _temp=args[args.length-1].currentTarget.dataset,_temp2=_temp.eventParams||_temp["event-params"],item=_temp2.item;var _temp,_temp2;return showEventInfo(event,item)}}}'
     )
   })
 
@@ -693,6 +709,11 @@ describe('mp:compiler-extra', () => {
     assertCodegen(
       '<view v-for="item in list" @click="test(item)">{{ item }}</view>',
       '<block wx:for="{{list}}" wx:for-item="item" wx:for-index="__i0__"><view data-event-opts="{{[[\'tap\',[[\'test\',[\'$0\'],[[[\'list\',\'\',__i0__]]]]]]]}}" bindtap="__e">{{item}}</view></block>'
+    )
+    assertCodegen(
+      '<view v-for="(item, index) in [{x:[1,2,3,4]}]"><view v-for="item2 in item.x" @click="test(item2)">{{ item2 }}+{{index}}</view></view>',
+      '<block wx:for="{{[{x:[1,2,3,4]}]}}" wx:for-item="item" wx:for-index="index"><view><block wx:for="{{item.x}}" wx:for-item="item2" wx:for-index="__i0__"><view data-event-opts="{{[[\'tap\',[[\'e0\',[\'$event\']]]]]}}" data-event-params="{{({item2})}}" bindtap="__e">{{item2+"+"+index}}</view></block></view></block>',
+      'with(this){if(!_isMounted){e0=function($event,item2){var _temp=arguments[arguments.length-1].currentTarget.dataset,_temp2=_temp.eventParams||_temp["event-params"],item2=_temp2.item2;var _temp,_temp2;return test(item2)}}}'
     )
   })
   it('generate bool attr', () => {

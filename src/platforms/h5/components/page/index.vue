@@ -159,9 +159,15 @@ export default {
       default () {
         return {}
       }
+    },
+    topWindow: {
+      type: Boolean,
+      default: true
     }
   },
   data () {
+    // 目前简单处理，存在topWindow时，始终不显示page head
+    let navigationBar = {}
     const titleNViewTypeList = {
       none: 'default',
       auto: 'transparent',
@@ -198,7 +204,7 @@ export default {
       NO: false
     }
 
-    const navigationBar = mergeTitleNView({
+    navigationBar = mergeTitleNView({
       loading: false,
       backButton: !this.isQuit && !this.$route.meta.isQuit, // redirectTo,reLaunch时可能动态修改 meta.isQuit
       backgroundColor: this.navigationBarBackgroundColor,

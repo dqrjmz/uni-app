@@ -202,6 +202,10 @@ function parseEventByCallExpression (callExpr, methods) {
   methods.push(t.arrayExpression(arrayExpression))
 }
 
+function isValuePath (path) {
+  return path.key !== 'key' && path.key !== 'id' && (path.key !== 'property' || path.parent.computed) && !(path.key === 'value' && path.parentPath.parentPath.isObjectPattern()) && !(path.key === 'left' && path.parentPath.parentPath.parentPath.isObjectPattern())
+}
+
 function parseEvent (keyPath, valuePath, state, isComponent, isNativeOn = false, tagName, ret) {
   const key = keyPath.node
   let type = key.value || key.name || ''
@@ -268,18 +272,31 @@ function parseEvent (keyPath, valuePath, state, isComponent, isNativeOn = false,
         state.errors.add(
           `${tagName} 组件 ${type} 事件仅支持 @${type}="methodName" 方式绑定`
         )
-      } else if (funcPath.isArrowFunctionExpression()) { // e=>count++
-        methods.push(addEventExpressionStatement(funcPath, state, isCustom))
       } else {
         let anonymous = true
 
         // "click":function($event) {click1(item);click2(item);}
         const body = funcPath.node.body && funcPath.node.body.body
-        if (body && body.length) {
+        const funcParams = funcPath.node.params
+        if (body && body.length && funcParams && funcParams.length === 1) {
           const exprStatements = body.filter(node => {
             return t.isExpressionStatement(node) && t.isCallExpression(node.expression)
           })
           if (exprStatements.length === body.length) {
+            const paramPath = funcPath.get('params')[0]
+            const paramName = paramPath.node.name
+            if (paramName !== '$event') {
+              funcPath.get('body').traverse({
+                Identifier (path) {
+                  const node = path.node
+                  const binding = path.scope.getBinding(node.name)
+                  if (binding && binding.identifier === paramPath.node && isValuePath(path)) {
+                    path.replaceWith(t.identifier('$event'))
+                  }
+                }
+              })
+              paramPath.replaceWith(t.identifier('$event'))
+            }
             anonymous = false
             exprStatements.forEach(exprStatement => {
               parseEventByCallExpression(exprStatement.expression, methods)
@@ -287,47 +304,60 @@ function parseEvent (keyPath, valuePath, state, isComponent, isNativeOn = false,
           }
         }
 
-        anonymous && funcPath.traverse({
-          noScope: true,
-          MemberExpression (path) {
-            if (path.node.object.name === '$event' && path.node.property.name ===
-              'stopPropagation') {
-              isCatch = true
-              path.stop()
-            }
-          },
-          AssignmentExpression (path) { // "update:title": function($event) {title = $event}
-            const left = path.node.left
-            const right = path.node.right
-            // v-bind:title.sync="title"
-            if (t.isIdentifier(left) &&
-              t.isIdentifier(right) &&
-              right.name === '$event' &&
-              type.indexOf('update:') === 0) {
-              methods.push(t.arrayExpression( // ['$set',['title','$event']]
-                [
-                  t.stringLiteral(INTERNAL_SET_SYNC),
-                  t.arrayExpression([
-                    t.identifier(left.name),
-                    t.stringLiteral(left.name),
-                    t.stringLiteral('$event')
-                  ])
-                ]
-              ))
-              anonymous = false
-              path.stop()
-            }
-          },
-          ReturnStatement (path) {
-            const argument = path.node.argument
-            if (t.isCallExpression(argument)) {
-              if (t.isIdentifier(argument.callee)) { // || t.isMemberExpression(argument.callee)
+        // 判断是否是复杂表达式  数组  或  对象
+        const isNotDynamicExpression = (state) => {
+          if (!(state.scoped[0])) {
+            return true
+          }
+          const value = state.scoped[0].forExtra[0].elements[0].value
+          return !(typeof value === 'string' && (value.startsWith('[') || value.startsWith('}')))
+        }
+
+        // 如果v-for遍历的值为 数组、对象 则进入复杂表达式
+        if (isNotDynamicExpression(state)) {
+          anonymous && funcPath.traverse({
+            noScope: true,
+            MemberExpression (path) {
+              if (path.node.object.name === '$event' && path.node.property.name ===
+                'stopPropagation') {
+                isCatch = true
+                path.stop()
+              }
+            },
+            AssignmentExpression (path) { // "update:title": function($event) {title = $event}
+              const left = path.node.left
+              const right = path.node.right
+              // v-bind:title.sync="title"
+              if (t.isIdentifier(left) &&
+                t.isIdentifier(right) &&
+                right.name === '$event' &&
+                type.indexOf('update:') === 0) {
+                methods.push(t.arrayExpression( // ['$set',['title','$event']]
+                  [
+                    t.stringLiteral(INTERNAL_SET_SYNC),
+                    t.arrayExpression([
+                      t.identifier(left.name),
+                      t.stringLiteral(left.name),
+                      t.stringLiteral('$event')
+                    ])
+                  ]
+                ))
                 anonymous = false
-                parseEventByCallExpression(argument, methods)
+                path.stop()
+              }
+            },
+            ReturnStatement (path) {
+              const argument = path.node.argument
+              if (t.isCallExpression(argument)) {
+                if (t.isIdentifier(argument.callee)) { // || t.isMemberExpression(argument.callee)
+                  anonymous = false
+                  parseEventByCallExpression(argument, methods)
+                }
               }
             }
-          }
-        })
+          })
+        }
+
         if (anonymous) {
           // 处理复杂表达式中使用的局部变量（主要在v-for中定义）
           funcPath.traverse({
@@ -335,7 +365,7 @@ function parseEvent (keyPath, valuePath, state, isComponent, isNativeOn = false,
               const scope = path.scope
               const node = path.node
               const name = node.name
-              if (path.key !== 'key' && (path.key !== 'property' || path.parent.computed) && scope && !scope.hasOwnBinding(name) && scope.hasBinding(name) && !params.includes(name) && name !== 'undefined') {
+              if (isValuePath(path) && scope && !scope.hasOwnBinding(name) && scope.hasBinding(name) && !params.includes(name) && name !== 'undefined') {
                 params.push(name)
               }
             }
@@ -344,10 +374,15 @@ function parseEvent (keyPath, valuePath, state, isComponent, isNativeOn = false,
             funcPath.node.params.push(t.identifier(name))
           })
           if (params.length) {
+            let argumentsName = 'arguments'
+            if (funcPath.isArrowFunctionExpression()) {
+              argumentsName = 'args'
+              funcPath.node.params.push(t.restElement(t.identifier(argumentsName)))
+            }
             const datasetUid = funcPath.scope.generateDeclaredUidIdentifier().name
             const paramsUid = funcPath.scope.generateDeclaredUidIdentifier().name
             const dataset = ATTR_DATA_EVENT_PARAMS.substring(5)
-            const code = `var ${datasetUid}=arguments[arguments.length-1].currentTarget.dataset,${paramsUid}=${datasetUid}.${dataset.replace(/-([a-z])/, (_, str) => str.toUpperCase())}||${datasetUid}['${dataset}'],${params.map(item => `${item}=${paramsUid}.${item}`).join(',')}`
+            const code = `var ${datasetUid}=${argumentsName}[${argumentsName}.length-1].currentTarget.dataset,${paramsUid}=${datasetUid}.${dataset.replace(/-([a-z])/, (_, str) => str.toUpperCase())}||${datasetUid}['${dataset}'],${params.map(item => `${item}=${paramsUid}.${item}`).join(',')}`
             funcPath.node.body.body.unshift(parser.parse(code).program.body[0])
           }
           methods.push(addEventExpressionStatement(funcPath, state, isComponent, isNativeOn))

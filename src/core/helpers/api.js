@@ -106,16 +106,23 @@ function createKeepAliveApiCallback (apiName, callback) {
   const callbackId = invokeCallbackId++
   const invokeCallbackName = 'api.' + apiName + '.' + callbackId
 
-  const invokeCallback = function (res, extras) {
-    callback(res, extras)
-  }
-
   invokeCallbacks[callbackId] = {
     name: invokeCallbackName,
     keepAlive: true,
-    callback: invokeCallback
+    callback
   }
   return callbackId
+}
+
+function getKeepAliveApiCallback (apiName, callback) {
+  for (const key in invokeCallbacks) {
+    const item = invokeCallbacks[key]
+    if (item.name.startsWith('api.' + apiName.replace(/^off/, 'on')) && item.callback === callback) {
+      delete invokeCallbacks[key]
+      return Number(key)
+    }
+  }
+  return 'fail'
 }
 
 function createApiCallback (apiName, params = {}, extras = {}) {
@@ -268,6 +275,10 @@ export function invokeCallbackHandler (invokeCallbackId, res, extras) {
   return res
 }
 
+export function removeCallbackHandler (invokeCallbackId) {
+  delete invokeCallbacks[invokeCallbackId]
+}
+
 export function wrapperUnimplemented (name) {
   return function todo (args) {
     console.error('API `' + name + '` is not yet implemented')
@@ -294,7 +305,7 @@ export function wrapper (name, invokeMethod, extras = {}) {
       }
     } else if (isCallbackApi(name)) {
       if (validateParams(name, args, -1)) {
-        return invokeMethod(createKeepAliveApiCallback(name, args[0]))
+        return invokeMethod((name.startsWith('off') ? getKeepAliveApiCallback : createKeepAliveApiCallback)(name, args[0]))
       }
     } else {
       let argsObj = {}

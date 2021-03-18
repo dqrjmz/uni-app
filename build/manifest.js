@@ -25,6 +25,10 @@ const TOAST_DEPS = [
 // TODO 暂不考虑 head,tabBar 的动态拆分
 const DEPS = {
   chooseLocation: [
+    ['/platforms/h5/view/components/map/index.vue', 'Map'],
+    ['/core/view/components/input/index.vue', 'Input'],
+    ['/core/view/components/scroll-view/index.vue', 'ScrollView'],
+    ['/platforms/h5/service/api/location/get-location.js', 'getLocation'],
     ['/platforms/h5/components/system-routes/choose-location/index.vue', 'ChooseLocation']
   ],
   openLocation: [
@@ -55,6 +59,10 @@ const DEPS = {
   createIntersectionObserver: [
     ['/core/view/bridge/subscribe/api/request-component-observer.js', 'requestComponentObserver'],
     ['/core/view/bridge/subscribe/api/request-component-observer.js', 'destroyComponentObserver']
+  ],
+  createMediaQueryObserver: [
+    ['/core/view/bridge/subscribe/api/request-media-query-observer.js', 'requestMediaQueryObserver'],
+    ['/core/view/bridge/subscribe/api/request-media-query-observer.js', 'destroyMediaQueryObserver']
   ]
 }
 

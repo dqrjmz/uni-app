@@ -1,6 +1,11 @@
+import {
+  invoke
+} from '../bridge'
+
 export {
   isTabBarPage
-} from '../bridge'
+}
+  from '../bridge'
 
 export function callApiSync (api, args, name, alias) {
   const ret = api(args)
@@ -8,6 +13,13 @@ export function callApiSync (api, args, name, alias) {
     ret.errMsg = ret.errMsg.replace(name, alias)
   }
   return ret
+}
+
+export function getWebview (__page__) {
+  if (__page__) {
+    return __page__.$getAppWebview()
+  }
+  return getLastWebview()
 }
 
 export function getLastWebview () {
@@ -150,15 +162,76 @@ const outOfChina = function (lng, lat) {
   return (lng < 72.004 || lng > 137.8347) || ((lat < 0.8293 || lat > 55.8271) || false)
 }
 
-export function getStatusbarHeight () {
-  // 横屏时 iOS 获取的状态栏高度错误，进行纠正
-  return plus.navigator.isImmersedStatusbar() ? Math.round(plus.os.name === 'iOS' ? plus.navigator.getSafeAreaInsets().top : plus.navigator.getStatusbarHeight()) : 0
-}
-
 export function getScreenInfo () {
-  const { resolutionWidth, resolutionHeight } = plus.screen.getCurrentSize()
+  const {
+    resolutionWidth,
+    resolutionHeight
+  } = plus.screen.getCurrentSize()
   return {
     screenWidth: Math.round(resolutionWidth),
     screenHeight: Math.round(resolutionHeight)
   }
+}
+
+export function warpPlusEvent (module, name) {
+  return function (callbackId) {
+    plus[module][name](function (data) {
+      if (data) {
+        delete data.code
+        delete data.message
+      }
+      invoke(callbackId, data)
+    })
+  }
+}
+
+export function warpPlusSuccessCallback (callbackId, name) {
+  return function errorCallback (result) {
+    result = result || {}
+    invoke(callbackId, Object.assign({}, result, {
+      errMsg: `${name}:ok`
+    }))
+  }
+}
+
+export function warpPlusErrorCallback (callbackId, name, errMsg) {
+  return function errorCallback (error) {
+    error = error || {}
+    // 一键登录errorCallback新增 appid、metadata、uid 参数返回
+    const { code = 0, message: errorMessage, ...extraData } = error
+    invoke(callbackId, {
+      errMsg: `${name}:fail ${errorMessage || errMsg || ''}`,
+      errCode: code,
+      code,
+      ...extraData
+    })
+  }
+}
+
+export function warpPlusMethod (module, name, before) {
+  return function (options, callbackId) {
+    if (typeof before === 'function') {
+      options = before(options)
+    }
+    plus[module][name](Object.assign(options, {
+      success (data = {}) {
+        delete data.code
+        delete data.message
+        invoke(callbackId, Object.assign({}, data, {
+          errMsg: `${name}:ok`
+        }))
+      },
+      fail: warpPlusErrorCallback(callbackId, name)
+    }))
+  }
+}
+
+export function getFileName (path) {
+  const array = path.split('/')
+  return array[array.length - 1]
+}
+
+export function getExtName (path) {
+  const array = path.split('.')
+  return array.length > 1 ? '.' + array[array.length - 1] : ''
 }

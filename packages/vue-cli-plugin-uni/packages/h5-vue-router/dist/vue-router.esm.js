@@ -2202,8 +2202,9 @@ var HTML5History = (function (History$$1) {
       // fixed by xxxxxx
       var id = e.state && e.state.id;
       if (!id) {
-        // TODO
-        id = router.id;
+        // 当手动切换页面时，强制刷新
+        return window.location.reload()
+        // id = router.id
       }
 
       this$1.transitionTo({ // fixed by xxxxxx
@@ -2227,8 +2228,14 @@ var HTML5History = (function (History$$1) {
     var this$1 = this;
 
     if (typeof location === 'object') { // fixed by xxxxxx
+      location.params = location.params || {};
+      var hasId = location.params.__id__;
       switch (location.type) {
         case 'navigateTo':
+          if (!hasId) {
+            this.router.id++;
+          }
+          break
         case 'redirectTo':
         case 'reLaunch':
           this.router.id++;
@@ -2236,8 +2243,9 @@ var HTML5History = (function (History$$1) {
         case 'switchTab':
           break
       }
-      location.params = location.params || {};
-      location.params.__id__ = this.router.id;
+      if (!hasId) {
+        location.params.__id__ = this.router.id;
+      }
     }
 
     var ref = this;
@@ -2344,8 +2352,9 @@ var HashHistory = (function (History$$1) {
       // fixed by xxxxxx
       var id = e.state && e.state.id;
       if (!id) {
-        // TODO
-        id = router.id;
+        // 当手动切换页面时，强制刷新
+        return window.location.reload()
+        // id = router.id
       }
 
       this$1.transitionTo({
@@ -2368,8 +2377,14 @@ var HashHistory = (function (History$$1) {
     var this$1 = this;
 
     if (typeof location === 'object') { // fixed by xxxxxx
+      location.params = location.params || {};
+      var hasId = location.params.__id__;
       switch (location.type) {
         case 'navigateTo':
+          if (!hasId) {
+            this.router.id++;
+          }
+          break
         case 'redirectTo':
         case 'reLaunch':
           this.router.id++;
@@ -2377,8 +2392,10 @@ var HashHistory = (function (History$$1) {
         case 'switchTab':
           break
       }
-      location.params = location.params || {};
-      location.params.__id__ = this.router.id;
+
+      if (!hasId) {
+        location.params.__id__ = this.router.id;
+      }
     }
 
     var ref = this;

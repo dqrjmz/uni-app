@@ -5,17 +5,7 @@
 应用生命周期仅可在`App.vue`中监听，在页面监听无效。
 ### 应用生命周期
 
-`uni-app` 支持如下应用生命周期函数：
-
-|函数名						|说明																																												|平台兼容|
-|:-								|:-																																													|:-	|
-|onLaunch					|当`uni-app` 初始化完成时触发（全局只触发一次）																							||
-|onShow						|当 `uni-app` 启动，或从后台进入前台显示																										||
-|onHide						|当 `uni-app` 从前台进入后台																																||
-|onError					|当 `uni-app` 报错时触发																																||
-|onUniNViewMessage|对 `nvue` 页面发送的数据进行监听，可参考 [nvue 向 vue 通讯](/use-weex?id=nvue-向-vue-通讯)	|App|
-
-在`App.vue`文件里使用生命周期函数，如下：
+``uni-app`` 支持 onLaunch、onShow、onHide 等应用生命周期函数，详情请参考[应用生命周期](/collocation/frame/lifecycle?id=应用生命周期)
 
 ```html
 <script>  
@@ -65,7 +55,7 @@ nvue的weex编译模式中使用globalData的话，由于weex生命周期不支�
 globalData是简单的全局变量，如果使用状态管理，请使用`vuex`（main.js中定义）
 
 ### 全局样式
-在`App.vue`中，可以一些定义全局通用样式，例如需要加一个通用的背景色，首屏页面渲染的动画等都可以写在App.vue中。
+在`App.vue`中，可以定义一些全局通用样式，例如需要加一个通用的背景色，首屏页面渲染的动画等都可以写在App.vue中。
 
 注意如果工程下同时有vue和nvue文件，全局样式的所有css会应用于所有文件，而nvue支持的css有限，编译器会在控制台报警，提示某些css无法在nvue中支持。此时需要把nvue不支持的css写在单独的条件编译里。如：
 ```html

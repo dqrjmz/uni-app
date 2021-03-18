@@ -28,10 +28,12 @@ function updateCssVar (vm) {
     const windowTopValue = navigationBarType === 'default' || navigationBarType === 'float' ? NAVBAR_HEIGHT : 0
     const windowBottomValue = getApp().$children[0].showTabBar ? TABBAR_HEIGHT : 0
     const envMethod = uni.canIUse('css.env') ? 'env' : (uni.canIUse('css.constant') ? 'constant' : '')
-    const windowTop = windowTopValue && envMethod ? `calc(${windowTopValue}px + ${envMethod}(safe-area-inset-top))` : `${windowTopValue}px`
-    const windowBottom = windowBottomValue && envMethod ? `calc(${windowBottomValue}px + ${envMethod}(safe-area-inset-bottom))` : `${windowBottomValue}px`
+    const windowTop = windowTopValue && envMethod ? `calc(${windowTopValue}px + ${envMethod}(safe-area-inset-top))`
+      : `${windowTopValue}px`
+    const windowBottom = windowBottomValue && envMethod
+      ? `calc(${windowBottomValue}px + ${envMethod}(safe-area-inset-bottom))` : `${windowBottomValue}px`
     const style = document.documentElement.style
-    style.setProperty('--window-top', windowTop)
+    style.setProperty('--window-top', `calc(var(--top-window-height) + ${windowTop})`)
     style.setProperty('--window-bottom', windowBottom)
     console.debug(`${vm.$page.route}[${vm.$page.id}]：--window-top=${windowTop}`)
     console.debug(`${vm.$page.route}[${vm.$page.id}]：--window-bottom=${windowBottom}`)

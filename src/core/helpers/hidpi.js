@@ -106,7 +106,8 @@ if (pixelRatio !== 1) {
       args[1] *= pixelRatio
       args[2] *= pixelRatio
 
-      var font = this.font
+      // Safari 重新设置部分属性会导致其他值恢复默认，需获取原始值
+      var font = this.__font__ || this.font
       this.font = font.replace(
         /(\d+\.?\d*)(px|em|rem|pt)/g,
         function (w, m, u) {
@@ -130,7 +131,8 @@ if (pixelRatio !== 1) {
       args[1] *= pixelRatio // x
       args[2] *= pixelRatio // y
 
-      var font = this.font
+      // Safari 重新设置部分属性会导致其他值恢复默认，需获取原始值
+      var font = this.__font__ || this.font
       this.font = font.replace(
         /(\d+\.?\d*)(px|em|rem|pt)/g,
         function (w, m, u) {
@@ -159,5 +161,8 @@ export function wrapper (canvas) {
   // canvas元素的宽，高 * 分辨率
   canvas.width = canvas.offsetWidth * pixelRatio
   canvas.height = canvas.offsetHeight * pixelRatio
-  canvas.getContext('2d').__hidpi__ = true
+  canvas.__hidpi__ = true
+  // 避免低版本安卓上 context 实例被回收
+  canvas.__context2d__ = canvas.getContext('2d')
+  canvas.__context2d__.__hidpi__ = true
 }

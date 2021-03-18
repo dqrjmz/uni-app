@@ -1,30 +1,33 @@
 import {
   plusReady
 } from 'uni-shared'
+import emitter from './emitter'
 
 /**
  * 保证iOS点击输入框外隐藏键盘
  */
 function iosHideKeyboard () { }
 
-function showSoftKeybord () {
+function setSoftinputTemporary (vm, reset) {
   plusReady(() => {
-    plus.key.showSoftKeybord()
-  })
-}
-
-function setSoftinputTemporary (vm) {
-  plusReady(() => {
+    const MODE_ADJUSTRESIZE = 'adjustResize'
+    const MODE_ADJUSTPAN = 'adjustPan'
+    const MODE_NOTHING = 'nothing'
     const currentWebview = plus.webview.currentWebview()
     const style = currentWebview.getStyle() || {}
-    const rect = vm.$el.getBoundingClientRect()
-    currentWebview.setSoftinputTemporary && currentWebview.setSoftinputTemporary({
-      mode: style.softinputMode === 'adjustResize' ? 'adjustResize' : (vm.adjustPosition ? 'adjustPan' : 'nothing'),
+    const options = {
+      mode: (reset || style.softinputMode === MODE_ADJUSTRESIZE) ? MODE_ADJUSTRESIZE : (vm.adjustPosition ? MODE_ADJUSTPAN : MODE_NOTHING),
       position: {
-        top: rect.top,
-        height: rect.height + (Number(vm.cursorSpacing) || 0)
+        top: 0,
+        height: 0
       }
-    })
+    }
+    if (options.mode === MODE_ADJUSTPAN) {
+      const rect = vm.$el.getBoundingClientRect()
+      options.position.top = rect.top
+      options.position.height = rect.height + (Number(vm.cursorSpacing) || 0)
+    }
+    currentWebview.setSoftinputTemporary(options)
   })
 }
 
@@ -60,17 +63,25 @@ function resetSoftinputNavBar (vm) {
   }
 }
 
+let resetTimer
 let isAndroid
 let osVersion
+let keyboardHeight
+let keyboardChangeCallback
 if (__PLATFORM__ === 'app-plus') {
   plusReady(() => {
     isAndroid = plus.os.name.toLowerCase() === 'android'
     osVersion = plus.os.version
   })
+  document.addEventListener('keyboardchange', function (event) {
+    keyboardHeight = event.height
+    keyboardChangeCallback && keyboardChangeCallback()
+  }, false)
 }
 
 export default {
   name: 'Keyboard',
+  mixins: [emitter],
   props: {
     cursorSpacing: {
       type: [Number, String],
@@ -86,14 +97,7 @@ export default {
     },
     autoBlur: {
       type: [Boolean, String],
-      default: true
-    }
-  },
-  watch: {
-    focus (val) {
-      if (val && __PLATFORM__ === 'app-plus') {
-        showSoftKeybord()
-      }
+      default: false
     }
   },
   directives: {
@@ -103,18 +107,15 @@ export default {
       }
     }
   },
-  mounted () {
-    if ((this.autoFocus || this.focus) && __PLATFORM__ === 'app-plus') {
-      showSoftKeybord()
-    }
-  },
   methods: {
     initKeyboard (el) {
       let focus
-      let keyboardHeight
 
-      const keyboardChange = (event) => {
-        keyboardHeight = event.height
+      const keyboardChange = () => {
+        this.$trigger('keyboardheightchange', {}, {
+          height: keyboardHeight,
+          duration: 0.25
+        })
         // 安卓切换不同键盘类型时会导致键盘收回，需重新设置
         if (focus && keyboardHeight === 0) {
           setSoftinputTemporary(this)
@@ -127,29 +128,57 @@ export default {
 
       el.addEventListener('focus', () => {
         focus = true
+        clearTimeout(resetTimer)
         document.addEventListener('click', iosHideKeyboard, false)
 
         if (__PLATFORM__ === 'app-plus') {
-          document.addEventListener('keyboardchange', keyboardChange, false)
+          keyboardChangeCallback = keyboardChange
+          if (keyboardHeight) {
+            this.$trigger('keyboardheightchange', {}, {
+              height: keyboardHeight,
+              duration: 0
+            })
+          }
           setSoftinputNavBar(this)
           setSoftinputTemporary(this)
         }
       })
 
       if (__PLATFORM__ === 'app-plus') {
+        // 安卓单独隐藏键盘后点击输入框不会触发 focus 事件
         el.addEventListener('click', () => {
-          if (focus && keyboardHeight === 0) {
+          if (!this.disabled && focus && keyboardHeight === 0) {
             setSoftinputTemporary(this)
           }
         })
+        if (!isAndroid && parseInt(osVersion) < 12) {
+          // iOS12 以下系统 focus 事件设置较迟，改在 touchstart 设置
+          el.addEventListener('touchstart', () => {
+            if (!this.disabled && !focus) {
+              setSoftinputTemporary(this)
+            }
+          })
+        }
       }
 
       const onKeyboardHide = () => {
         document.removeEventListener('click', iosHideKeyboard, false)
 
         if (__PLATFORM__ === 'app-plus') {
-          document.removeEventListener('keyboardchange', keyboardChange, false)
+          keyboardChangeCallback = null
+          if (keyboardHeight) {
+            this.$trigger('keyboardheightchange', {}, {
+              height: 0,
+              duration: 0
+            })
+          }
           resetSoftinputNavBar(this)
+          if (isAndroid) {
+            // 还原安卓软键盘配置，避免影响 web-view 组件
+            resetTimer = setTimeout(() => {
+              setSoftinputTemporary(this, true)
+            }, 300)
+          }
         }
 
         // 修复ios端显示与点击位置错位的Bug by:wyq
@@ -160,10 +189,6 @@ export default {
 
       el.addEventListener('blur', () => {
         focus = false
-        onKeyboardHide()
-      })
-
-      this.$on('hook:beforeDestroy', () => {
         onKeyboardHide()
       })
     }

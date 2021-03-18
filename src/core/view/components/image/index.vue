@@ -4,7 +4,11 @@
       ref="content"
       :style="style"
     />
-    <img :src="contentPath">
+    <img
+      v-if="contentPath"
+      :src="contentPath"
+      :draggable="draggable"
+    >
     <v-uni-resize-sensor
       v-if="mode === 'widthFix' || mode === 'heightFix'"
       ref="sensor"
@@ -36,6 +40,10 @@ export default {
     lazyLoad: {
       type: [Boolean, String],
       default: false
+    },
+    draggable: {
+      type: Boolean,
+      default: true
     }
   },
   data () {
@@ -143,7 +151,7 @@ export default {
         } else if (this.mode === 'heightFix') {
           const height = rect.height
           if (height) {
-            $el.style.width = fixNumber(height / this.ratio) + 'px'
+            $el.style.width = fixNumber(height * this.ratio) + 'px'
           }
         }
       }

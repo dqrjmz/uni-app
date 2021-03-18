@@ -4,6 +4,7 @@ const webpack = require('webpack')
 const {
   parseEntry,
   getMainEntry,
+  normalizePath,
   getPlatformExts,
   getPlatformCssnano
 } = require('@dcloudio/uni-cli-shared')
@@ -35,7 +36,11 @@ function getProvides () {
   }
 
   if (process.env.UNI_USING_COMPONENTS) {
-    provides.createApp = [uniPath, 'createApp']
+    if (process.env.UNI_SUBPACKGE) {
+      provides.createApp = [uniPath, 'createSubpackageApp']
+    } else {
+      provides.createApp = [uniPath, 'createApp']
+    }
     provides.createPage = [uniPath, 'createPage']
     provides.createComponent = [uniPath, 'createComponent']
   }
@@ -63,6 +68,71 @@ function getProvides () {
   return provides
 }
 
+function processWxss (name, assets) {
+  const dirname = path.dirname(name)
+  const mainWxssCode = `@import "${normalizePath(path.relative(dirname, 'common/main.wxss'))}";`
+  const code = `${mainWxssCode}` + assets[name].source().toString()
+  assets[name] = {
+    size () {
+      return Buffer.byteLength(code, 'utf8')
+    },
+    source () {
+      return code
+    }
+  }
+}
+
+function procssJs (name, assets, hasVendor) {
+  const dirname = path.dirname(name)
+  const runtimeJsCode = `require('${normalizePath(path.relative(dirname, 'common/runtime.js'))}');`
+  const vendorJsCode = hasVendor ? `require('${normalizePath(path.relative(dirname, 'common/vendor.js'))}');` : ''
+  const mainJsCode = `require('${normalizePath(path.relative(dirname, 'common/main.js'))}');`
+  const code = `${runtimeJsCode}${vendorJsCode}${mainJsCode}` + assets[name].source().toString()
+  assets[name] = {
+    size () {
+      return Buffer.byteLength(code, 'utf8')
+    },
+    source () {
+      return code
+    }
+  }
+}
+
+class PreprocessAssetsPlugin {
+  apply (compiler) {
+    compiler.hooks.emit.tap('PreprocessAssetsPlugin', compilation => {
+      const assets = compilation.assets
+      const hasMainWxss = assets['common/main.wxss']
+      const hasVendor = assets['common/vendor.js']
+      Object.keys(assets).forEach(name => {
+        if (name.startsWith('common')) {
+          return
+        }
+        const extname = path.extname(name)
+        if (extname === '.wxss' && hasMainWxss && process.UNI_ENTRY[name.replace(extname, '')]) {
+          processWxss(name, assets)
+        } else if (extname === '.js') {
+          procssJs(name, assets, hasVendor)
+        }
+      })
+      // delete assets['common/main.js']
+      delete assets['app.js']
+      delete assets['app.json']
+      delete assets['app.wxss']
+      delete assets['project.config.json']
+    })
+  }
+}
+
+function initSubpackageConfig (webpackConfig, vueOptions) {
+  if (process.env.UNI_OUTPUT_DEFAULT_DIR === process.env.UNI_OUTPUT_DIR) { // 未自定义output
+    process.env.UNI_OUTPUT_DIR = path.resolve(process.env.UNI_OUTPUT_DIR, process.env.UNI_SUBPACKGE)
+  }
+  vueOptions.outputDir = process.env.UNI_OUTPUT_DIR
+  webpackConfig.output.path(process.env.UNI_OUTPUT_DIR)
+  webpackConfig.output.jsonpFunction('webpackJsonp_' + process.env.UNI_SUBPACKGE)
+}
+
 module.exports = {
   vueConfig: {
     parallel: false
@@ -85,6 +155,16 @@ module.exports = {
     const statCode = process.env.UNI_USING_STAT ? 'import \'@dcloudio/uni-stat\';' : ''
 
     const beforeCode = 'import \'uni-pages\';'
+
+    const plugins = [
+      new WebpackUniAppPlugin(),
+      createUniMPPlugin(),
+      new webpack.ProvidePlugin(getProvides())
+    ]
+
+    if (process.env.UNI_SUBPACKGE && process.env.UNI_SUBPACKGE !== 'main') {
+      plugins.push(new PreprocessAssetsPlugin())
+    }
 
     return {
       mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
@@ -147,11 +227,7 @@ module.exports = {
           }]
         }]
       },
-      plugins: [
-        new WebpackUniAppPlugin(),
-        createUniMPPlugin(),
-        new webpack.ProvidePlugin(getProvides())
-      ]
+      plugins
     }
   },
   chainWebpack (webpackConfig, vueOptions, api) {
@@ -194,6 +270,10 @@ module.exports = {
           }
 
         }))
+    }
+
+    if (process.env.UNI_SUBPACKGE) {
+      initSubpackageConfig(webpackConfig, vueOptions)
     }
 
     webpackConfig.plugins.delete('hmr')

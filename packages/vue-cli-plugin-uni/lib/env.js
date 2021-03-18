@@ -19,19 +19,18 @@ process.env.UNI_INPUT_DIR = process.env.UNI_INPUT_DIR || path.resolve(process.cw
 
 // 初始化全局插件对象
 global.uniPlugin = require('@dcloudio/uni-cli-shared/lib/plugin').init()
+
 const manifestJsonObj = require('@dcloudio/uni-cli-shared/lib/manifest').getManifestJson()
 const platformOptions = manifestJsonObj[process.env.UNI_SUB_PLATFORM || process.env.UNI_PLATFORM] || {}
 // 插件校验环境
 global.uniPlugin.validate.forEach(validate => {
   validate(platformOptions, manifestJsonObj)
 })
-
 process.UNI_MANIFEST = manifestJsonObj
 
-process.env.UNI_USING_V3_SCOPED = true
+process.env.VUE_APP_NAME = manifestJsonObj.name
 
-// 配置node进程参数
-// 检测node进程参数
+process.env.UNI_USING_V3_SCOPED = true
 
 process.UNI_CLOUD = false
 process.UNI_CLOUD_TCB = false
@@ -76,7 +75,8 @@ if (
   process.env.UNI_PLATFORM === 'h5' &&
   process.env.NODE_ENV === 'production'
 ) {
-  console.warn('发布H5，需要在uniCloud后台操作，绑定安全域名，否则会因为跨域问题而无法访问。教程参考：https://uniapp.dcloud.io/uniCloud/quickstart?id=useinh5')
+  console.warn(
+    '发布H5，需要在uniCloud后台操作，绑定安全域名，否则会因为跨域问题而无法访问。教程参考：https://uniapp.dcloud.io/uniCloud/quickstart?id=useinh5')
 }
 
 // 初始化环境变量
@@ -84,13 +84,14 @@ const defaultOutputDir = '../../../../dist/' +
   (process.env.NODE_ENV === 'production' ? 'build' : 'dev') + '/' +
   (process.env.UNI_SUB_PLATFORM || process.env.UNI_PLATFORM)
 
+process.env.UNI_OUTPUT_DEFAULT_DIR = path.resolve(__dirname, defaultOutputDir)
 if (process.env.UNI_OUTPUT_DIR && process.env.UNI_OUTPUT_DIR.indexOf('./') === 0) {
   process.env.UNI_OUTPUT_DIR = path.resolve(process.cwd(), process.env.UNI_OUTPUT_DIR)
 }
 
 process.env.UNI_PLATFORM = process.env.UNI_PLATFORM || 'h5'
 process.env.VUE_APP_PLATFORM = process.env.UNI_PLATFORM
-process.env.UNI_OUTPUT_DIR = process.env.UNI_OUTPUT_DIR || path.resolve(__dirname, defaultOutputDir)
+process.env.UNI_OUTPUT_DIR = process.env.UNI_OUTPUT_DIR || process.env.UNI_OUTPUT_DEFAULT_DIR
 
 if (process.env.UNI_PLATFORM === 'app-plus') {
   process.env.UNI_OUTPUT_TMP_DIR = path.resolve(process.env.UNI_OUTPUT_DIR, '../.tmp/app-plus')
@@ -104,6 +105,17 @@ if (process.env.NODE_ENV === 'production') { // 发行模式,不启用 cache
   delete process.env.UNI_USING_CACHE
 }
 
+global.uniModules = []
+try {
+  global.uniModules = fs
+    .readdirSync(path.resolve(process.env.UNI_INPUT_DIR, 'uni_modules'))
+    .filter(module =>
+      fs.existsSync(
+        path.resolve(process.env.UNI_INPUT_DIR, 'uni_modules', module, 'package.json')
+      )
+    )
+} catch (e) {}
+
 const {
   normalizePath,
   isSupportSubPackages,
@@ -111,7 +123,6 @@ const {
   getPagesJson
 } = require('@dcloudio/uni-cli-shared')
 
-// 获取 项目路由配置 pages.json文件配置
 const pagesJsonObj = getPagesJson()
 // 读取分包
 process.UNI_SUBPACKAGES = {}
@@ -132,23 +143,12 @@ if (Array.isArray(pagesJsonObj.subPackages)) {
   })
 }
 
-// 获取 项目元信息 manifest文件配置
-const manifestJsonObj = getManifestJson()
-// 获取不同平台下的配置
-const platformOptions = manifestJsonObj[process.env.UNI_PLATFORM] || {}
-
-// uniapp项目下的pages.json
 process.UNI_PAGES = pagesJsonObj
-// manifest.json
-process.UNI_MANIFEST = manifestJsonObj
 
-
-// 是否开启调试
 if (manifestJsonObj.debug) {
   process.env.VUE_APP_DEBUG = true
 }
 
-// 获取小程序id
 process.UNI_STAT_CONFIG = {
   appid: manifestJsonObj.appid
 }
@@ -156,12 +156,9 @@ process.UNI_STAT_CONFIG = {
 // 默认启用 自定义组件模式
 // if (isInHBuilderXAlpha) {
 let usingComponentsAbsent = false
-// 平台没有配置自定义组件 false
-
 if (!hasOwn(platformOptions, 'usingComponents')) {
   usingComponentsAbsent = true
 }
-// 自动开启自定义组件模式
 platformOptions.usingComponents = true
 // }
 
@@ -204,7 +201,6 @@ if (process.env.UNI_PLATFORM === 'mp-qq') { // QQ小程序 强制自定义组件
 
 let isNVueCompiler = true
 if (process.env.UNI_PLATFORM === 'app-plus') {
-  // app 平台的nvue页面的编译模式  'weex' 'uniapp'
   if (platformOptions.nvueCompiler === 'weex') {
     isNVueCompiler = false
   }
@@ -243,12 +239,16 @@ if (process.env.UNI_PLATFORM === 'app-plus') {
   }
 }
 
-// nvue页面的编译器  weex uniapp
 if (isNVueCompiler) {
   process.env.UNI_USING_NVUE_COMPILER = true
 }
 
-// 平台使用自定组件模式
+if (platformOptions.nvueStyleCompiler === 'uni-app') {
+  process.env.UNI_USING_NVUE_STYLE_COMPILER = true
+} else {
+  platformOptions.nvueStyleCompiler = 'weex'
+}
+
 if (platformOptions.usingComponents === true) {
   if (process.env.UNI_PLATFORM !== 'h5') {
     process.env.UNI_USING_COMPONENTS = true
@@ -277,7 +277,6 @@ if (
   }
 }
 
-// 使用自定义组件模式
 if (process.env.UNI_USING_COMPONENTS) { // 是否启用分包优化
   if (platformOptions.optimization) {
     if (
@@ -290,13 +289,11 @@ if (process.env.UNI_USING_COMPONENTS) { // 是否启用分包优化
   }
 }
 
-// 自动会开启自定义组件模式（小程序
 const warningMsg =
   usingComponentsAbsent
     ? '该应用之前可能是非自定义组件模式，目前以自定义组件模式运行。非自定义组件已于2019年11月1日起停止支持。详见：https://ask.dcloud.net.cn/article/36385'
     : 'uni-app已于2019年11月1日起停止支持非自定义组件模式 [详情](https://ask.dcloud.net.cn/article/36385)'
 
-    // 没有使用自定义组件模式
 const needWarning = !platformOptions.usingComponents || usingComponentsAbsent
 let hasNVue = false
 // 输出编译器版本等信息
@@ -426,6 +423,27 @@ if (process.UNI_AUTO_SCAN_COMPONENTS) {
 global.uniPlugin.configureEnv.forEach(configureEnv => {
   configureEnv()
 })
+
+if (
+  process.env.UNI_PLATFORM === 'h5' ||
+  (
+    process.env.UNI_PLATFORM === 'app-plus' &&
+    process.env.UNI_USING_V3
+  )
+) {
+  const migrate = require('@dcloudio/uni-migration')
+  const wxcomponentDirs = [path.resolve(process.env.UNI_INPUT_DIR, 'wxcomponents')]
+  global.uniModules.forEach(module => {
+    wxcomponentDirs.push(path.resolve(process.env.UNI_INPUT_DIR, 'uni_modules', module, 'wxcomponents'))
+  })
+  wxcomponentDirs.forEach(wxcomponentsDir => {
+    if (fs.existsSync(wxcomponentsDir)) { // 转换 mp-weixin 小程序组件
+      migrate(wxcomponentsDir, false, {
+        silent: true // 不输出日志
+      })
+    }
+  })
+}
 
 if (process.env.UNI_PLATFORM.startsWith('mp-')) {
   console.log('小程序各家浏览器内核及自定义组件实现机制存在差异，可能存在样式布局兼容问题，参考：https://uniapp.dcloud.io/matter?id=mp')

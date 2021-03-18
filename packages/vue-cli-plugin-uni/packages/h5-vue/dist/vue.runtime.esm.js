@@ -1,6 +1,6 @@
 /*!
  * Vue.js v2.6.11
- * (c) 2014-2020 Evan You
+ * (c) 2014-2021 Evan You
  * Released under the MIT License.
  */
 /*  */
@@ -702,13 +702,7 @@ var uid = 0;
  * directives subscribing to it.
  */
 var Dep = function Dep () {
-  // fixed by xxxxxx (nvue vuex)
-  /* eslint-disable no-undef */
-  if(typeof SharedObject !== 'undefined'){
-    this.id = SharedObject.uid++;
-  } else {
-    this.id = uid++;
-  }
+  this.id = uid++;
   this.subs = [];
 };
 
@@ -745,18 +739,20 @@ Dep.prototype.notify = function notify () {
 // can be evaluated at a time.
 // fixed by xxxxxx (nvue shared vuex)
 /* eslint-disable no-undef */
-Dep.SharedObject = typeof SharedObject !== 'undefined' ? SharedObject : {};
+Dep.SharedObject = {};
 Dep.SharedObject.target = null;
 Dep.SharedObject.targetStack = [];
 
 function pushTarget (target) {
   Dep.SharedObject.targetStack.push(target);
   Dep.SharedObject.target = target;
+  Dep.target = target;
 }
 
 function popTarget () {
   Dep.SharedObject.targetStack.pop();
   Dep.SharedObject.target = Dep.SharedObject.targetStack[Dep.SharedObject.targetStack.length - 1];
+  Dep.target = Dep.SharedObject.target;
 }
 
 /*  */
@@ -2691,7 +2687,7 @@ function renderList (
       var iterator = val[Symbol.iterator]();
       var result = iterator.next();
       while (!result.done) {
-        ret.push(render(result.value, ret.length, i++, i)); // fixed by xxxxxx
+        ret.push(render(result.value, ret.length, i, i++)); // fixed by xxxxxx
         result = iterator.next();
       }
     } else {
@@ -7310,7 +7306,7 @@ var cssVarRE = /^--/;
 var importantRE = /\s*!important$/;
 
 // upx,rpx 正则匹配
-var unitRE = /([+-]?\d+(\.\d+)?)[r|u]px/g;
+var unitRE = /\b([+-]?\d+(\.\d+)?)[r|u]px\b/g;
 
 var transformUnit = function (val) {
   if (typeof val === 'string') {
@@ -7322,11 +7318,12 @@ var transformUnit = function (val) {
   return val
 };
 
-var urlRE = /url\(\s*'?"?([a-zA-Z0-9\.\-\_\/]+\.(jpg|gif|png))"?'?\s*\)/;
+var urlRE1 = /url\(\s*['"](.+?\.(jpg|gif|png))['"]\s*\)/;
+var urlRE2 = /url\(\s*([a-zA-Z0-9\.\-\_\/]+?\.(jpg|gif|png))\s*\)/;
 
 var transformUrl = function (val, ctx) {
   if (typeof val === 'string' && val.indexOf('url(') !== -1) {
-    var matches = val.match(urlRE);
+    var matches = val.match(urlRE1) || val.match(urlRE2);
     if (matches && matches.length === 3) {
         val = val.replace(matches[1], ctx._$getRealPath(matches[1]));
     }

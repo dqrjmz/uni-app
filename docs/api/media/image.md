@@ -9,6 +9,7 @@ App端如需要更丰富的相机拍照API（如直接调用前置摄像头）�
 |:-|:-|:-|:-|:-|
 |count|Number|否|最多可以选择的图片张数，默认9|见下方说明|
 |sizeType|Array&lt;String&gt;|否|original 原图，compressed 压缩图，默认二者都有|App、微信小程序、支付宝小程序、百度小程序|
+|extension|Array&lt;String&gt;|否|根据文件拓展名过滤，每一项都不能是空字符串。默认不过滤。|H5(HBuilder X2.9.9+)|
 |sourceType|Array&lt;String&gt;|否|album 从相册选图，camera 使用相机，默认二者都有。如需直接开相机或直接选相册，请只使用一个选项||
 |success|Function|是|成功则返回图片的本地文件路径列表 tempFilePaths||
 |fail|Function|否|接口调用失败的回调函数|小程序、App|
@@ -20,6 +21,7 @@ App端如需要更丰富的相机拍照API（如直接调用前置摄像头）�
 - sourceType 在H5端对应`input`的`capture`属性，设置为`['album']`无效，依然可以使用相机。
 - 可以通过用户授权API来判断用户是否给应用授予相册或摄像头的访问权限[https://uniapp.dcloud.io/api/other/authorize](https://uniapp.dcloud.io/api/other/authorize)
 - App端如需选择非媒体文件，可在插件市场搜索[文件选择](https://ext.dcloud.net.cn/search?q=文件选择)，其中Android端可以使用Native.js，无需原生插件，而iOS端需要原生插件。
+- 选择照片大多为了上传，uni ui封装了更完善的[uni-file-picker组件](https://ext.dcloud.net.cn/plugin?id=4079)，文件选择、上传到uniCloud的免费存储和cdn中，一站式集成。强烈推荐使用。
 
 
 **注：文件的临时路径，在应用本次启动期间可以正常使用，如需持久保存，需在主动调用 [uni.saveFile](api/file/file?id=savefile)，在应用下次启动时才能访问得到。**
@@ -219,6 +221,7 @@ uni.chooseImage({
 
 |参数名|类型|说明|
 |:-|:-|:-|
+|path|String|保存到相册的图片路径，仅 App 3.0.5+ 支持|
 |errMsg|String|调用结果|
 
 **注意**
@@ -255,13 +258,15 @@ uni.chooseImage({
 
 **OBJECT 参数说明**
 
-| 属性 | 类型 | 默认值 | 必填 | 说明 |
-| :- | :- | :- | :- | :- |
-| src | String |  | 是 | 图片路径，图片的路径，可以是相对路径、临时文件路径、存储文件路径 |
-| quality | Number | 80 | 否 | 压缩质量，范围0～100，数值越小，质量越低，压缩率越高（仅对jpg有效） |
-| success | Function |  | 否 | 接口调用成功的回调函数 |
-| fail | Function |  | 否 | 接口调用失败的回调函数 |
-| complete | Function |  | 否 | 接口调用结束的回调函数（调用成功、失败都会执行） |
+| 属性 | 类型 | 默认值 | 必填 | 说明 | 平台差异说明 |
+| :- | :- | :- | :- | :- | :- |
+| src | String |  | 是 | 图片路径，图片的路径，可以是相对路径、临时文件路径、存储文件路径 ||
+| quality | Number | 80 | 否 | 压缩质量，范围0～100，数值越小，质量越低，压缩率越高（仅对jpg有效） ||
+| width | String | auto | 否 | 缩放图片的宽度，支持像素值（如"100px"）、百分比（如"50%"）、自动计算（如"auto"，即根据height与源图高的缩放比例计算，若未设置height则使用源图高度）|App 3.0.0+|
+| height | String | auto | 否 | 缩放图片的高度，支持像素值（如"100px"）、百分比（如"50%"）、自动计算（如"auto"，即根据height与源图高的缩放比例计算，若未设置height则使用源图高度）|App 3.0.0+|
+| success | Function |  | 否 | 接口调用成功的回调函数 ||
+| fail | Function |  | 否 | 接口调用失败的回调函数 ||
+| complete | Function |  | 否 | 接口调用结束的回调函数（调用成功、失败都会执行） ||
 
 **success 返回参数说明**
 
@@ -280,15 +285,3 @@ uni.compressImage({
   }
 })
 ```
-
-
-# wx.chooseMessageFile(OBJECT)
-
-从微信聊天会话中选择文件。
-
-**平台差异说明**
-
-|App|H5|微信小程序|支付宝小程序|百度小程序|字节跳动小程序|QQ小程序|
-|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-|x|x|√|x|x|x|x|
-

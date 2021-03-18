@@ -2,15 +2,16 @@ import {
   callApiSync,
   isTabBarPage,
   getLastWebview,
-  getStatusbarHeight,
   getScreenInfo
 } from '../util'
 
-import {
-  TITLEBAR_HEIGHT
-} from '../../constants'
+import { NAVBAR_HEIGHT } from 'uni-helpers/constants'
 
 import tabBar from '../../framework/tab-bar'
+
+import { getStatusbarHeight } from 'uni-platform/helpers/status-bar'
+
+import deviceId from 'uni-platform/helpers/uuid'
 
 export function getSystemInfoSync () {
   return callApiSync(getSystemInfo, Object.create(null), 'getSystemInfo', 'getSystemInfoSync')
@@ -35,7 +36,7 @@ export function getSystemInfo () {
     let style = webview.getStyle()
     style = style && style.titleNView
     if (style && style.type && style.type !== 'none') {
-      titleNView.height = style.type === 'transparent' ? 0 : (statusBarHeight + TITLEBAR_HEIGHT)
+      titleNView.height = style.type === 'transparent' ? 0 : (statusBarHeight + NAVBAR_HEIGHT)
       titleNView.cover = style.type === 'transparent' || style.type === 'float'
     }
     safeAreaInsets = webview.getSafeAreaInsets()
@@ -98,6 +99,7 @@ export function getSystemInfo () {
       right: safeAreaInsets.right,
       bottom: safeAreaInsets.bottom,
       left: safeAreaInsets.left
-    }
+    },
+    deviceId: deviceId()
   }
 }

@@ -16,7 +16,7 @@ const publishStateChange = res => {
   delete requestTasks[requestTaskId]
 }
 
-const cookiesPrase = header => {
+const cookiesParse = header => {
   let cookiesStr = header['Set-Cookie'] || header['set-cookie']
   let cookiesArr = []
   if (!cookiesStr) {
@@ -27,7 +27,7 @@ const cookiesPrase = header => {
   }
   const handleCookiesArr = cookiesStr.split(';')
   for (let i = 0; i < handleCookiesArr.length; i++) {
-    if (handleCookiesArr[i].indexOf('Expires=') !== -1) {
+    if (handleCookiesArr[i].indexOf('Expires=') !== -1 || handleCookiesArr[i].indexOf('expires=') !== -1) {
       cookiesArr.push(handleCookiesArr[i].replace(',', ''))
     } else {
       cookiesArr.push(handleCookiesArr[i])
@@ -45,7 +45,8 @@ export function createRequestTaskById (requestTaskId, {
   method = 'GET',
   responseType,
   sslVerify = true,
-  firstIpv4 = false
+  firstIpv4 = false,
+  timeout = (__uniConfig.networkTimeout && __uniConfig.networkTimeout.request) || 60 * 1000
 } = {}) {
   const stream = requireNativePlugin('stream')
   const headers = {}
@@ -77,7 +78,6 @@ export function createRequestTaskById (requestTaskId, {
     headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=UTF-8'
   }
 
-  const timeout = __uniConfig.networkTimeout.request
   if (timeout) {
     abortTimeout = setTimeout(() => {
       aborted = true
@@ -109,7 +109,8 @@ export function createRequestTaskById (requestTaskId, {
       ok,
       status,
       data,
-      headers
+      headers,
+      errorMsg
     }) => {
       if (aborted) {
         return
@@ -125,14 +126,18 @@ export function createRequestTaskById (requestTaskId, {
           data: ok && responseType === 'arraybuffer' ? base64ToArrayBuffer(data) : data,
           statusCode,
           header: headers,
-          cookies: cookiesPrase(headers)
+          cookies: cookiesParse(headers)
         })
       } else {
+        let errMsg = 'abort statusCode:' + statusCode
+        if (errorMsg) {
+          errMsg = errMsg + ' ' + errorMsg
+        }
         publishStateChange({
           requestTaskId,
           state: 'fail',
           statusCode,
-          errMsg: 'abort statusCode:' + statusCode
+          errMsg
         })
       }
     })

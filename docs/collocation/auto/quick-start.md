@@ -296,18 +296,18 @@ module.exports = {
       account: "", // 测试账号
       args: "", // 指定开发者工具参数
       cwd: "", // 指定开发者工具工作目录
-      launch: true; // 是否主动拉起开发者工具
-      teardown: "disconnect" | "close"; // 可选值 disconnect|close 运行测试结束后，断开开发者工具或关闭开发者工具
-      remote: boolean; // 是否真机自动化测试
+      launch: true, // 是否主动拉起开发者工具
+      teardown: "disconnect", // 可选值 "disconnect"|"close" 运行测试结束后，断开开发者工具或关闭开发者工具
+      remote: false, // 是否真机自动化测试
       executablePath: "", // 开发者工具cli路径，默认会自动查找,  windows: C:/Program Files (x86)/Tencent/微信web开发者工具/cli.bat", mac: /Applications/wechatwebdevtools.app/Contents/MacOS/cli
     },
     "mp-baidu": {
       port: 9430, // 默认 9430
       args: "", // 指定开发者工具参数
       cwd: "", // 指定开发者工具工作目录
-      launch: true; // 是否主动拉起开发者工具
-      teardown: "disconnect" | "close"; // 可选值 disconnect|close 运行测试结束后，断开开发者工具或关闭开发者工具
-      remote: boolean; // 是否真机自动化测试
+      launch: true, // 是否主动拉起开发者工具
+      teardown: "disconnect", // 可选值 "disconnect"|"close" 运行测试结束后，断开开发者工具或关闭开发者工具
+      remote: false, // 是否真机自动化测试
       executablePath: "", // 开发者工具cli路径，默认会自动查找
     }
   },
@@ -337,7 +337,7 @@ await page.waitFor(7000)
 page = await program.currentPage()
 ```
 
-2. 微信小程序 element 不能跨组件选择元素，首先要先获取当前组件，在继续查找
+2. 微信小程序 element 不能跨组件选择元素，首先要先获取当前组件，再继续查找
 
 ```html
 <uni-tag>
@@ -356,6 +356,6 @@ await tag.$('.test')
 
 3. 微信小程序暂不支持父子选择器
 4. 百度小程序选择元素必须有事件的元素才能被选中，否则提示元素不存在
-5. 分包中的页面，打开之后要延迟时间长一点，否者不能正确获取到页面信息
+5. 分包中的页面，打开之后要延迟时间长一点，否则不能正确获取到页面信息
 
 

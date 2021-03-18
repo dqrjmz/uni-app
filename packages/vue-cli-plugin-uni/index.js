@@ -1,4 +1,3 @@
-const fs = require('fs')
 const path = require('path')
 
 const {
@@ -88,22 +87,6 @@ module.exports = (api, options) => {
       return chainWebpack(webpackConfig, options)
     })
   })
-
-  if (
-    process.env.UNI_PLATFORM === 'h5' ||
-    (
-      process.env.UNI_PLATFORM === 'app-plus' &&
-      process.env.UNI_USING_V3
-    )
-  ) {
-    const migrate = require('@dcloudio/uni-migration')
-    const wxcomponents = path.resolve(process.env.UNI_INPUT_DIR, 'wxcomponents')
-    if (fs.existsSync(wxcomponents)) { // 转换 mp-weixin 小程序组件
-      migrate(wxcomponents, false, {
-        silent: true // 不输出日志
-      })
-    }
-  }
 }
 
 module.exports.defaultModes = {

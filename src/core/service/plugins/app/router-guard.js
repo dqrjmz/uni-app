@@ -85,7 +85,7 @@ function beforeEach (to, from, next, routes) {
   if (toId === fromId && to.type !== 'reLaunch') { // 相同页面阻止
     // 处理外部修改 history 导致卡在当前页面的问题
     if (to.fullPath !== from.fullPath) {
-      removeKeepAliveInclude.call(this, toName)
+      addKeepAliveInclude.call(this, toName)
       next()
     } else {
       next(false)
@@ -171,12 +171,22 @@ function afterEach (to, from) {
 
   const fromVm = currentPages.find(pageVm => pageVm.$page.id === fromId) // 使用 beforeEach 时的 pages
 
+  function unloadPage (vm) {
+    if (vm) {
+      callPageHook(vm, 'onUnload')
+      const index = currentPages.indexOf(vm)
+      if (index >= 0) {
+        currentPages.splice(index, 1)
+      }
+    }
+  }
+
   switch (to.type) {
     case 'navigateTo': // 前一个页面触发 onHide
       fromVm && callPageHook(fromVm, 'onHide')
       break
     case 'redirectTo': // 前一个页面触发 onUnload
-      fromVm && callPageHook(fromVm, 'onUnload')
+      unloadPage(fromVm)
       break
     case 'switchTab':
       if (from.meta.isTabBar) { // 前一个页面是 tabBar 触发 onHide，非 tabBar 页面在 beforeEach 中已触发 onUnload
@@ -187,11 +197,11 @@ function afterEach (to, from) {
       break
     default:
       if (fromId && fromId > toId) { // history back
-        fromVm && callPageHook(fromVm, 'onUnload')
+        unloadPage(fromVm)
         if (this.$router._$delta > 1) {
           deltaIds.reverse().forEach(deltaId => {
             const pageVm = currentPages.find(pageVm => pageVm.$page.id === deltaId)
-            pageVm && callPageHook(pageVm, 'onUnload')
+            unloadPage(pageVm)
           })
         }
       }

@@ -126,5 +126,5 @@ export default {
 }
 ```
  
-![uniapp](https://img-cdn-qiniu.dcloud.net.cn/uniapp/doc/img/label.png)
+![uniapp](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/4588a660-4f30-11eb-a16f-5b3e54966275.png)
  

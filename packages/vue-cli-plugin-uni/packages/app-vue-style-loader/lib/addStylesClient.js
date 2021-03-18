@@ -222,7 +222,7 @@ function applyToTag (styleElement, obj) {
 }
 
 //fixed by xxxxxx
-var UPX_RE = /([+-]?\d+(\.\d+)?)[r|u]px/g
+var UPX_RE = /\b([+-]?\d+(\.\d+)?)[r|u]px\b/g
 var VAR_STATUS_BAR_HEIGHT = /var\(--status-bar-height\)/gi
 var VAR_WINDOW_TOP = /var\(--window-top\)/gi
 var VAR_WINDOW_BOTTOM = /var\(--window-bottom\)/gi
@@ -246,7 +246,7 @@ function processCss(css) {
             .replace(VAR_WINDOW_LEFT, '0px')
             .replace(VAR_WINDOW_RIGHT, '0px')
 	}
-  return css.replace(/\{[\s\S]+?\}/g, function (css) {
+  return css.replace(/\{[\s\S]+?\}|@media.+\{/g, function (css) {
     return css.replace(UPX_RE, function (a, b) {
       return uni.upx2px(b) + 'px'
     })

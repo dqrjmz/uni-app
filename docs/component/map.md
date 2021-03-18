@@ -16,7 +16,10 @@
 |:-|:-|:-|:-|:-|
 |longitude|Number||中心经度||
 |latitude|Number||中心纬度||
-|scale|Number|16|缩放级别，取值范围为5-18||
+|scale|Number|16|缩放级别，取值范围为3-20|高德地图缩放比例与微信小程序不同|
+|min-scale|Number|3|最小缩放级别|App-nvue 3.1.0+、微信小程序2.13+|
+|max-scale|Number|20|最大缩放级别|App-nvue 3.1.0+、微信小程序2.13+|
+|layer-style|Number|1|个性化地图|App-nvue 3.1.0+、微信小程序2.13+|
 |markers|Array||标记点||
 |polyline|Array||路线||
 |circles|Array||圆||
@@ -24,11 +27,17 @@
 |include-points|Array||缩放视野以包含所有给定的坐标点|App-nvue 2.1.5+、微信小程序、H5、百度小程序、支付宝小程序|
 |enable-3D|Boolean|false|是否显示3D楼块|App-nvue 2.1.5+、微信小程序2.3.0|
 |show-compass|Boolean|false|是否显示指南针|App-nvue 2.1.5+、微信小程序2.3.0|
+|enable-zoom|Boolean|true|是否支持缩放|App-nvue 2.1.5+、微信小程序2.3.0|
+|enable-scroll|Boolean|true|是否支持拖动|App-nvue 2.1.5+、微信小程序2.3.0|
+|enable-rotate|Boolean|false|是否支持旋转|App-nvue 2.1.5+、微信小程序2.3.0|
 |enable-overlooking|Boolean|false|是否开启俯视|App-nvue 2.1.5+、微信小程序2.3.0|
 |enable-satellite|Boolean|false|是否开启卫星图|App-nvue 2.1.5+、微信小程序2.7.0|
 |enable-traffic|Boolean|false|是否开启实时路况|App-nvue 2.1.5+、微信小程序2.7.0|
+|enable-poi|Boolean|false|是否展示 POI 点|App-nvue 3.1.0+|
+|enable-building|Boolean|false|是否展示建筑物|App-nvue 3.1.0+ 支持 (**废除原enable-3D属性 高德地图默认开启建筑物就是3D无法设置**)|
 |show-location|Boolean||显示带有方向的当前定位点|微信小程序、H5、百度小程序、支付宝小程序|
 |polygons|Array.`<polygon>`||多边形|App-nvue 2.1.5+、微信小程序、百度小程序、支付宝小程序|
+|enable-indoorMap|Boolean|false|是否展示室内地图|App-nvue 3.1.0+|
 |@markertap|EventHandle||点击标记点时触发，e.detail = {markerId}|App-nvue 2.3.3+, App平台需要指定 marker 对象属性 id|
 |@labeltap|EventHandle||点击label时触发，e.detail = {markerId} |微信小程序2.9.0|
 |@callouttap|EventHandle||点击标记点对应的气泡时触发，e.detail = {markerId}||
@@ -36,11 +45,14 @@
 |@regionchange|EventHandle||视野发生变化时触发|微信小程序、H5、百度小程序、支付宝小程序|
 |@tap|EventHandle||点击地图时触发; App-nuve、微信小程序2.9支持返回经纬度||
 |@updated|EventHandle||在地图渲染更新完成时触发|微信小程序、H5、百度小程序|
+|@anchorpointtap|EventHandle||点击定位标时触发，e.detail = {longitude, latitude}|App-nvue 3.1.0+、微信小程序2.13+|
+|@poitap|EventHandle||点击地图poi点时触发，e.detail = {name, longitude, latitude}|微信小程序2.3.0+|
 
 **注意** 
 
 - `<map>` 组件的宽/高推荐写直接量，比如：750rpx，不要设置百分比值。
 - `uni-app` 只支持 `gcj02` 坐标
+- App平台 `layer-style` 属性需要在地图服务商后台创建，[详情](https://developer.amap.com/api/android-sdk/guide/create-map/custom)
 
 **markers**
 
@@ -48,7 +60,7 @@
 
 |属性|说明|类型|必填|备注|平台差异说明|
 |:-|:-|:-|:-|:-|:-|
-|id|标记点id|Number|是|marker点击事件回调会返回此id。建议为每个marker设置上Number类型id，保证更新marker时有更好的性能。||
+|id|标记点id|Number|是|marker点击事件回调会返回此id。建议为每个marker设置上Number类型id，保证更新marker时有更好的性能。最大限制9位数||
 |latitude|纬度|Number|是|浮点数，范围 -90 ~ 90||
 |longitude|经度|Number|是|浮点数，范围 -180 ~ 180||
 |title|标注点名|String|否|点击时显示，callout存在时将被忽略|App-nvue 2.1.5+、微信小程序、H5、支付宝小程序、百度小程序|
@@ -60,6 +72,10 @@
 |callout|自定义标记点上方的气泡窗口|Object|否|支持的属性见下表，可识别换行符。|App-nvue 2.1.5+|
 |label|为标记点旁边增加标签|Object|否|支持的属性见下表，可识别换行符。|App-nvue 2.1.5+、微信小程序、H5、App、百度小程序|
 |anchor|经纬度在标注图标的锚点，默认底边中点|Object|否|{x, y}，x表示横向(0-1)，y表示竖向(0-1)。{x: .5, y: 1} 表示底边中点|App-nvue 2.1.5+、微信小程序、H5、百度小程序|
+|joinCluster|是否参与点聚合|Boolean|否||App-nvue 3.1.0+、微信小程序|
+|clusterId|自定义点聚合簇效果时使用|Number|否||App-nvue 3.1.0+、微信小程序|
+|customCallout|自定义气泡窗口|Object|否||app暂时不支持、微信小程序|
+|aria-label|无障碍访问，（属性）元素的额外描述|String|否||App-nvue 3.1.0+、微信小程序|
 
 **marker 上的气泡 callout**
 
@@ -83,12 +99,16 @@
 |fontSize|文字大小|Number|App-nvue 2.1.5+、微信小程序、H5、百度小程序|
 |x|label的坐标，原点是 marker 对应的经纬度|Number|App-nvue 2.1.5+、微信小程序、H5、百度小程序|
 |y|label的坐标，原点是 marker 对应的经纬度|Number|App-nvue 2.1.5+、微信小程序、H5、百度小程序|
-|borderWidth|边框宽度|Number|App-nvue 2.1.5+、微信小程序、百度小程序|
-|borderColor|边框颜色|String|App-nvue 2.1.5+、微信小程序、百度小程序|
+|borderWidth|边框宽度|Number|微信小程序、百度小程序|
+|borderColor|边框颜色|String|微信小程序、百度小程序|
 |borderRadius|边框圆角|Number|App-nvue 2.1.5+、微信小程序、百度小程序|
 |bgColor|背景色|String|App-nvue 2.1.5+、微信小程序、百度小程序|
 |padding|文本边缘留白|Number|App-nvue 2.1.5+、微信小程序、百度小程序|
 |textAlign|文本对齐方式。有效值: left, right, center|String|App-nvue 2.1.5+、微信小程序、百度小程序|
+|joinCluster|是否参与点聚合|Boolean|App-nvue 3.1.0+、微信小程序|
+|clusterId|自定义点聚合簇效果时使用|Number|App-nvue 3.1.0+、微信小程序|
+|customCallout|自定义气泡窗口|Object|App暂时不支持、微信小程序|
+|aria-label|无障碍访问，（属性）元素的额外描述|String|App-nvue 3.1.0+、微信小程序|
 
 **polyline**
 
@@ -104,6 +124,8 @@
 |arrowIconPath|更换箭头图标|String|否|在arrowLine为true时生效|App-nvue 2.1.5+、微信小程序、百度小程序|
 |borderColor|线的边框颜色|String|否||App-nvue 2.1.5+、微信小程序、H5、百度小程序|
 |borderWidth|线的厚度|Number|否||App-nvue 2.1.5+、微信小程序、H5、百度小程序|
+|colorList|彩虹线|Array|false|存在时忽略 color 值|App-nvue 3.1.0+、微信小程序|
+|level|压盖关系，默认为 abovelabels|String|false||App不支持（**需SDK提供支持**）、微信小程序|
 
 **polygon**<br>
 指定一系列坐标点，根据 points 坐标数据生成闭合多边形
@@ -115,6 +137,7 @@
 |strokeColor|描边的颜色|String|否|十六进制|
 |fillColor|填充颜色|String|否|十六进制|
 |zIndex|设置多边形 Z 轴数值|Number|否||
+|level|压盖关系，默认为 abovelabels|String|false|App不支持（**需SDK提供支持**）、微信小程序|
 
 **circles**
 
@@ -128,6 +151,7 @@
 |fillColor|填充颜色|String|否|8位十六进制表示，后两位表示alpha值，如：#0000AA|
 |radius|半径|Number|是||
 |strokeWidth|描边的宽度|Number|否|&nbsp;|
+|level|压盖关系，默认为 abovelabels|String|false|App不支持（**需SDK提供支持**）、微信小程序|
 
 **controls**
 
@@ -192,11 +216,13 @@ export default {
 ```
 
 map 组件相关操作的 JS API：[uni.createMapContext](api/location/map?id=createmapcontext)
+nvue map 更换箭头图标格式参考: [https://ask.dcloud.net.cn/article/37901](https://ask.dcloud.net.cn/article/37901)
 
 **注意事项**
 
 - 小程序和app-vue中，`<map>` 组件是由引擎创建的原生组件，它的层级是最高的，不能通过 z-index 控制层级。在`<map>`上绘制内容，可使用组件自带的marker、controls等属性，也可以使用`<cover-view>`组件。App端还可以使用plus.nativeObj.view 或 subNVue 绘制原生内容，[参考](/component/native-component)。另外App端nvue文件不存在层级问题。从微信基础库2.8.3开始，支持map组件的同层渲染，不再有层级问题。
 - App端nvue文件的map和小程序拉齐度更高。vue里的map则与plus.map功能一致，和小程序的地图略有差异。**App端使用map推荐使用nvue。**
+- App端使用到本地图像的话，打包前需要设置资源为释放模式，在manifest文件内app-plus新增runmode节点，设置值为liberate。
 - 在涉及层级问题的小程序中和app-vue中，请勿在 scroll-view、swiper、picker-view、movable-view 中使用 `<map>` 组件。
 - 小程序和 app-vue 中，css 动画对 `<map>` 组件无效。
 - map 组件使用的经纬度是国测局坐标，调用 uni.getLocation 接口需要指定 type 为 gcj02。
@@ -205,6 +231,7 @@ map 组件相关操作的 JS API：[uni.createMapContext](api/location/map?id=cr
 - H5 端获取定位信息，需要部署在 **https** 服务上，本地预览（localhost）仍然可以使用 http 协议。
 - 无GPS模块或GPS无信号的 PC 设备使用 Chrome 浏览器的时候，位置信息是连接谷歌服务器获取的，国内用户可能获取位置信息失败。
 - App 端使用地图组件需要**向高德或百度等三方服务商申请SDK资质，获取AppKey，打包时需要在manifest文件中勾选相应模块，在SDK配置中填写Appkey。注意申请包名和打包时的包名需匹配一致，证书信息匹配**。在manifest可视化界面有详细申请指南。
+- H5 端使用地图和定位相关需要在[腾讯地图开放平台](https://lbs.qq.com/dev/console/key/manage)申请密钥，填写在 [manifest.json](https://uniapp.dcloud.io/collocation/manifest?id=h5sdkconfig) 中。
 - ios nvue Color 不支持 ARGB 十六进制，使用 rgba(r,g,b,a) 代替
 
 ##### FAQ

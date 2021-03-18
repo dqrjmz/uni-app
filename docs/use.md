@@ -1,3 +1,9 @@
+## 此文档已迁移
+
+**新文档链接：[Vue教程](/vue-basics)**
+
+
+**************************************
 
 ``uni-app`` 在发布到H5时支持所有vue的语法；发布到App和小程序时，由于平台限制，无法实现全部vue语法，但``uni-app``仍是是对vue语法支持度最高的跨端框架。本文将详细讲解差异。
 
@@ -8,7 +14,7 @@
 
 ## 生命周期
 
-``uni-app`` 完整支持 ``Vue`` 实例的生命周期，同时还新增 [应用生命周期](/frame?id=应用生命周期) 及 [页面生命周期](/frame?id=页面生命周期)。
+``uni-app`` 完整支持 ``Vue`` 实例的生命周期，同时还新增 [应用生命周期](/collocation/frame/lifecycle?id=应用生命周期) 及 [页面生命周期](/collocation/frame/lifecycle?id=页面生命周期)。
 
 详见Vue官方文档：[生命周期钩子](https://cn.vuejs.org/v2/api/#%E9%80%89%E9%A1%B9-%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E9%92%A9%E5%AD%90)。
 
@@ -65,9 +71,13 @@ Vue 组件编译到小程序平台的时候会编译为对应平台的组件，�
 ```js
 export default {
   props: ['data'],
+  data(){ return { } },
   options: {
-    multipleSlots: false,// 在微信小程序中关闭当前组件的多slot支持，默认启用
-    virtualHost: true // 在微信小程序中将组件节点渲染为虚拟节点，更加接近Vue组件的表现
+    // 微信小程序中 options 选项
+    multipleSlots: true, //  在组件定义时的选项中启动多slot支持，默认启用
+    styleIsolation: "isolated",  //  启动样式隔离。当使用页面自定义组件，希望父组件影响子组件样式时可能需要配置。具体配置选项参见：微信小程序自定义组件的样式
+    addGlobalClass: true, //  表示页面样式将影响到自定义组件，但自定义组件中指定的样式不会影响页面。这个选项等价于设置 styleIsolation: apply-shared
+    virtualHost: true,  //  将自定义节点设置成虚拟的，更加接近Vue组件的表现。我们不希望自定义组件的这个节点本身可以设置样式、响应 flex 布局等，而是希望自定义组件内部的第一层节点能够响应 flex 布局或者样式由自定义组件本身完全决定
   }
 }
 ```
@@ -260,6 +270,7 @@ export default {
 * 为兼容各端，事件需使用 ``v-on`` 或 ``@`` 的方式绑定，请勿使用小程序端的``bind`` 和 ``catch`` 进行事件绑定。
 * 事件修饰符
  * ``.stop``：各平台均支持， 使用时会阻止事件冒泡，在非 H5 端同时也会阻止事件的默认行为
+ * ``.native``：监听原生事件，仅在 H5 平台支持
  * ``.prevent`` 仅在 H5 平台支持
  * ``.self``：仅在 H5 平台支持
  * ``.once``：仅在 H5 平台支持
@@ -392,7 +403,7 @@ export default {
 * 异步组件
 * ``inline-template``
 * ``X-Templates``
-* ``keep-alive``
+* ``keep-alive``（App端也未支持）
 * ``transition`` （可使用 [animation](/api/ui/animation) 或 CSS 动画替代）
 * [老的非自定义组件编译模式](https://ask.dcloud.net.cn/article/35843)不支持在组件引用时，在组件上定义 ``click`` 等原生事件、``v-show``（可用 ``v-if`` 代替）和 ``class`` ``style`` 等样式属性(例：``<card class="class-name"> </card>`` 样式是不会生效的)。建议更新为自定义组件模式
 * [老的非自定义组件编译模式](https://ask.dcloud.net.cn/article/35843)组件里使用 ``slot`` 嵌套的其他组件时不支持 ``v-for``。建议更新为自定义组件模式
@@ -702,9 +713,9 @@ export default {
 |vm.$props			|支持	|支持			|支持		|支持			|-																																					|
 |vm.$el					|支持	|不支持		|不支持	|不支持		|-																																					|
 |vm.$options		|支持	|支持			|支持		|支持			|-																																					|
-|vm.$parent			|支持	|支持			|支持		|支持			|H5端 `view`、`text` 等内置标签是以 Vue 组件方式实现，`$parent` 会获取这些内置组件	|
+|vm.$parent			|支持	|支持			|支持		|支持			|H5端 `view`、`text` 等内置标签是以 Vue 组件方式实现，`$parent` 会获取这些到内置组件，导致的问题是 `this.$parent` 与其他平台不一致，解决方式是使用 `this.$parent.$parent` 获取或自定义组件根节点由 `view` 改为 `div`|
 |vm.$root				|支持	|支持			|支持		|支持			|-																																					|
-|vm.$children		|支持	|支持			|支持		|支持			|H5端 `view`、`text` 等内置标签是以 Vue 组件方式实现，`$children` 会获取这些内置组件|
+|vm.$children		|支持	|支持			|支持		|支持			|H5端 `view`、`text` 等内置标签是以 Vue 组件方式实现，`$children` 会获取到这些内置组件，导致的问题是 `this.$children` 与其他平台不一致，解决方式是使用 `this.$children.$children` 获取或自定义组件根节点由 `view` 改为 `div`|
 |vm.$slots			|支持	|支持			|不支持	|支持			|App端旧版获取值为`{'slotName':true/false}`比如：`{"footer":true}`					|
 |vm.$scopedSlots|支持	|支持			|支持		|支持			|App端旧版获取值为`{'slotName':true/false}`比如：`{"footer":true}`					|
 |vm.$refs				|支持	|支持			|支持		|支持			|非H5端只能用于获取自定义组件，不能用于获取内置组件实例（如：view、text）|
@@ -765,5 +776,5 @@ export default {
 |component				|支持	|不支持		|支持		|不支持			|-		|
 |transition				|支持	|不支持		|不支持	|不支持			|-		|
 |transition-group	|支持	|不支持		|不支持	|不支持			|-		|
-|keep-alive				|支持	|不支持		|支持		|不支持			|-		|
+|keep-alive				|支持	|不支持		|不支持		|不支持			|-		|
 |slot							|支持	|支持			|支持		|支持				|-		|

@@ -17,16 +17,6 @@ import {
 
 const canvasEventCallbacks = createCallbacks('canvasEvent')
 
-UniServiceJSBridge.subscribe('onDrawCanvas', ({
-  callbackId,
-  data
-}) => {
-  const callback = canvasEventCallbacks.pop(callbackId)
-  if (callback) {
-    callback(data)
-  }
-})
-
 UniServiceJSBridge.subscribe('onCanvasMethodCallback', ({
   callbackId,
   data
@@ -236,9 +226,7 @@ function checkColor (e) {
     a = a >= 0 ? a : 255
     return [n, o, r, a]
   }
-  console.group('非法颜色: ' + e)
-  console.error('不支持颜色：' + e)
-  console.groupEnd()
+  console.error('unsupported color:' + e)
   return [0, 0, 0, 255]
 }
 
@@ -267,15 +255,11 @@ var methods3 = ['setFillStyle', 'setTextAlign', 'setStrokeStyle', 'setGlobalAlph
   'setTextBaseline', 'setLineDash'
 ]
 
-var tempCanvas
-
-function getTempCanvas (width = 0, height = 0) {
-  if (!tempCanvas) {
-    tempCanvas = document.createElement('canvas')
-  }
-  tempCanvas.width = width
-  tempCanvas.height = height
-  return tempCanvas
+function measureText (text, font) {
+  const canvas = document.createElement('canvas')
+  const c2d = canvas.getContext('2d')
+  c2d.font = font
+  return c2d.measureText(text).width || 0
 }
 
 function TextMetrics (width) {
@@ -342,15 +326,18 @@ export class CanvasContext {
     }
   }
 
-  // TODO
   measureText (text) {
-    if (typeof document === 'object') {
-      var c2d = getTempCanvas().getContext('2d')
-      c2d.font = this.state.font
-      return new TextMetrics(c2d.measureText(text).width || 0)
+    const font = this.state.font
+    let width = 0
+    if (__PLATFORM__ === 'h5') {
+      width = measureText(text, font)
     } else {
-      return new TextMetrics(0)
+      const webview = plus.webview.all().find(webview => webview.getURL().endsWith('www/__uniappview.html'))
+      if (webview) {
+        width = Number(webview.evalJSSync(`(${measureText.toString()})(${JSON.stringify(text)},${JSON.stringify(font)})`))
+      }
     }
+    return new TextMetrics(width)
   }
 
   save () {
@@ -812,16 +799,21 @@ export function canvasGetImageData ({
   width,
   height
 }, callbackId) {
-  var pageId = getCurrentPageId()
+  const pageId = getCurrentPageId()
   if (!pageId) {
     invoke(callbackId, {
       errMsg: 'canvasGetImageData:fail'
     })
     return
   }
-  var cId = canvasEventCallbacks.push(function (data) {
-    var imgData = data.data
+  const cId = canvasEventCallbacks.push(function (data) {
+    let imgData = data.data
     if (imgData && imgData.length) {
+      if (__PLATFORM__ === 'app-plus' && data.compressed) {
+        const pako = require('pako')
+        imgData = pako.inflateRaw(imgData)
+        delete data.compressed
+      }
       data.data = new Uint8ClampedArray(imgData)
     }
     invoke(callbackId, data)
@@ -853,13 +845,24 @@ export function canvasPutImageData ({
   var cId = canvasEventCallbacks.push(function (data) {
     invoke(callbackId, data)
   })
-  // fix ...
+  let compressed
+  // iOS真机非调试模式压缩太慢暂时排除
+  if (__PLATFORM__ === 'app-plus' && (plus.os.name !== 'iOS' || typeof __WEEX_DEVTOOL__ === 'boolean')) {
+    const pako = require('pako')
+    data = pako.deflateRaw(data, { to: 'string' })
+    compressed = true
+  } else {
+    // fix ...
+    data = Array.prototype.slice.call(data)
+  }
+
   operateCanvas(canvasId, pageId, 'putImageData', {
-    data: Array.prototype.slice.call(data),
+    data,
     x,
     y,
     width,
     height,
+    compressed,
     callbackId: cId
   })
 }

@@ -198,7 +198,7 @@ export default {
     this._scrollTopChanged(this.scrollTopNumber)
     this._scrollLeftChanged(this.scrollLeftNumber)
     this._scrollIntoViewChanged(this.scrollIntoView)
-    this.__handleScroll = function (e) {
+    this.__handleScroll = function (event) {
       event.preventDefault()
       event.stopPropagation()
       self._handleScroll.bind(self, event)()
@@ -446,9 +446,7 @@ export default {
     _scrollIntoViewChanged: function (val) {
       if (val) {
         if (!/^[_a-zA-Z][-_a-zA-Z0-9:]*$/.test(val)) {
-          console.group('scroll-into-view="' + val + '" 有误')
-          console.error('id 属性值格式错误。如不能以数字开头。')
-          console.groupEnd()
+          console.error(`id error: scroll-into-view=${val}`)
           return
         }
         var element = this.$el.querySelector('#' + val)
@@ -511,7 +509,9 @@ export default {
       const main = this.$refs.main
       return {
         scrollLeft: main.scrollLeft,
-        scrollTop: main.scrollTop
+        scrollTop: main.scrollTop,
+        scrollHeight: main.scrollHeight,
+        scrollWidth: main.scrollWidth
       }
     }
   }

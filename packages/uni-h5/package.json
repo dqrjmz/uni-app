@@ -1,6 +1,6 @@
 {
   "name": "@dcloudio/uni-h5",
-  "version": "2.0.0-28920200907001",
+  "version": "2.0.0-alpha-31520210315001",
   "description": "uni-app h5",
   "main": "dist/index.umd.min.js",
   "repository": {
@@ -14,8 +14,10 @@
   "author": "fxy060608",
   "license": "Apache-2.0",
   "dependencies": {
+    "@dcloudio/uni-i18n": "^0.0.5",
     "base64-arraybuffer": "^0.2.0",
     "intersection-observer": "^0.7.0",
+    "pako": "^1.0.11",
     "safe-area-insets": "^1.4.1"
   },
   "uni-app": {
@@ -23,5 +25,5 @@
     "title": "H5",
     "main": "lib/h5/uni.config.js"
   },
-  "gitHead": "e51484a49748f7bff86bb833763e5dff1522d380"
+  "gitHead": "b366367ac0b63f41ef205dc93eee55d8e9f8f3ed"
 }

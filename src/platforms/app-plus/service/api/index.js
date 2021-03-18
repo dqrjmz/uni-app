@@ -62,7 +62,7 @@ export * from './route/preload-page'
 
 export * from './storage/storage'
 
-export * from './ui/keyboard'
+export * from './keyboard/keyboard'
 export * from './ui/navigation-bar'
 export * from './ui/popup'
 
@@ -76,4 +76,6 @@ export * from './ui/tab-bar'
 
 export * from './ui/request-component-info'
 
+export * from './ad/ad'
 export * from './ad/rewarded-video-ad'
+export * from './ad/full-screen-video-ad'

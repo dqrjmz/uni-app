@@ -11,9 +11,14 @@ module.exports = {
       style: '.ttss',
       template: '.ttml'
     },
+    subPackages: true,
     project: 'project.tt.json'
   },
   copyWebpackOptions (platformOptions, vueOptions) {
-    return ['ttcomponents']
+    const copyOptions = ['ttcomponents']
+    global.uniModules.forEach(module => {
+      copyOptions.push('uni_modules/' + module + '/ttcomponents')
+    })
+    return copyOptions
   }
 }

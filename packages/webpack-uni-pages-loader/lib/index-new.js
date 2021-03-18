@@ -62,6 +62,11 @@ module.exports = function (content, map) {
     }
   })
 
+  if (!pagesJson.pages || pagesJson.pages.length === 0) {
+    console.error('pages.json中的pages不能为空')
+    process.exit(0)
+  }
+
   if (global.uniPlugin.defaultTheme) {
     pagesJson = parseTheme(pagesJson)
     this.addDependency(path.resolve(process.env.UNI_INPUT_DIR, 'theme.json'))
@@ -95,7 +100,7 @@ module.exports = function (content, map) {
     })
   }
 
-  const jsonFiles = require('./platforms/' + process.env.UNI_PLATFORM)(pagesJson, manifestJson)
+  const jsonFiles = require('./platforms/' + process.env.UNI_PLATFORM)(pagesJson, manifestJson, isAppView)
 
   if (jsonFiles && jsonFiles.length) {
     if (process.env.UNI_USING_V3) {

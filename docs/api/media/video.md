@@ -1,5 +1,7 @@
 ### uni.chooseVideo(OBJECT)
-拍摄视频或从手机相册中选视频，返回视频的临时文件路径。另外选择和上传非图像、视频文件参考：[https://ask.dcloud.net.cn/article/35547](https://ask.dcloud.net.cn/article/35547)。
+拍摄视频或从手机相册中选视频，返回视频的临时文件路径。
+
+若选择和上传非图像、视频文件，另行参考：[https://uniapp.dcloud.io/api/media/file](https://uniapp.dcloud.io/api/media/file)。
 
 **平台差异说明**
 
@@ -12,6 +14,7 @@
 |参数名|类型|必填|说明|平台差异说明|
 |:-|:-|:-|:-|:-|
 |sourceType|Array&lt;String&gt;|否|album 从相册选视频，camera 使用相机拍摄，默认为：['album', 'camera']||
+|extension|Array&lt;String&gt;|否|根据文件拓展名过滤，每一项都不能是空字符串。默认不过滤。|H5(HBuilder X2.9.9+)|
 |compressed|Boolean|否|是否压缩所选的视频源文件，默认值为 true，需要压缩。|微信小程序、百度小程序、字节跳动小程序|
 |maxDuration|Number|否|拍摄视频最长拍摄时间，单位秒。最长支持 60 秒。|APP平台 1.9.7+(iOS支持，Android取决于ROM的拍照组件是否实现此功能，如果没实现此功能则忽略此属性。) 微信小程序、百度小程序|
 |camera|String|否|'front'、'back'，默认'back'|APP、微信小程序|
@@ -32,11 +35,13 @@
 |name|String|包含扩展名的文件名称|仅H5支持|
 
 **注意：**
+* app安卓端选择的视频最大只支持180MB，如需突破该限制请使用原生插件https://ext.dcloud.net.cn/search?q=%E6%96%87%E4%BB%B6%E9%80%89%E6%8B%A9 
 * 文件的临时路径，在应用本次启动期间可以正常使用，如需持久保存，需在主动调用 [uni.saveFile](api/file/file?id=savefile)，在应用下次启动时才能访问得到。
 * camera 部分 Android 手机下由于系统 ROM 不支持无法生效，打开拍摄界面后可操作切换
 * 可以通过用户授权API来判断用户是否给应用授予相册或摄像头的访问权限[https://uniapp.dcloud.io/api/other/authorize](https://uniapp.dcloud.io/api/other/authorize)
 * App下如需进一步压缩视频大小，可以在插件市场搜索[视频压缩](http://ext.dcloud.net.cn/search?q=%E8%A7%86%E9%A2%91%E5%8E%8B%E7%BC%A9)插件
 * 如需上传到cdn，可使用uniCloud.uploadFile API，uniCloud提供了免费cdn给开发者使用，详见[https://uniapp.dcloud.io/uniCloud/storage?id=uploadfile](https://uniapp.dcloud.io/uniCloud/storage?id=uploadfile)
+* 选择视频大多为了上传，uni ui封装了更完善的[uni-file-picker组件](https://ext.dcloud.net.cn/plugin?id=4079)，文件选择、上传到uniCloud的免费存储和cdn中，一站式集成。强烈推荐使用。
 
 **示例**
 
@@ -51,8 +56,10 @@
 ```
 ```javascript
 export default {
-	data: {
-		src: ''
+	data() {
+		return {
+			src: ''
+		}
 	},
 	methods: {
 		test: function () {
@@ -73,6 +80,8 @@ export default {
 ### uni.chooseMedia(OBJECT)
 拍摄或从手机相册中选择图片或视频。
 
+若选择和上传非图像、视频文件，另行参考：[https://uniapp.dcloud.io/api/media/file](https://uniapp.dcloud.io/api/media/file)。
+
 **平台差异说明**
 
 |App|H5|微信小程序|支付宝小程序|百度小程序|字节跳动小程序|QQ小程序|
@@ -83,7 +92,7 @@ export default {
 
 |参数名|类型|默认值|必填|说明|
 |:-|:-|:-|:-|:-|
-|count|Number|9|否|最多可以选择的文件个数|
+|count|Number|9（注意：ios不可大于9）|否|最多可以选择的文件个数|
 |mediaType|Array.&lt;string&gt;|['image', 'video']|否|文件类型|
 |sourceType|Array.&lt;string&gt;|['album', 'camera']|否|图片和视频选择的来源|
 |maxDuration|Number|10|否|拍摄视频最长拍摄时间，单位秒。时间范围为 3s 至 30s 之间|
@@ -152,6 +161,8 @@ uni.chooseMedia({
 **Tips**
 
 * 如需上传到cdn，可使用uniCloud.uploadFile API，uniCloud提供了免费cdn给开发者使用，详见[https://uniapp.dcloud.io/uniCloud/storage?id=uploadfile](https://uniapp.dcloud.io/uniCloud/storage?id=uploadfile)
+* 选择文件大多为了上传，uni ui封装了更完善的[uni-file-picker组件](https://ext.dcloud.net.cn/plugin?id=4079)，文件选择、上传到uniCloud的免费存储和cdn中，一站式集成。强烈推荐使用。
+* 经开发者提醒，微信小程序ios真机可以选择的文件个数不能大于9，详见帖子[https://ask.dcloud.net.cn/question/115561](https://ask.dcloud.net.cn/question/115561)
 
 
 ### uni.saveVideoToPhotosAlbum(OBJECT)
@@ -195,8 +206,10 @@ uni.chooseMedia({
 ```
 ```javascript
 export default {
-	data: {
-		src: ''
+	data() {
+		return {
+			src: ''
+		}
 	},
 	methods: {
 		test: function () {
