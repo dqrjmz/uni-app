@@ -8,38 +8,29 @@
 - 对于程序员，从此你又get一个新技能，用熟悉的js，轻松搞定前后台整体业务。
 - 对于开发商：
     1. 开发成本大幅下降、开发效率大幅提升、上线和迭代速度大幅提速；
-	2. 如果你是新创公司，将无需雇佣php或java等服务器工程师，每年至少节省几十万；
+    2. 如果你是新创公司，将无需雇佣php或java等服务器工程师，每年至少节省几十万；
     3. 如果你已拥有掌握php和js的全栈，那么改用新的技术栈，一样可以大幅提升开发效率、降低成本；
     4. 你只需专注于你的业务，其他什么服务器运维、弹性扩容、大并发承载、防DDoS攻击，全都不需要操心；
-	5. 除了开发成本，云资源租用成本也将大幅下降
-    5. 如果不发布H5版，你将不需要购买备案域名。小程序和App可以免域名使用服务器；
+    5. 除了开发成本，云资源租用成本也将大幅下降
+    6. 如果不发布H5版，你将不需要购买备案域名。小程序和App可以免域名使用服务器；
+
+
+### 看视频，只需25分钟，快速入门uniCloud
+
+- [腾讯课堂视频教程](https://ke.qq.com/course/3416784?taid=11123338234831568&tuin=4025c735)
+
 
 ### uniCloud是什么和不是什么
 
 uniCloud是DCloud在阿里云和腾讯云的serverless服务上封装而成的。
 
-它包含IaaS层（由阿里云和腾讯云提供）和PaaS层（由DCloud提供）。
+它包含IaaS层（由阿里云和腾讯云提供硬件和网络）和PaaS层（由DCloud提供开发环境）。
 
-开发者可以自主选择uniCloud的硬件和网络资源的供应商，在阿里云和腾讯云之间切换。
+开发者可以自主选择uniCloud的硬件和网络资源的供应商，在阿里云版和腾讯云版之间切换。
 
 开户和付费虽然通过DCloud渠道，但实际上开发者自动在云厂商处建立了账户和充值了余额。DCloud只获取云服务厂商的返佣。
 
 开发时虽使用DCloud的工具，但应用上线时，手机端是直连阿里云或腾讯云的serverless，不经由DCloud的服务器。
-
-<video style="width:50vw;height:37.5vw;margin-bottom:20px;" id="video" preload="none" controls="controls" poster="https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-a90b5f95-90ba-4d30-a6a7-cd4d057327db/eb25cdcb-25c2-4f4f-b8c2-3797a12c6fe2.mp4?x-oss-process=video/snapshot,t_1000,f_jpg" src="https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-a90b5f95-90ba-4d30-a6a7-cd4d057327db/eb25cdcb-25c2-4f4f-b8c2-3797a12c6fe2.mp4"></video>
-
-### uniCloud是什么和不是什么
-uniCloud是DCloud在阿里云和腾讯云的serverless服务上封装而成的。
-
-它包含IaaS层（由阿里云和腾讯云提供）和PaaS层（由DCloud提供）。
-
-开发者可以自主选择uniCloud的硬件和网络资源的供应商，在阿里云和腾讯云之间切换。
-
-开户和付费虽然通过DCloud渠道，但实际上开发者自动在云厂商处建立了账户和充值了余额。DCloud只获取云服务厂商的返佣。
-
-开发时虽然经由DCloud的工具，但应用上线时，手机端是直连阿里云或腾讯云的serverless，不经由DCloud的服务器。
-
-
 
 ### 什么是serverless？
 
@@ -80,7 +71,7 @@ serverless在国外兴起，但国内的发展速度已经超过了国外。微�
 
 ### uniCloud为何可降低云服务租用成本
 
-1. 传统云服务的租用，按占用的硬件资源的上限值+固定时长来租用。
+1、传统云服务的租用，按占用的硬件资源的上限值+固定时长来租用。
 
 选择CPU和内存的配置，不到满配时，资源是浪费的，接近满配就需要立即扩容新的配置。
 
@@ -94,7 +85,7 @@ serverless不是传统云，它不需要开发者选择CPU和内存配置，也�
 
 从技术原理上serverless就有明显成本优势，所以租用serverless比租用传统云要便宜的多。
 
-2. 没有名目繁多的收费项
+2、没有名目繁多的收费项
 
 在传统云的世界里，有大量的收费产品。
 
@@ -108,7 +99,7 @@ serverless不是传统云，它不需要开发者选择CPU和内存配置，也�
 
 展开说下uniCloud为什么不用买高防也不害怕DDoS：由于阿里云和腾讯云的serverless有巨大的资源池，且serverless没有固定ip，云函数使用的是阿里云和腾讯云的自有域名，前端网页托管在cdn上，DDoS攻击者打不起、也打不挂uniCloud。
 
-3. 云厂商的促销补贴
+3、云厂商的促销补贴
 
 目前阿里云为uniCloud提供了纯免费的云资源，不但云函数、云数据库免费，连存储和cdn都免费。
 
@@ -147,7 +138,7 @@ uniCloud最吸引人的是，它将开发效率提升了10倍以上。
 
 开发效率提升10倍，并非某个杀手功能的功劳，而是庞大的生态共同的作用。本章节篇幅较长，请耐心阅读。
 
-![](https://static-eefb4127-9f58-4963-a29b-42856d4205ee.bspapp.com/%E8%BD%AF%E5%9F%BA%E5%BB%BA%E5%9C%B0%E5%9B%BE.png)
+![](https://vkceyugu.cdn.bspapp.com/VKCEYUGU-f184e7c3-1912-41b2-b81f-435d1b37c7b4/c50d2741-6a47-4dcd-a02c-fdd683fa4ea4.png)
 
 #### 一个故事
 2020年初，uniCloud刚发布，新冠肺炎突然来袭，各地涌现大量抗疫项目需求。
@@ -306,7 +297,7 @@ HBuilderX提升了uni-app的开发效率，自然也将提升uniCloud的开发�
 在传统开发中，item是一个通过request返回的json，ide是不可能知道这个json的数据结构的，也就无法提示。
 
 由于三位一体协同，HBuilderX可以解析本地schema文件，直接提示item后面的数据结构。避免开发者写错代码、减少服务器联调工作。
-![](https://static-eefb4127-9f58-4963-a29b-42856d4205ee.bspapp.com/hx%E6%8F%90%E7%A4%BA%E6%95%B0%E6%8D%AE%E5%AD%97%E6%AE%B5.jpg)
+![](https://vkceyugu.cdn.bspapp.com/VKCEYUGU-f184e7c3-1912-41b2-b81f-435d1b37c7b4/88f093d0-1abd-487d-bf24-e0627c471977.jpg)
 
 
 #### 第四层提效：语言统一的价值

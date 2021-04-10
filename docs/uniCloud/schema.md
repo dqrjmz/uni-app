@@ -4,7 +4,7 @@
 
 它有很多重要的作用：
 
-- 描述现有的数据格式。可以一目了然的阅读每个表、每个字段的用途。
+- 描述现有的数据含义。可以一目了然的阅读每个表、每个字段的用途。
 - 设定数据操作权限(permission)。什么样的角色可以读/写哪些数据，都在这里配置。
 - 设定字段值域能接受的格式(validator)，比如不能为空、需符合指定的正则格式。
 - 设定字段之间的约束关系(fieldRules)，比如字段结束时间需要晚于字段开始时间。
@@ -40,7 +40,7 @@
 1. 在`uniCloud`项目右键，选择`创建database目录`
 2. 在第一步创建的database目录右键选择`新建数据集合schema`
 
-![](https://static-eefb4127-9f58-4963-a29b-42856d4205ee.bspapp.com/hx%E6%8F%90%E7%A4%BAschema.jpg)
+![](https://vkceyugu.cdn.bspapp.com/VKCEYUGU-f184e7c3-1912-41b2-b81f-435d1b37c7b4/a9ab149e-6293-49c0-af8e-2db893a956d4.jpg)
 
 **HBuilderX内创建的schema新建和保存时不会自动上传**
 
@@ -97,6 +97,8 @@ properties里的字段列表，每个字段都有很多可以设置的属性，�
 |enum|Array|字段值枚举范围，数组中至少要有一个元素，且数组内的每一个元素都是唯一的。|
 |enumType|String|字段值枚举类型，可选值tree。设为tree时，代表enum里的数据为树形结构。此时schema2code可生成多级级联选择组件|
 |arrayType|String|数组项类型，bsonType="array" 时有效，HBuilderX 3.1.0+ 支持，具体见下表arrayType可用类型|
+|fileMediaType|String|文件类型，可选值 all&#124;image&#124;video 默认值为all,表示所有文件，image表示图片类型文件，video表示视频类型文件，详情参考[文件上传示例](https://uniapp.dcloud.net.cn/uniCloud/schema?id=filepicker)  HBuilderX 3.1.0+ 支持|
+|fileExtName|String|文件扩展名过滤，多个用 "," 分割，例如: jpg,png，HBuilderX 3.1.0+ 支持|
 |maximum|number|如果bsonType为数字时，可接受的最大值|
 |exclusiveMaximum|boolean|是否排除 maximum|
 |minimum|number|如果bsonType为数字时，可接受的最小值|
@@ -116,15 +118,14 @@ properties里的字段列表，每个字段都有很多可以设置的属性，�
 |label|string|字段标题。schema2code生成前端代码时，渲染表单项前面的label标题|
 |group|string|分组id。schema2code生成前端代码时，多个字段对应的表单项可以合并显示在一个uni-group组件中|
 |order|int|表单项排序序号。schema2code生成前端代码时，默认是以schema中的字段顺序从上到下排布表单项的，但如果指定了order，则按order规定的顺序进行排序。如果表单项被包含在uni-group中，则同组内按order排序|
-|component|Object&#124;Array|schema2code生成前端代码时，使用什么组件渲染这个表单项。比如使用input输入框。详见下方示例|
+|component|Object&#124;Array|schema2code生成前端代码时，使用什么组件渲染这个表单项。已废弃。请使用下面的componentForEdit和componentForShow|
 |componentForEdit|Object&#124;Array|HBuilderX 3.1.0+, 生成前端编辑页面文件时(add.vue、edit.vue)，使用什么组件渲染这个表单项。比如使用input输入框。|
 |componentForShow|Object&#124;Array|HBuilderX 3.1.0+, 生成前端展示页面时(list.vue、detail.vue)，使用什么组件渲染。比如使用uni-dateformat格式化日期。|
 
 **注意：**
-1. `DB Schema`的各种功能均只支持`clientDB`。如果使用云函数操作数据库，schema的作用仅仅是描述字段信息。同时强烈推荐使用HBuilderX 2.9.5以上版本使用`clientDB`。
-2. schema2code，入口在uniCloud web控制台的数据库schema界面，注意该功能需搭配HBuilderX 2.9.5+版本。
+1. `DB Schema`的各种功能均只支持`clientDB`。如果使用云函数操作数据库，schema的作用仅仅是描述字段信息。同时强烈推荐使用HBuilderX 3.0以上版本使用`clientDB`。
+2. schema2code，是根据scheme自动生成数据的增删改查页面的功能。入口1在uniCloud web控制台的数据库schema界面，入口2在HBuilderX中点击schema右键菜单。[详见](https://ext.dcloud.net.cn/plugin?id=4684)
 3. 暂不支持子属性校验
-4. HBuilderX 3.1.0+  `component` 属性升级为 `componentForEdit`，以支持更灵活的配置不同类型的页面使用的组件，仍然兼容`component`
 
 **一个带有字段的schema基本示例**
 
@@ -1206,14 +1207,26 @@ DCloud提供了`uni-forms`前端组件，该组件的表单校验规范完全符
 #### 快速上手schema2code生成“通讯录”
 > 成品演示地址:[http://contacts-demo.dcloud.net.cn/](http://contacts-demo.dcloud.net.cn/)
 
+##### 首先创建“带schema的通讯录”数据表
 1. 登录 [uniCloud控制台](https://unicloud.dcloud.net.cn)，选中“云数据库”
 2. 点击新建数据表
   ![](https://vkceyugu.cdn.bspapp.com/VKCEYUGU-f184e7c3-1912-41b2-b81f-435d1b37c7b4/1ef863ed-d919-46f3-bd01-6092f2ed1e21.jpg)
 3. 使用[OpenDB](https://gitee.com/dcloud/opendb)表模板创建： `opendb-contacts` 通讯录表
   ![](https://vkceyugu.cdn.bspapp.com/VKCEYUGU-f184e7c3-1912-41b2-b81f-435d1b37c7b4/0e2ee195-05ae-4445-af41-45c41b2da70a.jpg)
-4. 选中刚创建好的数据表`opendb-contacts`，点击进入表结构schema界面，点击按钮 “schema2code”
+
+##### schema2code有两种方式
+- 方式1：在HBuilderX中操作
+1.1 下载刚刚创建的通讯录表的schema
+![](https://vkceyugu.cdn.bspapp.com/VKCEYUGU-f184e7c3-1912-41b2-b81f-435d1b37c7b4/c2ea33f4-8619-41a6-bd14-5f9ce044985d.jpg)
+1.2 项目根目录的 `uniCloud/database/opendb-contacts.schema.json`  文件上点击右键，或者在已打开的 Schema 编辑器点击右键.如果没有该菜单，请在插件市场安装插件：[https://ext.dcloud.net.cn/plugin?id=4684](https://ext.dcloud.net.cn/plugin?id=4684) 
+![](https://vkceyugu.cdn.bspapp.com/VKCEYUGU-f184e7c3-1912-41b2-b81f-435d1b37c7b4/82f69a99-c652-4cbc-a96b-1cfbe3d40529.jpg)
+1.3 弹出一个对话框 `schema2code`，选择要导出的项目类型（uni-app用户端项目还是admin管理端项目），以及表字段名（去掉不需要在前端展现或编辑的字段）
+![](https://vkceyugu.cdn.bspapp.com/VKCEYUGU-f184e7c3-1912-41b2-b81f-435d1b37c7b4/fb49118b-364e-412b-9900-f275803cce37.jpg)
+1.4 点击对话框右下角的确定按钮，将执行导入动作，如果导入的文件和工程中的文件有差异将弹出文件对比框，继续操作并确认导入
+- 方式2：在uniCloud web控制台操作
+2.1 选中刚创建好的数据表`opendb-contacts`，点击进入表结构schema界面，点击按钮 “schema2code”
   ![](https://vkceyugu.cdn.bspapp.com/VKCEYUGU-f184e7c3-1912-41b2-b81f-435d1b37c7b4/3f93a350-2d13-4b8e-afb6-7dc367437b49.jpg)
-5. 点击“导入HBuilderX”或“下载zip”按钮，将生成的代码合并到自己的项目中
+2.2 点击“导入HBuilderX”或“下载zip”按钮，将生成的代码合并到自己的项目中
   ![](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/ba87a6b0-1519-11eb-81ea-f115fe74321c.png)
 
 上图每个区域的解释如下：
@@ -1253,7 +1266,7 @@ DCloud提供了`uni-forms`前端组件，该组件的表单校验规范完全符
 **全程演示视频**：
 </br>
 <video style="width:50vw;height:28vw;" id="video" preload="none" controls="controls"
-	poster="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-b537e2ca-0f4e-4ff0-a097-48fdeafb9873/bfcc37f1-389f-40e9-a538-bf6d53ab0990.mp4?x-oss-process=video/snapshot,t_1000,f_jpg" src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-b537e2ca-0f4e-4ff0-a097-48fdeafb9873/bfcc37f1-389f-40e9-a538-bf6d53ab0990.mp4"></video>
+	poster="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-f184e7c3-1912-41b2-b81f-435d1b37c7b4/a04e1d03-6d9f-43bf-a74b-80e9a5c31d7f.mp4?x-oss-process=video/snapshot,t_1000,f_jpg" src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-f184e7c3-1912-41b2-b81f-435d1b37c7b4/a04e1d03-6d9f-43bf-a74b-80e9a5c31d7f.mp4"></video>
 
 
 
@@ -1269,7 +1282,7 @@ const dbOrderBy = 'register_date desc' // 排序字段，asc(升序)、desc(降�
 const dbSearchFields = ['username', 'role_name', 'mobile', 'email'] // 模糊搜索字段，支持模糊搜索的字段列表
 ```
 
-`schema2code`是一个代码辅助生成工具，生成后的代码，经常会有二次开发需求。如果二次开发后又变动schema，建议使用Git等工具管理源码，进行差异比对。
+`schema2code`是一个代码辅助生成工具。
 
 #### 生成页面控件的默认策略
 
@@ -1278,7 +1291,8 @@ const dbSearchFields = ['username', 'role_name', 'mobile', 'email'] // 模糊搜
 - 如果配置了字段的component属性，则严格按component的配置执行。
 - 如果没有配置component属性，那么默认有如下策略：
   * 字段类型为bool时，默认使用switch组件
-  * 字段类型为Array时，默认使用uni-data-checkbox组件
+  * 字段类型为Array时，默认使用uni-data-checkbox组件(显示为多选框)
+  * 字段类型为int且使用enum时，默认使用uni-data-checkbox组件(显示为单选框)
   * 字段类型为int时，满足以下2个条件时，使用slider组件
    - 必填字段
    - 配置 `minimum` 或 `maximum`
@@ -1578,6 +1592,31 @@ const dbSearchFields = ['username', 'role_name', 'mobile', 'email'] // 模糊搜
 
 > HBuilderX 3.1.0+ 支持
 
+单个文件上传示例
+
+```json
+{
+  "schema": {
+    "bsonType": "object",
+    "required": [],
+    "properties": {
+      "_id": {
+        "description": "ID，系统自动生成"
+      },
+      "image": {
+        "bsonType": "file",
+        "title": "图片",
+        "description": "图片",
+        "fileMediaType": "image", // 可选值 all|image|video 默认值为all,表示所有文件，image表示图片类型文件，video表示视频类型文件
+        "fileExtName": "jpg,png", // 扩展名过滤，多个用 , 分割
+      }
+    }
+  }
+}
+```
+
+多个文件上传示例
+
 ```json
 {
   "schema": {
@@ -1592,14 +1631,13 @@ const dbSearchFields = ['username', 'role_name', 'mobile', 'email'] // 模糊搜
         "title": "图片",
         "description": "图片",
         "arrayType": "file",
-        "fileMediaType":"image", // 可选值 all|image|video 默认值为all,表示所有文件，image表示图片类型文件，video表示视频类型文件
-        "fileExtName":"jpg,png", // 扩展名过滤，多个用 , 分割
-        "maxLength": 3, // 限制最大数量
+        "fileMediaType": "image", // 可选值 all|image|video 默认值为all,表示所有文件，image表示图片类型文件，video表示视频类型文件
+        "fileExtName": "jpg,png", // 扩展名过滤，多个用 , 分割
+        "maxLength": 3 // 限制最大数量
       }
     }
   }
 }
-
 ```
 
 上传后的file对象

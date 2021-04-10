@@ -2786,7 +2786,7 @@ let res = await db.collection('avatar').aggregate()
     "region": "asia",
     "maxScore": 100
   },
-  "totalCoins": 100
+  "totalCoins": 40
 }
 {
   "_id": {
@@ -2849,8 +2849,8 @@ let res = await db.collection('items').aggregate()
 返回结果如下：
 ```js
 {
-  "_id": "3",
-  "price": 20
+  "_id": "2",
+  "price": 50
 }
 {
   "_id": "4",
@@ -3166,6 +3166,7 @@ let res = await db.collection('orders').aggregate()
     "_id": 4,
     "title": "novel 1",
     "author": "author 1",
+    "time": 1564456048486,
     "category": "novel",
     "stock": 10,
     "book": "novel 1",

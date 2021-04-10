@@ -1,4 +1,4 @@
-### 内容联盟广告
+### 短视频内容联盟广告
 
 简介
 
@@ -21,10 +21,9 @@
 1. 开通广告
 需在广告平台后台操作：
     * App平台：[https://uniad.dcloud.net.cn/](https://uniad.dcloud.net.cn/)
-    * 小程序平台：在各自的小程序管理后台操作。
 2. 申请广告位id
 在各位后台申请广告位id
-3. App端打包后生效，打包时必须选择要集成的广告SDK（优量汇、穿山甲、快手）。
+3. App端打包后生效，打包时必须选择要集成的广告SDK（目前仅支持快手联盟）。
 
 
 ### 语法
@@ -44,7 +43,7 @@
 
 `fail` 为 function 类型，加载失败后的回调
 
-HBuilder 基座的测试广告位 `adpid` 为 `1138104163`
+HBuilder 基座的测试广告位 `adpid` 为 `1111111112`
 
 
 示例代码
@@ -64,12 +63,12 @@ HBuilder 基座的测试广告位 `adpid` 为 `1138104163`
 			}
 		},
 		onLoad() {
-			// HBuilderX 标准基座真机运行测试内容联盟广告位标识（adpid）为：1138104163
-			// adpid: 1138104163 仅用于测试，发布时需要改为广告后台（https://uniad.dcloud.net.cn/）申请的 adpid
+			// HBuilderX 标准基座真机运行测试内容联盟广告位标识（adpid）为：1111111112
+			// adpid: 1111111112 仅用于测试，发布时需要改为广告后台（https://uniad.dcloud.net.cn/）申请的 adpid
 			// 广告后台申请的广告位(adpid)需要自定义基座/云打包/本地打包后生效
 
 			this.adOptions = {
-				adpid: 1138104163
+				adpid: 1111111112
 			}
 		},
 		methods: {

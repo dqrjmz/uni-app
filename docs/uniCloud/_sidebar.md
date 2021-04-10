@@ -12,6 +12,7 @@
   * [数据库索引](uniCloud/db-index.md)
   * [前端操作数据库的API及JQL语法](uniCloud/clientdb.md)
   * [unicloud-db前端组件](uniCloud/unicloud-db.md)
+  * [JQL查询调试器](uniCloud/jql-runner.md)
   * [openDB](https://gitee.com/dcloud/opendb)
   * [性能优化](uniCloud/db-performance.md)
 * 云函数
@@ -28,7 +29,9 @@
 * [客户端sdk](uniCloud/client-sdk.md)
 * [uni-id用户体系](uniCloud/uni-id.md)
 * 扩展能力
+  * [uni-config-center](https://ext.dcloud.net.cn/plugin?id=4425)
   * [uniCloud admin](uniCloud/admin.md)
+  * [uni-upgrade-center](uniCloud/upgrade-center.md)
   * [uni-cloud-router](uniCloud/uni-cloud-router.md)
   * [unipay](uniCloud/unipay.md)
   * [发送短信](uniCloud/send-sms.md)

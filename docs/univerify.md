@@ -13,6 +13,23 @@
 
 ![](https://dcloud-img.oss-cn-hangzhou.aliyuncs.com/client/doc/univerify/demo.png)
 
+<a id="fullscreen"/>
+
+> HBuilderX3.1.6+版本授权登录界面支持全屏模式
+
+调用uni.login时设置univerifyStyle中的fullScreen属性值为true即可：
+```js
+uni.login({
+	provider: 'univerify',
+	univerifyStyle: { 
+            fullScreen: true
+        }
+})
+```
+
+全屏效果如下:
+
+![](https://dcloud-img.oss-cn-hangzhou.aliyuncs.com/client/doc/univerify/full.png)
 
 ### 产品优势
 
@@ -183,6 +200,7 @@ univerifyStyle 数据结构：
       "termsColor": "#1d4788", //  协议文字颜色 默认值： #1d4788  
       "prefix": "我已阅读并同意", // 条款前的文案 默认值：“我已阅读并同意”  
       "suffix": "并使用本机号码登录", // 条款后的文案 默认值：“并使用本机号码登录”  
+      "fontSize":12, // 隐私协议文字大小 (仅android 支持)
       "privacyItems": [  
           // 自定义协议条款，最大支持2个，需要同时设置url和title. 否则不生效  
           {  
@@ -325,7 +343,7 @@ xhr.send(JSON.stringify({
 云函数代码：
 ```js
 // 下面仅展示客户端使用post方式发送content-type为application/json请求的场景
-module.exports = async(event) => {
+exports.main = async(event) => {
   let body = event.body
   if(event.isBase64Encoded) {
     body = Buffer.from(body,'base64')
@@ -388,7 +406,7 @@ const sign = hmac.digest('hex')
 ```js
 // 云函数验证签名，此示例中以接受GET请求为例作演示
 const crypto = require('crypto')
-module.exports = async(event) => {
+exports.main = async(event) => {
   
   const secret = 'your-secret-string' // 自己的密钥不要直接使用示例值，且注意不要泄露
   const hmac = crypto.createHmac('sha256', secret);
@@ -447,12 +465,15 @@ module.exports = async(event) => {
 
 
 ### 错误码
+
 |  错误码  |  错误描述  |
 |  -:-  |  -:-  |
 |  1000 |  当前 uniAppid 尚未开通一键登录  |
 |  1001 |  应用所有者账号信息异常，请检查账号一键登录服务是否正常  |
 |  1002 |  应用所有者账号信息异常，请检查账号余额是否充足 |
 |  4001 |  请求参数异常 |
+|  4003 |  开发者账户appid 校验异常，联系官方人员 |
+|  5000 |  服务器未知异常，联系官方人员 |
 | 30001	|  当前网络环境不适合执行该操作  |
 | 30002 |  用户点击了其他登录方式  |
 | 30003 |  用户关闭验证界面  |
@@ -460,8 +481,11 @@ module.exports = async(event) => {
 | 30005 |  预登录失败  |
 | 30006 |  一键登录失败  |
 | 30007 |  获取本机号码校验token失败  |
+| 40004 |  应用不存在  |
 | 40047 |  一键登录取号失败  |
 | 40053 |  手机号校验失败  |
+| 40201 |  源IP鉴权失败 |
+
 
 ## 运行基座和打包
 
@@ -486,4 +510,10 @@ module.exports = async(event) => {
 
 - **错误代码 40201，提示“源IP鉴权失败”**
 检查一下手机卡类型是否是正常运营商手机卡，关闭飞行模式后重新尝试
+
+- **错误代码 40004，提示“应用不存在”**
+多出现在自定义基座的场景，请确保应用已通过审核后，且已重新打包。
+
+- **错误代码 30005，提示“预登录失败”**
+不具备一键登录的使用前提，设备不支持/未开启数据流量/其他原因
 

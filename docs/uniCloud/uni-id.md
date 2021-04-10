@@ -14,7 +14,7 @@
 
 `uni-id`包括如下组成部分：
 
-1. 云数据库
+1.云数据库
 
 主表为 `uni-id-users` 表，保存用户的基本信息。扩展字段有很多，如实名认证数据、工作履历数据，开发者可以自由扩展。
 
@@ -22,13 +22,13 @@
 
 所有`uni-id`的数据表，在uniCloud web控制台新建表的界面上，都可以选择这些数据表模板，直接建好。
 
-2. 云函数
+2.云函数
 
 提供一个名为`uni-id`的公共模块，该模块封装了一系列API，包括注册、登录、修改密码、设置头像等。
 
 示例工程中还提供了一个`user-center`的云函数，演示在云函数中如何调用`uni-id`公共模块。
 
-3. 前端调用
+3.前端调用
 
 前端示例通过callfunction调用云函数`user-center`，在注册和登录时保存token。
 
@@ -59,20 +59,21 @@ uniCloud框架底层，会自动在callfunction时传递`uni-id`的token（uni-a
 `uni-id`已完成的内容：
 
 - 注册、登录、发送短信验证码、密码加密保存、修改密码、token管理（短信验证码功能需要HBuilderX 2.8.3+）
-- 三方登录：App中的微信登录、微信小程序中的微信登录、支付宝小程序中的支付宝账户登录 
+- App手机号一键认证，免验证码
+- 三方登录：App中的微信登录和Apple ID、微信小程序中的微信登录、支付宝小程序中的支付宝账户登录 
 - rbac权限角色体系
 
 关于还缺少的部分，哪些DCloud在完善，哪些希望开发者给共同完善开源项目，计划与边界公布如下：
 
-1. 部分社交账户登录
+1.部分社交账户登录
 
-DCloud暂无计划开发百度、头条、QQ等小程序的登录，以及Apple ID、微博、QQ等App端的登录。欢迎其他开发者在开源项目上提交pr，共同完善`uni-id`。
+DCloud暂无计划开发百度、头条、QQ等小程序的登录，以及微博、QQ等App端的登录。欢迎其他开发者在开源项目上提交pr，共同完善`uni-id`。
 
-2. 邮箱验证和手机号一键认证sdk集成
+2.邮箱验证集成
 
-手机号一键认证sdk，目前插件市场里已经有不少相关插件，未来DCloud会整合到`uni-id`中。邮箱验证，DCloud暂无计划开发，有需求的开发者欢迎提供pr。
+邮箱验证，DCloud暂无计划开发，有需求的开发者欢迎提供pr。
 
-3. 实名认证、活体检测
+3.活体检测
 
 目前插件市场里已经有不少相关插件，未来DCloud会整合到`uni-id`中。
 
@@ -88,8 +89,8 @@ DCloud暂无计划开发百度、头条、QQ等小程序的登录，以及Apple 
 **uni_modules版**
 
 1. HBuilderX 3.1.0+
-2. 插件市场导入`uni-id`公用模块uni_modules版本，[插件市场 uni-id](https://ext.dcloud.net.cn/plugin?id=2116)
-3. 修改公用模块`uni-id`下的`config.json`内所需参数（请参考下面config.json的说明）
+2. 插件市场导入`uni-id`公用模块uni_modules版本，HBuilderX会自动导入依赖的`uni-config-center`，[插件市场 uni-id](https://ext.dcloud.net.cn/plugin?id=2116)
+3. 在`uni-config-center`公用模块下创建`uni-id`目录，在创建的uni-id目录下再创建`config.json`文件配置uni-id所需参数（请参考下面config.json的说明），**注意：如果HBuilderX版本低于3.1.8，批量上传云函数及公共模块后需要单独再上传一次uni-id**
 4. 在`cloudfunctions/common`下上传`uni-id`模块
 5. 在要使用`uni-id`的云函数右键选择`管理公共模块依赖`添加`uni-id`到云函数
 6. 创建`uni-id-users`、`opendb-verify-codes`集合（opendb-verify-codes是验证码表。可以使用示例项目里面的db_init.json进行初始化、也可以在web控制台新建表时选择这些表模块）
@@ -110,9 +111,9 @@ DCloud暂无计划开发百度、头条、QQ等小程序的登录，以及Apple 
 注意：
 
 - **config.json是一个标准json文件，不支持注释**
-- 如果不希望使用config.json初始化而是想自行传入参数，可以使用`init`方法[uniID.init](/uniCloud/uni-id?id=init)
+- 如果不希望使用config.json初始化而是想自行传入参数（一般不推荐这么做），可以使用`init`方法[uniID.init](/uniCloud/uni-id?id=init)
 
->在云函数URL化的场景无法获取客户端平台信息，可以在调用uni-id相关接口之前（推荐在云函数入口）通过修改context.PLATFORM手动传入客户端平台信息
+> 在云函数URL化的场景无法获取客户端平台信息，可以在调用uni-id相关接口之前（推荐在云函数入口）通过修改context.PLATFORM手动传入客户端平台信息
 
 例：
 
@@ -965,9 +966,9 @@ exports.main = async function(event,context) {
 
 此接口仅适用于不希望使用config.json初始化而是希望通过js的方式传入配置的情况，多数情况下不推荐使用。**如果你要使用clientDB，且必须要用这种方式初始化uni-id，必须在uni-id的config.json内也写上同样的配置。**
 
-**config参数说明**
+**InitParams参数说明**
 
-config格式与config.json完全相同
+InitParams格式与config.json完全相同
 
 **响应参数**
 
@@ -1003,6 +1004,38 @@ exports.main = async function(event,context) {
 	return res
 }
 ```
+
+### 创建uni-id实例@create-instance
+
+> uni-id 3.0.7及以上版本
+
+用法：`uniID.createInstance(Object CreateInstanceParams);`
+
+CreateInstanceParams内可以传入云函数context，**主要用于在单实例多并发的场景**
+
+```js
+// 云函数代码
+const uniID = require('uni-id')
+exports.main = async function(event,context) {
+  const uniIDIns = uniID.createInstance({ // 创建uni-id实例，其上方法同uniID
+    context: context,
+    config: {} // 完整uni-id配置信息，使用config.json进行配置时无需传此参数
+  })
+  payload = await uniIDIns.checkToken(event.uniIdToken) // 后续使用uniIDIns调用相关接口
+  if (payload.code) {
+  	return payload
+  }
+	const res = await uniIDIns.updateUser({
+    uid: payload.uid,
+    nickname: 'user nickname'
+  })
+	return res
+}
+```
+
+**为什么需要自行创建uni-id实例**
+
+默认情况下uni-id某些接口会自动从全局context内获取客户端的PLATFORM（平台，如：app-plus、h5、mp-weixin）信息。但是在单实例多并发的场景下可能无法正确获取（全局对象会被后面的请求覆盖，可能会导致前面一次请求使用了后面一次请求的PLATFORM信息）。因此推荐在开启云函数单实例多并发后，自行为uni-id传入context。
 
 ## 手机号码
 
@@ -1197,28 +1230,28 @@ exports.main = async function(event,context) {
 
 **参数说明**
 
-| 字段				| 类型	| 必填| 说明																																																	|
-| ---					| ---		| ---	| ---																																																		|
-| access_token			| String| 是	|uni.login登录成功后，返回的`access_token`参数
-| openid				| String| 是	|uni.login登录成功后，返回的`openid`参数			|
-| type				| String| 否	|指定操作类型，可选值为`login`、`register`，不传此参数时表现为手机号已注册则登录，手机号未注册则进行注册|
-| password		|String	| 否	|密码，type为`register`时生效																																						|
-| inviteCode	|String	| 否	|邀请人的邀请码，type为`register`时生效																																	|
-| myInviteCode|String	| 否	|设置当前注册用户自己的邀请码，type为`register`时生效																										|
-| needPermission| Boolean	| 否	|设置为true时会在checkToken时返回用户权限（permission），建议在管理控制台中使用	|
+| 字段					| 类型		| 必填| 说明																																																	|
+| ---						| ---			| ---	| ---																																																		|
+| access_token	| String	| 是	|uni.login登录成功后，返回的`access_token`参数																													|
+| openid				| String	| 是	|uni.login登录成功后，返回的`openid`参数																																|
+| type					| String	| 否	|指定操作类型，可选值为`login`、`register`，不传此参数时表现为手机号已注册则登录，手机号未注册则进行注册|
+| password			|String		| 否	|密码，type为`register`时生效																																						|
+| inviteCode		|String		| 否	|邀请人的邀请码，type为`register`时生效																																	|
+| myInviteCode	|String		| 否	|设置当前注册用户自己的邀请码，type为`register`时生效																										|
+| needPermission| Boolean	| 否	|设置为true时会在checkToken时返回用户权限（permission），建议在管理控制台中使用													|
 
 **响应参数**
 
 | 字段				| 类型	| 说明																		|
 | ---					| ---		| ---																			|
 | code				| Number| 错误码，0表示成功												|
-| message					| String|详细信息																|
+| message			| String|详细信息																	|
 | uid					| String|用户`uid`																|
 | type				| String|操作类型，`login`为登录、`register`为注册|
-| mobile		| String|登录者手机号							|
-| userInfo		| Object|用户全部信息								|
-| token				| String|登录成功之后返回的`token`信息							|
-| tokenExpired| String|`token`过期时间														|
+| mobile			| String|登录者手机号															|
+| userInfo		| Object|用户全部信息															|
+| token				| String|登录成功之后返回的`token`信息						|
+| tokenExpired| String|`token`过期时间													|
 
 **示例代码**
 
@@ -1244,17 +1277,22 @@ exports.main = async function(event,context) {
 
 **mobileInfo**参数说明
 
-| 字段	| 类型	| 必填| 说明																																			|
-| ---		| ---		| ---	| ---																																				|
-| uid		| String| 是	|用户Id，可以通过checkToken返回																							|
-| mobile| String| 是	|用户手机号																																	|
-| code	| String| 否	|验证码，为兼容旧版逻辑此参数不填写时不会进行验证码校验，而是直接绑定手机号	|
+| 字段				| 类型	| 必填| 说明																																			|
+| ---					| ---		| ---	| ---																																				|
+| uid					| String| 是	|用户Id，可以通过checkToken返回																							|
+| mobile			| String| 否	|用户手机号																																	|
+| code				| String| 否	|验证码，为兼容旧版逻辑此参数不填写时不会进行验证码校验，而是直接绑定手机号	|
+| access_token| String| 否	|uni.login登录成功后，返回的`access_token`参数															|
+| openid			| String| 否	|uni.login登录成功后，返回的`openid`参数																		|
+| type				| String| 否	|通过何种方式绑定手机号，sms（手机号验证码）、univerify（一键登录），默认sms|
+
+type为sms时mobile、code必传，type为univerify时access_token、openid必传
 
 **响应参数**
 
-| 字段| 类型	| 必填| 说明						|
-| ---	| ---		| ---	| ---							|
-| code| Number| 是	|错误码，0表示成功|
+| 字段		| 类型	| 必填| 说明						|
+| ---			| ---		| ---	| ---							|
+| code		| Number| 是	|错误码，0表示成功|
 | message	| String| 是	|详细信息					|
 
 **示例代码**
@@ -1479,6 +1517,12 @@ exports.main = async function(event,context) {
 - uniId会自动判断客户端平台
 - 登录成功之后应持久化存储token、token过期时间，键值为：`uni_id_token、uni_id_token_expired`，例：`uni.setStorageSync('uni_id_token', res.result.token)`
 - App端获取code不可直接调用`uni.login`，详细用法可以看下面示例
+
+**APP微信登录详细配置流程**
+
+1. 在manifest.json内配置微信登录用appid
+2. **打包**并**使用**自定义基座（注意一定要在manifest.json填写微信appid后再制作自定义基座），[自定义基座使用说明](https://ask.dcloud.net.cn/article/35115)
+3. 在uni-id的config.json内app-plus对应的微信登录信息内配置appid和appsecret
 
 **参数说明**
 
@@ -2809,7 +2853,38 @@ uni-id-users表内存储的password字段为使用hmac-sha1生成的hash值，�
     // 当前角色拥有'your permission id'对应的权限
   }
   ```
+
+## 自定义token内容@custom-token
+
+> uni-id 3.0.7及以上版本，且需要使用[uni-config-center](https://ext.dcloud.net.cn/plugin?id=4425)
+
+自`uni-id 3.0.0`起，支持在token内缓存用户的角色权限。但是某些情况下开发者可能还希望缓存一些别的东西，以便在客户端能方便的访问（**注意：不可缓存机密信息到token内**）。
+
+**用法**
+
+在`uni-config-center`模块内的uni-id插件内创建`custom-token.js`内容如下：
+
+```js
+module.exports = async (tokenObj) => { 
+  // tokenObj为原始token信息结构如下
+  // {
+  //   uid: 'abc', // 用户id
+  //   role: [], // 用户角色列表
+  //   permission: [] // 用户权限列表，admin角色的用户权限列表为空数组
+  // }
   
+  tokenObj.customField = 'hello custom token' // 自定义token字段
+  return tokenObj // 注意务必返回修改后的token对象
+}
+```
+
+uni-id会自动加载custom-token.js进行处理，在所有生成token的操作（包括：登录、注册、token过期自动刷新、开发者自行调用createToken）执行时自动获取新token信息，并生成token。
+
+**注意**
+
+- 使用custom-token时自行调用createToken接口会变为异步操作，需使用`await uniID.createToken(...)`
+- 不要删除原始token内的字段
+
 # 迁移指南@migration
 
 ## 自1.x.x版本升级到2.x.x@m1to2
@@ -2839,6 +2914,14 @@ uniCloud admin可以平滑升级到uni-id 3.0.0。如果要缓存角色权限到
 
 可以参考此次提交进行调整：[uniCloud admin](https://github.com/dcloudio/uniCloud-admin/commit/8359d699aacb8f7d074fce9aa82a36474cb6e7df)
 
+#### 使用uni-config-center@uni-config-center
+
+> uni-id 3.0.7及以上版本
+
+从插件市场导入支持uni_modules的uni-id，会自动安装依赖的uni-config-center到uni_modules内。如果此前并没有使用uni-config-center可以直接将uni-id的config.json移至`uni-config-center/uni-id/config.json`即可（可以参照插件市场的uni-id示例项目）
+
+- uni-id会优先使用uni-config-center内添加的配置
+- 如果批量上传后报“请在公用模块uni-id的config.json或init方法中内添加配置项”，请重新上传一次`uni-id`
 
 # FAQ
 

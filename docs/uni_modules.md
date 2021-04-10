@@ -16,6 +16,7 @@
 2. `uni_modules`有付费和商业的插件，DCloud插件市场提供了版权保护。而`node_modules`不支持付费和版权保护。
 3. `node_modules` 是开发者友好而影响终端用户性能的模式。开发者为了省事，层层嵌套`node_modules`，造成数量惊人的文件数目。`uni_modules`不支持module嵌套，鼓励开发者优化包体积
 4. `uni_modules`鼓励开发者总是使用最新版。并在HBuilderX中提供了版本内容对比工具
+5. `uni_modules`里也支持放置`node_modules`，没有强行排斥。
 
 与之前插件市场的普通插件相比，`uni_modules`有何优势？
 1. 支持在HBuilderX里直接发布、更新、删除
@@ -23,7 +24,12 @@
 3. 插件文件位置统一，不会造成下载一个插件，不知道给工程下多少个目录写入了多少个文件。删除插件时也可以一点删除
 
 ### 目录结构
-一个`uni_modules`插件，可以包含如下目录及文件：
+`uni_modules`插件如果是项目类型的插件，只需要在项目的根目录下放一个符合`uni_modules`规范的package.json。
+
+如果是非项目类型的插件，比如组件、js sdk、页面模板、云函数，则需要放置在项目的`uni_modules`目录下。
+
+此时`uni_modules`目录下的目录结构和uni-app的项目结构是一致的，如下：
+
 <pre v-pre="" data-lang="">
 	<code class="lang-" style="padding:0">
 uni_modules                                项目根目录下
@@ -45,6 +51,7 @@ uni_modules                                项目根目录下
 - 插件目录不支持pages.json、App.vue、main.js、manifest.json、uni.scss文件，如果需要插件使用者修改这些文件内容，请在插件文档(readme.md)中详细说明。
 - 在插件内部引用资源、跳转页面时，请尽量使用相对路径。
 - 插件内components目录同样支持easycom规范，插件使用者可以直接在项目中使用插件内符合easycom规范的组件，当项目或插件内存在easycom组件冲突，编译时会给予提示，您可以通过修改组件目录及组件文件名称来解决冲突问题。
+
 ### 配置
 #### package.json
 
@@ -155,15 +162,21 @@ package.json在每个`uni_modules`插件中都必须存在，包含了插件的�
 ### 开发 uni_modules 插件
 #### 新建uni_modules目录
 在uni-app项目根目录下，创建uni_modules目录，在HBuilderX中可以项目右键菜单中点击`新建uni_modules目录`
+
 ![](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-dc-site/de27eb20-6217-11eb-8a36-ebb87efcf8c0.png)
-**Tips**
+
+**Tips:**
 - 如果是vue-cli项目，uni_modules目录，位于`src`下，即`src/uni_modules`
 
 #### 新建uni_modules插件
 1. 在HBuilderX中uni_modules目录右键点击`新建uni_modules插件`
+
 ![](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-dc-site/dd758b10-6217-11eb-8a36-ebb87efcf8c0.png)
+
 2. 填写正确的插件ID，选择插件分类
+
 ![](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-dc-site/dcc6d480-6217-11eb-8a36-ebb87efcf8c0.png)
+
 插件ID命名规范：
 - 格式为：'作者ID-插件英文名称'，示例：'xx-yy'，其中作者ID和插件英文名称只能包含英文、数字
 - 作者ID由插件作者自定义，不能使用'DCloud'、'uni'等关键字，长度要求至少2位字符
