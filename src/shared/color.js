@@ -9,14 +9,11 @@ export function hexToRgba (hex) {
   let b
   // hex 位#FFBBDD #FFF #fbd
   // hex的双字母可以变为单字母使用
-  // 去掉前缀
   hex = hex.replace('#', '')
-  // 长度为6（完整长度）
   if (hex.length === 6) {
     r = hex.substring(0, 2)
     g = hex.substring(2, 4)
     b = hex.substring(4, 6)
-    // 长度为3
   } else if (hex.length === 3) {
     r = hex.substring(0, 1)
     g = hex.substring(1, 2)

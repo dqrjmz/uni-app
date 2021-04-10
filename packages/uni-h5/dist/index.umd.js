@@ -174,6 +174,17 @@ Object(uni_core_service_bridge_subscribe__WEBPACK_IMPORTED_MODULE_1__[/* default
 
 /***/ }),
 
+/***/ "02b5":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var _node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("8e72");
+/* harmony import */ var _node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__);
+/* unused harmony reexport * */
+ /* unused harmony default export */ var _unused_webpack_default_export = (_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default.a); 
+
+/***/ }),
+
 /***/ "02c9":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -264,6 +275,10 @@ function initPolyfill(Vue) {
     return uni.createIntersectionObserver(this, options);
   };
 
+  Vue.prototype.createMediaQueryObserver = function createMediaQueryObserver(options) {
+    return uni.createMediaQueryObserver(this, options);
+  };
+
   Vue.prototype.selectComponent = function selectComponent(selector) {
     return querySelector(this, parseSelector(selector));
   };
@@ -272,6 +287,13 @@ function initPolyfill(Vue) {
     return querySelectorAll(this, parseSelector(selector), []);
   };
 }
+
+/***/ }),
+
+/***/ "02ed":
+/***/ (function(module) {
+
+module.exports = JSON.parse("{\"uni.app.quit\":\"再按一次退出應用\",\"uni.async.error\":\"連接服務器超時，點擊屏幕重試\",\"uni.showActionSheet.cancel\":\"取消\",\"uni.showToast.unpaired\":\"請注意 showToast 與 hideToast 必須配對使用\",\"uni.showLoading.unpaired\":\"請注意 showLoading 與 hideLoading 必須配對使用\",\"uni.showModal.cancel\":\"取消\",\"uni.showModal.confirm\":\"確定\",\"uni.chooseImage.cancel\":\"取消\",\"uni.chooseImage.sourceType.album\":\"從相冊選擇\",\"uni.chooseImage.sourceType.camera\":\"拍攝\",\"uni.chooseVideo.cancel\":\"取消\",\"uni.chooseVideo.sourceType.album\":\"從相冊選擇\",\"uni.chooseVideo.sourceType.camera\":\"拍攝\",\"uni.previewImage.cancel\":\"取消\",\"uni.previewImage.button.save\":\"保存圖像\",\"uni.previewImage.save.success\":\"保存圖像到相冊成功\",\"uni.previewImage.save.fail\":\"保存圖像到相冊失敗\",\"uni.setClipboardData.success\":\"內容已復制\",\"uni.scanCode.title\":\"掃碼\",\"uni.scanCode.album\":\"相冊\",\"uni.scanCode.fail\":\"識別失敗\",\"uni.scanCode.flash.on\":\"輕觸照亮\",\"uni.scanCode.flash.off\":\"輕觸關閉\",\"uni.startSoterAuthentication.authContent\":\"指紋識別中...\",\"uni.picker.done\":\"完成\",\"uni.picker.cancel\":\"取消\",\"uni.video.danmu\":\"彈幕\",\"uni.video.volume\":\"音量\",\"uni.button.feedback.title\":\"問題反饋\",\"uni.button.feedback.send\":\"發送\"}");
 
 /***/ }),
 
@@ -353,7 +375,18 @@ function initOn(on, _ref) {
   }
 
   function onAppEnterForeground() {
-    Object(util["a" /* callAppHook */])(getApp(), 'onShow');
+    var pages = getCurrentPages();
+
+    if (pages.length === 0) {
+      return;
+    }
+
+    var page = pages[pages.length - 1];
+    var args = {
+      path: page.route,
+      query: page.options
+    };
+    Object(util["a" /* callAppHook */])(getApp(), 'onShow', args);
     callCurrentPageHook('onShow');
   }
 
@@ -401,77 +434,80 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _helpers_get_jsonp__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("ffdc");
 
 /**
- * wgs84坐标转Gcj02坐标
- * @param {object} coords
- * @param {Function} success
- * @param {Function} error
- */
-
-function wgs84ToGcj02(coords, success, error) {
-  /**
-   * uniapp 内置key
-   */
-  var key = __uniConfig.qqMapKey;
-  var url = "https://apis.map.qq.com/ws/coord/v1/translate?locations=".concat(coords.latitude, ",").concat(coords.longitude, "&type=1&key=").concat(key, "&output=jsonp");
-  Object(_helpers_get_jsonp__WEBPACK_IMPORTED_MODULE_0__[/* getJSONP */ "a"])(url, {}, function (res) {
-    if ('locations' in res && res.locations.length) {
-      success({
-        longitude: res.locations[0].lng,
-        latitude: res.locations[0].lat
-      });
-    } else {
-      error(res);
-    }
-  }, error);
-}
-/**
  * 获取定位信息
- * @param {*} param0
+ * @param {*} options
  * @param {*} callbackId
  */
-
 
 function getLocation(_ref, callbackId) {
   var type = _ref.type,
       altitude = _ref.altitude;
   var _UniServiceJSBridge = UniServiceJSBridge,
       invoke = _UniServiceJSBridge.invokeCallbackHandler;
+  var key = __uniConfig.qqMapKey;
+  new Promise(function (resolve, reject) {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function (res) {
+        return resolve(res.coords);
+      }, reject, {
+        enableHighAccuracy: altitude,
+        timeout: 1000 * 100
+      });
+    } else {
+      reject(new Error('device nonsupport geolocation'));
+    }
+  }).catch(function () {
+    return new Promise(function (resolve, reject) {
+      Object(_helpers_get_jsonp__WEBPACK_IMPORTED_MODULE_0__[/* getJSONP */ "a"])("https://apis.map.qq.com/ws/location/v1/ip?output=jsonp&key=".concat(key), {
+        callback: 'callback'
+      }, function (res) {
+        if ('result' in res && res.result.location) {
+          var location = res.result.location;
+          resolve({
+            latitude: location.lat,
+            longitude: location.lng
+          }, true);
+        } else {
+          reject(new Error(res.message || JSON.stringify(res)));
+        }
+      }, function () {
+        return reject(new Error('network error'));
+      });
+    });
+  }).then(function (coords, skip) {
+    if (type.toUpperCase() === 'WGS84' || skip) {
+      return coords;
+    }
 
-  function callback(coords) {
+    return new Promise(function (resolve, reject) {
+      Object(_helpers_get_jsonp__WEBPACK_IMPORTED_MODULE_0__[/* getJSONP */ "a"])("https://apis.map.qq.com/jsapi?qt=translate&type=1&points=".concat(coords.longitude, ",").concat(coords.latitude, "&key=").concat(key, "&output=jsonp&pf=jsapi&ref=jsapi"), {
+        callback: 'cb'
+      }, function (res) {
+        if ('detail' in res && 'points' in res.detail && res.detail.points.length) {
+          var location = res.detail.points[0];
+          resolve(Object.assign({}, coords, {
+            longitude: location.lng,
+            latitude: location.lat
+          }));
+        } else {
+          resolve(coords);
+        }
+      }, function () {
+        return resolve(coords);
+      });
+    });
+  }).then(function (coords) {
     invoke(callbackId, Object.assign(coords, {
       errMsg: 'getLocation:ok',
       verticalAccuracy: coords.altitudeAccuracy || 0,
       // 无专门水平精度，使用位置精度替代
       horizontalAccuracy: coords.accuracy
     }));
-  }
-
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(function (position) {
-      var coords = position.coords;
-
-      if (type === 'WGS84') {
-        callback(coords);
-      } else {
-        wgs84ToGcj02(coords, callback, function (err) {
-          invoke(callbackId, {
-            errMsg: 'getLocation:fail ' + JSON.stringify(err)
-          });
-        });
-      }
-    }, function () {
-      invoke(callbackId, {
-        errMsg: 'getLocation:fail'
-      });
-    }, {
-      enableHighAccuracy: altitude,
-      timeout: 1000 * 60 * 5
-    });
-  } else {
+  }).catch(function (error) {
     invoke(callbackId, {
-      errMsg: 'getLocation:fail device nonsupport geolocation'
+      errMsg: 'getLocation:fail ' + error.message
     });
-  }
+  });
 }
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("0dd1")))
 
@@ -514,13 +550,17 @@ function operateMapPlayer(mapId, pageVm, type, data) {
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, "a", function() { return /* binding */ createPageMixin; });
 
-// EXTERNAL MODULE: ./src/shared/index.js + 7 modules
+// EXTERNAL MODULE: ./src/shared/index.js + 6 modules
 var shared = __webpack_require__("f2b3");
 
 // EXTERNAL MODULE: ./src/core/service/plugins/util.js
 var util = __webpack_require__("a741");
 
+// EXTERNAL MODULE: ./src/core/helpers/EventChannel.js
+var EventChannel = __webpack_require__("28c0");
+
 // CONCATENATED MODULE: ./src/core/service/plugins/page/create-page.js
+
 
 function createPage(pageVm, options) {
   var $route = pageVm.$route;
@@ -531,14 +571,21 @@ function createPage(pageVm, options) {
     pageVm.options = options;
   }
 
-  var id = Object(shared["h" /* hasOwn */])($route.params, '__id__') ? $route.params.__id__ : $route.meta.id;
+  var id = Object(shared["i" /* hasOwn */])($route.params, '__id__') ? $route.params.__id__ : $route.meta.id;
   pageVm.__page__ = {
     id: id,
     path: $route.path,
     route: $route.meta.pagePath,
+    fullPath: $route.meta.isEntry ? $route.meta.pagePath : $route.fullPath,
     options: options,
     meta: Object.assign({}, $route.meta)
+  };
+  var eventChannel = pageVm.$router.$eventChannel || new EventChannel["a" /* default */]();
+
+  pageVm.getOpenerEventChannel = function () {
+    return eventChannel;
   }; // 兼容 mpvue
+
 
   pageVm.$vm = pageVm;
   pageVm.$root = pageVm;
@@ -559,7 +606,7 @@ function createPage(pageVm, options) {
 function createPageMixin() {
   return {
     created: function pageCreated() {
-      var options = Object(shared["c" /* decodedQuery */])(this.$route.query);
+      var options = Object(shared["e" /* decodedQuery */])(this.$route.query);
       createPage(this, options);
       Object(util["b" /* callPageHook */])(this, 'onLoad', options);
       Object(util["b" /* callPageHook */])(this, 'onShow');
@@ -576,12 +623,14 @@ function createPageMixin() {
 __webpack_require__.r(__webpack_exports__);
 /* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createIntersectionObserver", function() { return createIntersectionObserver; });
 /* harmony import */ var uni_helpers_callbacks__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("62b5");
-/* harmony import */ var _platform__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("db70");
+/* harmony import */ var uni_helpers_windows__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("1634");
+/* harmony import */ var _platform__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("db70");
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
 
 
 
@@ -596,7 +645,7 @@ var ServiceIntersectionObserver = /*#__PURE__*/function () {
   function ServiceIntersectionObserver(component, options) {
     _classCallCheck(this, ServiceIntersectionObserver);
 
-    this.pageId = component.$page.id;
+    this.pageId = component.$page && component.$page.id;
     this.component = component._$id || component; // app-plus 平台传输_$id
 
     this.options = Object.assign({}, defaultOptions, options);
@@ -641,14 +690,14 @@ var ServiceIntersectionObserver = /*#__PURE__*/function () {
         reqId: this.reqId,
         component: this.component,
         options: this.options
-      }, this.pageId);
+      }, Object(uni_helpers_windows__WEBPACK_IMPORTED_MODULE_1__[/* checkInWindows */ "a"])(this.component) ? this.component : this.pageId);
     }
   }, {
     key: "disconnect",
     value: function disconnect() {
       UniServiceJSBridge.publishHandler('destroyComponentObserver', {
         reqId: this.reqId
-      }, this.pageId);
+      }, Object(uni_helpers_windows__WEBPACK_IMPORTED_MODULE_1__[/* checkInWindows */ "a"])(this.component) ? this.component : this.pageId);
     }
   }]);
 
@@ -665,7 +714,7 @@ function createIntersectionObserver(context, options) {
     return new ServiceIntersectionObserver(context, options);
   }
 
-  return new ServiceIntersectionObserver(Object(_platform__WEBPACK_IMPORTED_MODULE_1__[/* getCurrentPageVm */ "b"])('createIntersectionObserver'), options);
+  return new ServiceIntersectionObserver(Object(_platform__WEBPACK_IMPORTED_MODULE_2__[/* getCurrentPageVm */ "b"])('createIntersectionObserver'), options);
 }
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("0dd1")))
 
@@ -689,26 +738,69 @@ function createIntersectionObserver(context, options) {
 __webpack_require__.r(__webpack_exports__);
 /* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "requestComponentInfo", function() { return requestComponentInfo; });
 /* harmony import */ var uni_helpers_callbacks__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("62b5");
+/* harmony import */ var uni_helpers_windows__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("1634");
+
 
 var requestComponentInfoCallbacks = Object(uni_helpers_callbacks__WEBPACK_IMPORTED_MODULE_0__[/* default */ "a"])('requestComponentInfo');
 function requestComponentInfo(pageVm, queue, callback) {
   UniServiceJSBridge.publishHandler('requestComponentInfo', {
     reqId: requestComponentInfoCallbacks.push(callback),
     reqs: queue
-  }, pageVm.$page.id);
+  }, Object(uni_helpers_windows__WEBPACK_IMPORTED_MODULE_1__[/* checkInWindows */ "a"])(pageVm) ? pageVm : pageVm.$page.id);
 }
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("0dd1")))
 
 /***/ }),
 
-/***/ "0a32":
+/***/ "0baa":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var _node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_system_header_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("e4f1");
-/* harmony import */ var _node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_system_header_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_system_header_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__);
-/* unused harmony reexport * */
- /* unused harmony default export */ var _unused_webpack_default_export = (_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_system_header_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default.a); 
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "chooseFile", function() { return chooseFile; });
+var MEDIA_TYPE = ['all', 'image', 'video'];
+var SOURCE_TYPES = ['album', 'camera'];
+var chooseFile = {
+  count: {
+    type: Number,
+    required: false,
+    default: 100,
+    validator: function validator(count, params) {
+      if (count <= 0) {
+        params.count = 100;
+      }
+    }
+  },
+  sourceType: {
+    type: Array,
+    required: false,
+    default: SOURCE_TYPES,
+    validator: function validator(sourceType, params) {
+      sourceType = sourceType.filter(function (sourceType) {
+        return SOURCE_TYPES.includes(sourceType);
+      });
+      params.sourceType = sourceType.length ? sourceType : SOURCE_TYPES;
+    }
+  },
+  type: {
+    type: String,
+    required: false,
+    default: 'all',
+    validator: function validator(type, params) {
+      if (!MEDIA_TYPE.includes(type)) params.type = MEDIA_TYPE[0];
+      params.type = params.type === 'all' ? params.type = '*' : params.type;
+    }
+  },
+  extension: {
+    type: Array,
+    default: [''],
+    validator: function validator(extension, params) {
+      if (extension.length === 0) {
+        return 'param extension should not be empty.';
+      }
+    }
+  }
+};
 
 /***/ }),
 
@@ -728,6 +820,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(vue__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var uni_helpers_api__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("27a7");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "invokeCallbackHandler", function() { return uni_helpers_api__WEBPACK_IMPORTED_MODULE_1__["a"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "removeCallbackHandler", function() { return uni_helpers_api__WEBPACK_IMPORTED_MODULE_1__["b"]; });
 
 /* harmony import */ var uni_platform_service_bridge__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("b865");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "publishHandler", function() { return uni_platform_service_bridge__WEBPACK_IMPORTED_MODULE_2__["b"]; });
@@ -751,6 +845,130 @@ function subscribeHandler(event, args, pageId) {
   return emit('view.' + event, args, pageId);
 }
 
+
+/***/ }),
+
+/***/ "0e5c":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showTopWindow", function() { return showTopWindow; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hideTopWindow", function() { return hideTopWindow; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showLeftWindow", function() { return showLeftWindow; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hideLeftWindow", function() { return hideLeftWindow; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showRightWindow", function() { return showRightWindow; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hideRightWindow", function() { return hideRightWindow; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getTopWindowStyle", function() { return getTopWindowStyle; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getLeftWindowStyle", function() { return getLeftWindowStyle; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getRightWindowStyle", function() { return getRightWindowStyle; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setTopWindowStyle", function() { return setTopWindowStyle; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setLeftWindowStyle", function() { return setLeftWindowStyle; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setRightWindowStyle", function() { return setRightWindowStyle; });
+/* harmony import */ var uni_shared__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("f2b3");
+
+
+function showWindow(type, show) {
+  var api = show ? 'show' : 'hide' + Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* capitalize */ "c"])(type) + 'Window';
+  var app = getApp();
+
+  if (app) {
+    var msg = app.$children[0].$refs.layout.showWindow(type, show);
+
+    if (msg) {
+      return {
+        errMsg: "".concat(api, ":fail ").concat(msg)
+      };
+    }
+
+    return {};
+  }
+
+  return {
+    errMsg: "".concat(api, ":fail app not ready")
+  };
+}
+
+function showTopWindow() {
+  return showWindow('top', true);
+}
+function hideTopWindow() {
+  return showWindow('top', false);
+}
+function showLeftWindow() {
+  return showWindow('left', true);
+}
+function hideLeftWindow() {
+  return showWindow('left', false);
+}
+function showRightWindow() {
+  return showWindow('right', true);
+}
+function hideRightWindow() {
+  return showWindow('right', false);
+}
+
+function getWindowStyle(type) {
+  var api = 'get' + Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* capitalize */ "c"])(type) + 'WindowStyle';
+  var app = getApp();
+
+  if (!app) {
+    return {
+      errMsg: "".concat(api, ":fail app not ready")
+    };
+  }
+
+  var msg = app.$children[0].$refs.layout.getWindowStyle(type);
+
+  if (typeof msg === 'string' && msg.indexOf('Window not found') !== -1) {
+    return {
+      errMsg: "".concat(api, ":fail ").concat(msg)
+    };
+  }
+
+  return msg;
+}
+
+function getTopWindowStyle(style) {
+  return getWindowStyle('top');
+}
+function getLeftWindowStyle(style) {
+  return getWindowStyle('left');
+}
+function getRightWindowStyle(style) {
+  return getWindowStyle('right');
+}
+
+function setWindowStyle(type, style) {
+  var api = 'set' + Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* capitalize */ "c"])(type) + 'WindowStyle';
+  var app = getApp();
+
+  if (!app) {
+    return {
+      errMsg: "".concat(api, ":fail app not ready")
+    };
+  }
+
+  var msg = app.$children[0].$refs.layout.setWindowStyle(type, style);
+
+  if (msg) {
+    return {
+      errMsg: "".concat(api, ":fail ").concat(msg)
+    };
+  }
+
+  return {};
+}
+
+function setTopWindowStyle(style) {
+  return setWindowStyle('top', style);
+}
+function setLeftWindowStyle(style) {
+  return setWindowStyle('left', style);
+}
+function setRightWindowStyle(style) {
+  return setWindowStyle('right', style);
+}
 
 /***/ }),
 
@@ -818,12 +1036,12 @@ function getRealRoute(fromRoute, toRoute) {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/image/index.vue?vue&type=template&id=d8eabad2&
-var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-image',_vm._g({},_vm.$listeners),[_c('div',{ref:"content",style:(_vm.modeStyle)}),_c('img',{attrs:{"src":_vm.realImagePath}}),(_vm.mode === 'widthFix')?_c('v-uni-resize-sensor',{ref:"sensor",on:{"resize":_vm._resize}}):_vm._e()],1)}
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/image/index.vue?vue&type=template&id=6faa3c74&
+var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-image',_vm._g({},_vm.$listeners),[_c('div',{ref:"content",style:(_vm.style)}),(_vm.contentPath)?_c('img',{attrs:{"src":_vm.contentPath,"draggable":_vm.draggable}}):_vm._e(),(_vm.mode === 'widthFix' || _vm.mode === 'heightFix')?_c('v-uni-resize-sensor',{ref:"sensor",on:{"resize":function($event){return _vm._fixSize()}}}):_vm._e()],1)}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/core/view/components/image/index.vue?vue&type=template&id=d8eabad2&
+// CONCATENATED MODULE: ./src/core/view/components/image/index.vue?vue&type=template&id=6faa3c74&
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/image/index.vue?vue&type=script&lang=js&
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -842,6 +1060,19 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 //
 //
 //
+//
+//
+//
+//
+function fixNumber(number) {
+  // fix: 解决 Chrome 浏览器上某些情况下导致 1px 缝隙的问题
+  if ((typeof navigator === "undefined" ? "undefined" : _typeof(navigator)) && navigator.vendor === 'Google Inc.' && number > 10) {
+    number = Math.round(number / 2) * 2;
+  }
+
+  return number;
+}
+
 /* harmony default export */ var imagevue_type_script_lang_js_ = ({
   name: 'Image',
   props: {
@@ -857,23 +1088,28 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     lazyLoad: {
       type: [Boolean, String],
       default: false
+    },
+    draggable: {
+      type: Boolean,
+      default: true
     }
   },
   data: function data() {
     return {
       originalWidth: 0,
       originalHeight: 0,
-      availHeight: ''
+      originalStyle: {
+        width: '',
+        height: ''
+      },
+      contentPath: ''
     };
   },
   computed: {
     ratio: function ratio() {
       return this.originalWidth && this.originalHeight ? this.originalWidth / this.originalHeight : 0;
     },
-    realImagePath: function realImagePath() {
-      return this.$getRealPath(this.src);
-    },
-    modeStyle: function modeStyle() {
+    style: function style() {
       var size = 'auto';
       var position = '';
       var repeat = 'no-repeat';
@@ -890,6 +1126,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
           break;
 
         case 'widthFix':
+        case 'heightFix':
           size = '100% 100%';
           break;
 
@@ -935,90 +1172,119 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
           break;
       }
 
-      return "background-position:".concat(position, ";background-size:").concat(size, ";background-repeat:").concat(repeat, ";");
+      return {
+        'background-image': this.contentPath ? "url(\"".concat(this.contentPath, "\")") : 'none',
+        'background-position': position,
+        'background-size': size,
+        'background-repeat': repeat
+      };
     }
   },
   watch: {
     src: function src(newValue, oldValue) {
-      this._setContentImage();
-
       this._loadImage();
     },
     mode: function mode(newValue, oldValue) {
-      if (oldValue === 'widthFix') {
-        this.$el.style.height = this.availHeight;
+      if (oldValue === 'widthFix' || oldValue === 'heightFix') {
+        this._resetSize();
       }
 
-      if (newValue === 'widthFix' && this.ratio) {
+      if (newValue === 'widthFix' || newValue === 'heightFix') {
         this._fixSize();
       }
     }
   },
   mounted: function mounted() {
-    this.availHeight = this.$el.style.height || '';
-
-    this._setContentImage();
-
-    if (!this.realImagePath) {
-      return;
-    }
+    this.originalStyle.width = this.$el.style.width || '';
+    this.originalStyle.height = this.$el.style.height || '';
 
     this._loadImage();
   },
+  beforeDestroy: function beforeDestroy() {
+    this._clearImage();
+  },
   methods: {
-    _resize: function _resize() {
-      if (this.mode === 'widthFix') {
-        this._fixSize();
-      }
-    },
     _fixSize: function _fixSize() {
-      var elWidth = this._getWidth();
+      if (this.ratio) {
+        var $el = this.$el;
+        var rect = $el.getBoundingClientRect();
 
-      if (elWidth) {
-        var height = elWidth / this.ratio; // fix: 解决 Chrome 浏览器上某些情况下导致 1px 缝隙的问题
+        if (this.mode === 'widthFix') {
+          var width = rect.width;
 
-        if ((typeof navigator === "undefined" ? "undefined" : _typeof(navigator)) && navigator.vendor === 'Google Inc.' && height > 10) {
-          height = Math.round(height / 2) * 2;
+          if (width) {
+            $el.style.height = fixNumber(width / this.ratio) + 'px';
+          }
+        } else if (this.mode === 'heightFix') {
+          var height = rect.height;
+
+          if (height) {
+            $el.style.width = fixNumber(height * this.ratio) + 'px';
+          }
         }
-
-        this.$el.style.height = height + 'px';
       }
     },
-    _setContentImage: function _setContentImage() {
-      this.$refs.content.style.backgroundImage = this.src ? "url(\"".concat(this.realImagePath, "\")") : 'none';
+    _resetSize: function _resetSize() {
+      this.$el.style.width = this.originalStyle.width;
+      this.$el.style.height = this.originalStyle.height;
+    },
+    _resetData: function _resetData() {
+      this.originalWidth = 0;
+      this.originalHeight = 0;
+      this.contentPath = '';
     },
     _loadImage: function _loadImage() {
-      var _self = this;
+      var _this = this;
 
-      var img = new Image();
+      var realImagePath = this.$getRealPath(this.src);
 
-      img.onload = function ($event) {
-        _self.originalWidth = this.width;
-        _self.originalHeight = this.height;
+      if (realImagePath) {
+        var img = this._img = this._img || new Image();
 
-        if (_self.mode === 'widthFix') {
-          _self._fixSize();
-        }
+        img.onload = function ($event) {
+          _this._img = null;
+          _this.originalWidth = img.width;
+          _this.originalHeight = img.height;
 
-        _self.$trigger('load', $event, {
-          width: this.width,
-          height: this.height
-        });
-      };
+          _this._fixSize();
 
-      img.onerror = function ($event) {
-        _self.$trigger('error', $event, {
-          errMsg: "GET ".concat(_self.src, " 404 (Not Found)")
-        });
-      };
+          _this.contentPath = realImagePath;
 
-      img.src = this.realImagePath;
+          _this.$trigger('load', $event, {
+            width: img.width,
+            height: img.height
+          });
+        };
+
+        img.onerror = function ($event) {
+          _this._img = null;
+
+          _this._resetData(); // 与微信小程序保持一致，保留之前样式
+          // this._resetSize()
+
+
+          _this.$trigger('error', $event, {
+            errMsg: "GET ".concat(_this.src, " 404 (Not Found)")
+          });
+        };
+
+        img.src = realImagePath;
+      } else {
+        this._clearImage(); // 与微信小程序保持一致，保留之前样式
+        // this._resetData()
+
+
+        this._resetSize();
+      }
     },
-    _getWidth: function _getWidth() {
-      var computedStyle = window.getComputedStyle(this.$el);
-      var borderWidth = (parseFloat(computedStyle.borderLeftWidth, 10) || 0) + (parseFloat(computedStyle.borderRightWidth, 10) || 0);
-      var paddingWidth = (parseFloat(computedStyle.paddingLeft, 10) || 0) + (parseFloat(computedStyle.paddingRight, 10) || 0);
-      return this.$el.offsetWidth - borderWidth - paddingWidth;
+    _clearImage: function _clearImage() {
+      var img = this._img;
+
+      if (img) {
+        img.onload = null;
+        img.onerror = null;
+        this._img = null;
+      }
     }
   }
 });
@@ -1051,6 +1317,561 @@ var component = Object(componentNormalizer["a" /* default */])(
 )
 
 /* harmony default export */ var components_image = __webpack_exports__["default"] = (component.exports);
+
+/***/ }),
+
+/***/ "10a3":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+// ESM COMPAT FLAG
+__webpack_require__.r(__webpack_exports__);
+
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/ad/index.vue?vue&type=template&id=6bbef49e&
+var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-ad',_vm._g(_vm._b({},'uni-ad',_vm.attrs,false),_vm.$listeners),[_c('div',{ref:"container",staticClass:"uni-ad-container",on:{"click":_vm._onhandle}})])}
+var staticRenderFns = []
+
+
+// CONCATENATED MODULE: ./src/platforms/h5/view/components/ad/index.vue?vue&type=template&id=6bbef49e&
+
+// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 1 modules
+var mixins = __webpack_require__("8af1");
+
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/ad/index.vue?vue&type=script&lang=js&
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+var AdConfig = /*#__PURE__*/function () {
+  _createClass(AdConfig, null, [{
+    key: "instance",
+    get: function get() {
+      if (this._instance == null) {
+        this._instance = new AdConfig();
+
+        this._instance._init();
+      }
+
+      return this._instance;
+    }
+  }]);
+
+  function AdConfig() {
+    _classCallCheck(this, AdConfig);
+
+    this._instance = null;
+    this._adConfig = null;
+    this._isLoading = false;
+    this._lastError = null;
+    this._callbacks = [];
+  }
+
+  _createClass(AdConfig, [{
+    key: "_init",
+    value: function _init() {
+      var config = this._getConfig();
+
+      if (config === null || !config.last) {
+        return;
+      }
+
+      if (!this.isExpired) {
+        this._adConfig = config.data;
+      }
+    }
+  }, {
+    key: "get",
+    value: function get(adpid, success, fail) {
+      AdConfig.IC++;
+
+      if (this._adConfig != null) {
+        this._doCallback(adpid, success, fail);
+
+        if (this.isExpired) {
+          this._loadAdConfig(adpid);
+        }
+
+        return;
+      }
+
+      this._callbacks.push({
+        adpid: adpid,
+        success: success,
+        fail: fail
+      });
+
+      this._loadAdConfig(adpid);
+    }
+  }, {
+    key: "_doCallback",
+    value: function _doCallback(adpid, success, fail) {
+      AdConfig.IS++;
+      var data = this._adConfig;
+
+      if (data[adpid]) {
+        success(data[adpid]);
+      } else {
+        fail(this.ERROR_INVALID_ADPID);
+      }
+    }
+  }, {
+    key: "_loadAdConfig",
+    value: function _loadAdConfig(adpid) {
+      var _this = this;
+
+      if (this._isLoading === true) {
+        return;
+      }
+
+      this._isLoading = true;
+      uni.request({
+        url: this.URL,
+        method: 'GET',
+        timeout: 5000,
+        data: {
+          d: location.hostname,
+          a: adpid
+        },
+        dataType: 'json',
+        success: function success(res) {
+          var rd = res.data;
+
+          if (rd.ret === 0) {
+            var data = rd.data;
+            _this._adConfig = data;
+
+            _this._setConfig(data);
+
+            _this._callbacks.forEach(function (_ref) {
+              var adpid = _ref.adpid,
+                  success = _ref.success,
+                  fail = _ref.fail;
+
+              _this._doCallback(adpid, success, fail);
+            });
+          } else {
+            _this._callbacks.forEach(function (i) {
+              i.fail({
+                errCode: rd.ret,
+                errMsg: rd.msg
+              });
+            });
+          }
+
+          _this._callbacks = [];
+        },
+        fail: function fail(err) {
+          _this._callbacks.forEach(function (i) {
+            i.fail(err);
+          });
+
+          _this._callbacks = [];
+        },
+        complete: function complete(c) {
+          _this._isLoading = false;
+        }
+      });
+    }
+  }, {
+    key: "_getConfig",
+    value: function _getConfig() {
+      if (!navigator.cookieEnabled || !window.localStorage) {
+        return null;
+      }
+
+      var data = localStorage.getItem(this.KEY);
+      return data ? JSON.parse(data) : null;
+    }
+  }, {
+    key: "_setConfig",
+    value: function _setConfig(data) {
+      if (!navigator.cookieEnabled || !window.localStorage) {
+        return null;
+      }
+
+      localStorage.setItem(this.KEY, JSON.stringify({
+        last: Date.now(),
+        data: data
+      }));
+    }
+  }, {
+    key: "adConfig",
+    get: function get() {
+      return this._adConfig;
+    }
+  }, {
+    key: "isExpired",
+    get: function get() {
+      if (this._adConfig == null) {
+        return true;
+      }
+
+      return Math.abs(Date.now() - this._adConfig.last) > this.CACHE_TIME;
+    }
+  }]);
+
+  return AdConfig;
+}();
+
+_defineProperty(AdConfig, "IC", 0);
+
+_defineProperty(AdConfig, "IS", 0);
+
+Object.assign(AdConfig.prototype, {
+  URL: '//qy5y9ee9ch8r87pg72w5.dcloud.net.cn/hcs',
+  KEY: 'uni_app_ad_config',
+  CACHE_TIME: 1000 * 60 * 10,
+  ERROR_INVALID_ADPID: {
+    '-5002': '无效adpid'
+  }
+});
+
+var AdReport = /*#__PURE__*/function () {
+  _createClass(AdReport, null, [{
+    key: "instance",
+    get: function get() {
+      if (this._instance == null) {
+        this._instance = new AdReport();
+
+        this._instance._init();
+      }
+
+      return this._instance;
+    }
+  }]);
+
+  function AdReport() {
+    _classCallCheck(this, AdReport);
+
+    this._instance = null;
+    this._adConfig = null;
+    this._guid = null;
+  }
+
+  _createClass(AdReport, [{
+    key: "_init",
+    value: function _init() {
+      var config = this._getConfig();
+
+      if (config !== null && config.guid) {
+        this._guid = config.guid;
+        return;
+      }
+
+      this._guid = this._newGUID();
+
+      this._setConfig(this._guid);
+    }
+  }, {
+    key: "get",
+    value: function get(data) {
+      this._process(Object.assign(data, {
+        d: location.hostname,
+        i: this._guid
+      }));
+    }
+  }, {
+    key: "_process",
+    value: function _process(data) {
+      uni.request({
+        url: this.URL,
+        method: 'GET',
+        data: data,
+        dataType: 'json',
+        success: function success() {}
+      });
+    }
+  }, {
+    key: "_newGUID",
+    value: function _newGUID() {
+      var guid = '';
+      var format = 'xxxxxxxx-xxxx-4xxx-xxxx-xxxxxxxxxxxx';
+
+      for (var i = 0; i < format.length; i++) {
+        if (format[i] === 'x') {
+          guid += (Math.random() * 16 | 0).toString(16);
+        } else {
+          guid += format[i];
+        }
+      }
+
+      return guid.toUpperCase();
+    }
+  }, {
+    key: "_getConfig",
+    value: function _getConfig() {
+      if (!navigator.cookieEnabled || !window.localStorage) {
+        return null;
+      }
+
+      var data = localStorage.getItem(this.KEY);
+      return data ? JSON.parse(data) : null;
+    }
+  }, {
+    key: "_setConfig",
+    value: function _setConfig(guid) {
+      if (!navigator.cookieEnabled || !window.localStorage) {
+        return null;
+      }
+
+      localStorage.setItem(this.KEY, JSON.stringify({
+        last: Date.now(),
+        guid: guid
+      }));
+    }
+  }]);
+
+  return AdReport;
+}();
+
+Object.assign(AdReport.prototype, {
+  URL: '//hp66hwpyev7yx2hfughh.dcloud.net.cn/ahl',
+  KEY: 'uni_app_ad_guid'
+});
+var adProvider = {
+  hx: 'zswx_hx',
+  ky: 'zswx_ky'
+};
+var CHECK_RENDER_DELAY = 1000;
+var CHECK_RENDER_RETRY = 3;
+/* harmony default export */ var advue_type_script_lang_js_ = ({
+  name: 'Ad',
+  mixins: [mixins["g" /* subscriber */]],
+  props: {
+    adpid: {
+      type: [Number, String],
+      default: ''
+    }
+  },
+  watch: {
+    adpid: function adpid(val) {
+      if (val) {
+        this._loadData(val);
+      }
+    }
+  },
+  mounted: function mounted() {
+    this._pl = [];
+    this._pd = {};
+    this._pi = 0;
+    this._checkTimer = null;
+    this._checkTimerCount = 0;
+
+    this._loadData();
+
+    AdReport.instance.get({
+      h: __uniConfig.compilerVersion,
+      a: this.adpid,
+      at: 30,
+      ic: AdConfig.IC,
+      is: AdConfig.IS
+    });
+  },
+  beforeDestroy: function beforeDestroy() {
+    this._clearCheckTimer();
+
+    this.$refs.container.innerHTML = '';
+  },
+  methods: {
+    _onhandle: function _onhandle(e) {
+      this._report(41);
+    },
+    _reset: function _reset() {
+      this._pl = [];
+      this._pd = {};
+      this._pi = 0;
+
+      this._clearCheckTimer();
+
+      this.$refs.container.innerHTML = '';
+    },
+    _loadData: function _loadData(adpid) {
+      var _this2 = this;
+
+      this._reset();
+
+      AdConfig.instance.get(adpid || this.adpid, function (data) {
+        _this2._pd = data;
+        _this2._pl = data.psp.split(',');
+
+        _this2._renderAd();
+      }, function (err) {
+        _this2.$trigger('error', {}, err);
+      });
+    },
+    _renderAd: function _renderAd() {
+      if (this._pi > this._pl.length - 1) {
+        return;
+      }
+
+      var ap = this._pl[this._pi];
+      var data = this._pd[ap];
+
+      switch (ap) {
+        case adProvider.hx:
+          this._renderHX(data);
+
+          break;
+
+        case adProvider.ky:
+          this._renderKY(data);
+
+          break;
+      }
+    },
+    _renderNext: function _renderNext() {
+      if (this._pi >= this._pl.length - 1) {
+        return;
+      }
+
+      this._pi++;
+
+      this._renderAd();
+    },
+    _renderHX: function _renderHX(data) {
+      if (document.querySelector('#' + adProvider.hx)) {
+        this._renderNext();
+
+        return;
+      }
+
+      var ad = document.createElement('script');
+      ad.src = data.src || data.url;
+      var adView = document.createElement('div');
+      adView.setAttribute('id', adProvider.hx);
+      adView.appendChild(ad);
+      this.$refs.container.innerHTML = '';
+      this.$refs.container.append(adView);
+
+      this._startCheckTimer();
+    },
+    _renderKY: function _renderKY(data) {
+      var randomId = this._randomId();
+
+      var ad = document.createElement('script');
+      ad.src = (data.src || data.url) + '&_ct=' + randomId;
+      var adView = document.createElement('div');
+      adView.setAttribute('id', randomId);
+      adView.appendChild(ad);
+      this.$refs.container.innerHTML = '';
+      this.$refs.container.append(adView);
+
+      this._startCheckTimer();
+    },
+    _checkRender: function _checkRender() {
+      var hasContent = this.$refs.container.children.length > 0 && this.$refs.container.clientHeight > 40;
+
+      if (hasContent) {
+        this._report(40);
+      }
+
+      return hasContent;
+    },
+    _startCheckTimer: function _startCheckTimer() {
+      var _this3 = this;
+
+      this._clearCheckTimer();
+
+      this._checkTimer = setInterval(function () {
+        _this3._checkTimerCount++;
+
+        if (_this3._checkTimerCount >= CHECK_RENDER_RETRY) {
+          _this3._clearCheckTimer();
+
+          _this3._renderNext();
+
+          return;
+        }
+
+        if (_this3._checkRender()) {
+          _this3._clearCheckTimer();
+        }
+      }, CHECK_RENDER_DELAY);
+    },
+    _clearCheckTimer: function _clearCheckTimer() {
+      this._checkTimerCount = 0;
+
+      if (this._checkTimer != null) {
+        window.clearInterval(this._checkTimer);
+        this._checkTimer = null;
+      }
+    },
+    _report: function _report(type) {
+      var taskId = '';
+
+      if (this._pl.length > 0 && this._pi < this._pl.length) {
+        var data = this._pd[this._pl[this._pi]];
+
+        if (data) {
+          taskId = data.task_id;
+        }
+      }
+
+      AdReport.instance.get({
+        h: __uniConfig.compilerVersion,
+        a: this.adpid,
+        t: taskId,
+        at: type
+      });
+    },
+    _randomId: function _randomId() {
+      var result = '';
+
+      for (var i = 0; i < 2; i++) {
+        result += (65536 * (1 + Math.random()) | 0).toString(16).substring(1);
+      }
+
+      return result;
+    }
+  }
+});
+// CONCATENATED MODULE: ./src/platforms/h5/view/components/ad/index.vue?vue&type=script&lang=js&
+ /* harmony default export */ var components_advue_type_script_lang_js_ = (advue_type_script_lang_js_); 
+// EXTERNAL MODULE: ./src/platforms/h5/view/components/ad/index.vue?vue&type=style&index=0&lang=css&
+var advue_type_style_index_0_lang_css_ = __webpack_require__("e4bc");
+
+// EXTERNAL MODULE: ./node_modules/vue-loader/lib/runtime/componentNormalizer.js
+var componentNormalizer = __webpack_require__("2877");
+
+// CONCATENATED MODULE: ./src/platforms/h5/view/components/ad/index.vue
+
+
+
+
+
+
+/* normalize component */
+
+var component = Object(componentNormalizer["a" /* default */])(
+  components_advue_type_script_lang_js_,
+  render,
+  staticRenderFns,
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* harmony default export */ var ad = __webpack_exports__["default"] = (component.exports);
 
 /***/ }),
 
@@ -1087,12 +1908,21 @@ function getCurrentPages() {
     var tabBarVm = childrenVm.$children.find(function (vm) {
       return vm.$options.name === 'TabBar';
     });
+    var layoutVm = childrenVm.$children.find(function (vm) {
+      return vm.$options.name === 'Layout';
+    });
+
+    if (layoutVm) {
+      childrenVm = layoutVm;
+    }
+
     childrenVm.$children.forEach(function (vm) {
       if (tabBarVm !== vm && vm.$children.length && vm.$children[0].$options.name === 'Page' && vm.$children[0].$slots.page) {
         // vm.$children[0]=Page->PageBody->RealPage
-        var pageVm = vm.$children[0].$children.find(function (vm) {
+        var pageBody = vm.$children[0].$children.find(function (vm) {
           return vm.$options.name === 'PageBody';
-        }).$children.find(function (vm) {
+        });
+        var pageVm = pageBody && pageBody.$children.find(function (vm) {
           return !!vm.$page;
         });
 
@@ -1139,6 +1969,7 @@ function getCurrentPages() {
 }
 function createApp(vm, routes) {
   appVm = vm;
+  appVm.$vm = vm;
   appVm.globalData = appVm.$options.globalData || {}; // initEvents(appVm)
 
   Object(_router_guard__WEBPACK_IMPORTED_MODULE_0__[/* default */ "a"])(appVm, routes);
@@ -1193,7 +2024,74 @@ var previewImage = {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(UniViewJSBridge) {/* harmony import */ var _system_header__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("bab8");
+/* WEBPACK VAR INJECTION */(function(UniViewJSBridge) {/* harmony import */ var uni_shared__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("f2b3");
+/* harmony import */ var uni_platform_helpers_get_jsonp__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("ffdc");
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -1215,48 +2113,143 @@ var previewImage = {
 //
 //
 
+
+var key = __uniConfig.qqMapKey;
 /* harmony default export */ __webpack_exports__["a"] = ({
   name: 'SystemChooseLocation',
-  components: {
-    SystemHeader: _system_header__WEBPACK_IMPORTED_MODULE_0__[/* default */ "a"]
-  },
   data: function data() {
-    var key = __uniConfig.qqMapKey;
     return {
-      src: "https://apis.map.qq.com/tools/locpicker?search=1&type=1&key=".concat(key, "&referer=uniapp"),
-      data: null
+      latitude: 0,
+      longitude: 0,
+      pageSize: 15,
+      pageIndex: 1,
+      selectedIndex: -1,
+      list: [],
+      keyword: '',
+      searching: false,
+      loading: true
     };
   },
-  mounted: function mounted() {
-    function handler(event) {
-      var loc = event.data;
-
-      if (loc && loc.module === 'locationPicker') {
-        this.data = {
-          name: loc.poiname,
-          address: loc.poiaddress,
-          latitude: loc.latlng.lat,
-          longitude: loc.latlng.lng
-        };
-      }
+  computed: {
+    selected: function selected() {
+      return this.list[this.selectedIndex];
     }
+  },
+  created: function created() {
+    var _this = this;
 
-    this.__messageHandle = handler.bind(this);
-    window.addEventListener('message', this.__messageHandle, false);
+    this._moveToLocation();
+
+    this._search = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* debounce */ "d"])(function () {
+      _this._reset();
+
+      if (_this.keyword) {
+        _this._getList();
+      }
+    }, 1000);
+    this.$watch('searching', function (val) {
+      _this._reset();
+
+      if (!val) {
+        _this._getList();
+      }
+    });
   },
   beforeDestroy: function beforeDestroy() {
     window.removeEventListener('message', this.__messageHandle, false);
   },
   methods: {
     _choose: function _choose() {
-      if (this.data) {
-        UniViewJSBridge.publishHandler('onChooseLocation', Object.assign({}, this.data));
+      if (this.selected) {
+        UniViewJSBridge.publishHandler('onChooseLocation', Object.assign({}, this.selected));
         getApp().$router.back();
       }
     },
     _back: function _back() {
       UniViewJSBridge.publishHandler('onChooseLocation', null);
       getApp().$router.back();
+    },
+    _moveToLocation: function _moveToLocation() {
+      var _this2 = this;
+
+      uni.getLocation({
+        type: 'gcj02',
+        success: this._move.bind(this),
+        fail: function fail() {
+          _this2._move({
+            latitude: 39.90960456049752,
+            longitude: 116.3972282409668
+          });
+        }
+      });
+    },
+    _regionchange: function _regionchange(_ref) {
+      var centerLocation = _ref.detail.centerLocation;
+
+      if (centerLocation) {
+        // TODO 图钉 icon 动画
+        this._move(centerLocation);
+      }
+    },
+    _pushData: function _pushData(array) {
+      var _this3 = this;
+
+      array.forEach(function (item) {
+        _this3.list.push({
+          name: item.title,
+          address: item.address,
+          distance: item._distance,
+          latitude: item.location.lat,
+          longitude: item.location.lng
+        });
+      });
+    },
+    _getList: function _getList() {
+      var _this4 = this;
+
+      this.loading = true;
+      var url = this.searching ? "https://apis.map.qq.com/ws/place/v1/search?output=jsonp&key=".concat(key, "&boundary=nearby(").concat(this.latitude, ",").concat(this.longitude, ",1000)&keyword=").concat(this.keyword, "&page_size=").concat(this.pageSize, "&page_index=").concat(this.pageIndex) : "https://apis.map.qq.com/ws/geocoder/v1/?output=jsonp&key=".concat(key, "&location=").concat(this.latitude, ",").concat(this.longitude, "&get_poi=1&poi_options=page_size=").concat(this.pageSize, ";page_index=").concat(this.pageIndex); // TODO 列表加载失败提示
+
+      Object(uni_platform_helpers_get_jsonp__WEBPACK_IMPORTED_MODULE_1__[/* getJSONP */ "a"])(url, {
+        callback: 'callback'
+      }, function (res) {
+        _this4.loading = false;
+
+        if (_this4.searching && 'data' in res && res.data.length) {
+          _this4._pushData(res.data);
+        } else if ('result' in res && res.result.pois) {
+          _this4._pushData(res.result.pois);
+        }
+      }, function () {
+        _this4.loading = false;
+      });
+    },
+    _scrolltolower: function _scrolltolower() {
+      if (!this.loading && this.list.length === this.pageSize * this.pageIndex) {
+        this.pageIndex++;
+
+        this._getList();
+      }
+    },
+    _reset: function _reset() {
+      this.selectedIndex = -1;
+      this.pageIndex = 1;
+      this.list = [];
+    },
+    _move: function _move(_ref2) {
+      var latitude = _ref2.latitude,
+          longitude = _ref2.longitude;
+      this.latitude = latitude;
+      this.longitude = longitude;
+
+      if (!this.searching) {
+        this._reset();
+
+        this._getList();
+      }
+    },
+    _input: function _input() {
+      this._search();
     }
   }
 });
@@ -1368,7 +2361,7 @@ var previewImage = {
     },
     bgColor: function bgColor() {
       if (this.type === 'transparent') {
-        var _hexToRgba = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hexToRgba */ "i"])(this.backgroundColor),
+        var _hexToRgba = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hexToRgba */ "j"])(this.backgroundColor),
             r = _hexToRgba.r,
             g = _hexToRgba.g,
             b = _hexToRgba.b;
@@ -1384,6 +2377,33 @@ var previewImage = {
   }
 });
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("501c")))
+
+/***/ }),
+
+/***/ "15ff":
+/***/ (function(module, exports, __webpack_require__) {
+
+// extracted by mini-css-extract-plugin
+
+/***/ }),
+
+/***/ "1634":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return checkInWindows; });
+var WINDOW_NAMES = ['VUniLeftWindow', 'VUniTopWindow', 'VUniRightWindow'];
+function checkInWindows(vm) {
+  if (false) {}
+
+  while (vm) {
+    if (WINDOW_NAMES.indexOf(vm.$options.name) !== -1) {
+      return true;
+    }
+
+    vm = vm.$parent;
+  }
+}
 
 /***/ }),
 
@@ -1455,6 +2475,10 @@ var OPEN_TYPES = ['navigate', 'redirect', 'switchTab', 'reLaunch', 'navigateBack
     hoverStayTime: {
       type: [Number, String],
       default: 600
+    },
+    exists: {
+      type: String,
+      default: ''
     }
   },
   methods: {
@@ -1473,7 +2497,8 @@ var OPEN_TYPES = ['navigate', 'redirect', 'switchTab', 'reLaunch', 'navigateBack
 
         case 'redirect':
           uni.redirectTo({
-            url: this.url
+            url: this.url,
+            exists: this.exists
           });
           break;
 
@@ -1512,12 +2537,12 @@ var OPEN_TYPES = ['navigate', 'redirect', 'switchTab', 'reLaunch', 'navigateBack
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/navigator/index.vue?vue&type=template&id=974b02b4&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/navigator/index.vue?vue&type=template&id=01361630&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return (_vm.hoverClass && _vm.hoverClass !== 'none')?_c('uni-navigator',_vm._g({class:[_vm.hovering ? _vm.hoverClass : ''],on:{"touchstart":_vm._hoverTouchStart,"touchend":_vm._hoverTouchEnd,"touchcancel":_vm._hoverTouchCancel,"click":_vm._onClick}},_vm.$listeners),[_vm._t("default")],2):_c('uni-navigator',_vm._g({on:{"click":_vm._onClick}},_vm.$listeners),[_vm._t("default")],2)}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/core/view/components/navigator/index.vue?vue&type=template&id=974b02b4&
+// CONCATENATED MODULE: ./src/core/view/components/navigator/index.vue?vue&type=template&id=01361630&
 
 // EXTERNAL MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/navigator/index.vue?vue&type=script&lang=js&
 var navigatorvue_type_script_lang_js_ = __webpack_require__("1771");
@@ -1882,8 +2907,8 @@ var Friction = __webpack_require__("5363");
 // EXTERNAL MODULE: ./src/core/view/mixins/scroller/Spring.js
 var Spring = __webpack_require__("72b3");
 
-// EXTERNAL MODULE: ./src/shared/index.js + 7 modules
-var shared = __webpack_require__("f2b3");
+// EXTERNAL MODULE: ./src/platforms/h5/helpers/scroll.js
+var helpers_scroll = __webpack_require__("d4cd");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/picker-view-column/index.vue?vue&type=script&lang=js&
 
@@ -1979,6 +3004,18 @@ function initClick(dom) {
       _this.update();
     });
     initClick(this.$el);
+    Object(helpers_scroll["b" /* initScrollBounce */])();
+    var $vm = this;
+
+    while ($vm) {
+      var scopeId = $vm.$options._scopeId;
+
+      if (scopeId) {
+        this.$refs.indicator.setAttribute(scopeId, '');
+      }
+
+      $vm = $vm.$parent;
+    }
   },
   methods: {
     _setItemHeight: function _setItemHeight(height) {
@@ -1992,7 +3029,7 @@ function initClick(dom) {
           case 'start':
             this._handleTouchStart(e);
 
-            Object(shared["e" /* disableScrollBounce */])({
+            Object(helpers_scroll["a" /* disableScrollBounce */])({
               disable: true
             });
             break;
@@ -2006,7 +3043,7 @@ function initClick(dom) {
           case 'cancel':
             this._handleTouchEnd(e);
 
-            Object(shared["e" /* disableScrollBounce */])({
+            Object(helpers_scroll["a" /* disableScrollBounce */])({
               disable: false
             });
         }
@@ -2169,13 +3206,17 @@ var map = {
 	"./context/canvas.js": "82b9",
 	"./context/context.js": "3bfb",
 	"./device/make-phone-call.js": "f102",
+	"./device/scan-code.js": "ea0f",
 	"./device/set-clipboard-data.js": "b501",
+	"./file/file.js": "2da2",
 	"./file/open-document.js": "2604",
 	"./location/choose-location.js": "e5bb",
 	"./location/get-location.js": "19d9",
 	"./location/open-location.js": "70bb",
+	"./media/choose-file.js": "0baa",
 	"./media/choose-image.js": "f1b2",
 	"./media/choose-video.js": "ed9f",
+	"./media/compress-image.js": "dc12",
 	"./media/get-image-info.js": "b866",
 	"./media/preview-image.js": "11fb",
 	"./media/save-image-to-photos-album.js": "4f53",
@@ -2185,6 +3226,7 @@ var map = {
 	"./network/upload-file.js": "9a3e",
 	"./plugin/get-provider.js": "4e7c",
 	"./plugin/load-sub-package.js": "d013",
+	"./plugin/pre-login.js": "f68f",
 	"./route/route.js": "332a",
 	"./storage/storage.js": "ec33",
 	"./ui/load-font-face.js": "5ff9",
@@ -2236,7 +3278,7 @@ var getLocation = {
     default: type.WGS84
   },
   altitude: {
-    altitude: Boolean,
+    type: Boolean,
     default: false
   }
 };
@@ -2323,16 +3365,17 @@ function request(_ref, callbackId) {
       method = _ref.method,
       dataType = _ref.dataType,
       responseType = _ref.responseType,
-      withCredentials = _ref.withCredentials;
+      withCredentials = _ref.withCredentials,
+      _ref$timeout = _ref.timeout,
+      timeout = _ref$timeout === void 0 ? __uniConfig.networkTimeout && __uniConfig.networkTimeout.request || 60 * 1000 : _ref$timeout;
   var _UniServiceJSBridge = UniServiceJSBridge,
       invoke = _UniServiceJSBridge.invokeCallbackHandler;
-  var body = null;
-  var timeout = __uniConfig.networkTimeout && __uniConfig.networkTimeout.request || 60 * 1000; // 根据请求类型处理数据
+  var body = null; // 根据请求类型处理数据
 
   var contentType;
 
   for (var _key in header) {
-    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "h"])(header, _key)) {
+    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "i"])(header, _key)) {
       if (_key.toLowerCase() === 'content-type') {
         contentType = header[_key];
 
@@ -2363,7 +3406,7 @@ function request(_ref, callbackId) {
         var bodyArray = [];
 
         for (var _key2 in data) {
-          if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "h"])(data, _key2)) {
+          if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "i"])(data, _key2)) {
             bodyArray.push(encodeURIComponent(_key2) + '=' + encodeURIComponent(data[_key2]));
           }
         }
@@ -2380,7 +3423,7 @@ function request(_ref, callbackId) {
   xhr.open(method, url);
 
   for (var key in header) {
-    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "h"])(header, key)) {
+    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "i"])(header, key)) {
       xhr.setRequestHeader(key, header[key]);
     }
   }
@@ -2452,6 +3495,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "switchTab", function() { return switchTab; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "preloadPage", function() { return preloadPage; });
 /* harmony import */ var uni_helpers_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("85b6");
+/* harmony import */ var uni_helpers_navigate_to__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("d65e");
+
 
 var _UniServiceJSBridge = UniServiceJSBridge,
     invoke = _UniServiceJSBridge.invokeCallbackHandler;
@@ -2460,6 +3505,8 @@ function onAppRoute(type) {
   var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
       url = _ref.url,
       delta = _ref.delta,
+      events = _ref.events,
+      exists = _ref.exists,
       animationType = _ref.animationType,
       animationDuration = _ref.animationDuration,
       _ref$from = _ref.from,
@@ -2467,9 +3514,24 @@ function onAppRoute(type) {
       detail = _ref.detail;
 
   var router = getApp().$router;
+  delete router.$eventChannel;
 
   switch (type) {
     case 'redirectTo':
+      if (exists === 'back') {
+        var existsPageIndex = Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_0__[/* findExistsPageIndex */ "a"])(url);
+
+        if (existsPageIndex !== -1) {
+          var _delta = getCurrentPages().length - 1 - existsPageIndex;
+
+          if (_delta > 0) {
+            return onAppRoute('navigateBack', {
+              delta: _delta
+            });
+          }
+        }
+      }
+
       router.replace({
         type: type,
         path: url
@@ -2477,13 +3539,17 @@ function onAppRoute(type) {
       break;
 
     case 'navigateTo':
+      router.$eventChannel = Object(uni_helpers_navigate_to__WEBPACK_IMPORTED_MODULE_1__[/* initEventChannel */ "a"])(events);
       router.push({
         type: type,
         path: url,
         animationType: animationType,
         animationDuration: animationDuration
       });
-      break;
+      return {
+        errMsg: type + ':ok',
+        eventChannel: router.$eventChannel
+      };
 
     case 'navigateBack':
       {
@@ -2493,7 +3559,7 @@ function onAppRoute(type) {
         if (pages.length) {
           var page = pages[pages.length - 1];
 
-          if (Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_0__[/* hasLifecycleHook */ "a"])(page.$options, 'onBackPress') && page.__call_hook('onBackPress', {
+          if (Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_0__[/* hasLifecycleHook */ "c"])(page.$options, 'onBackPress') && page.__call_hook('onBackPress', {
             from: from
           }) === true) {
             canBack = false;
@@ -2732,9 +3798,15 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       default: function _default() {
         return {};
       }
+    },
+    topWindow: {
+      type: Boolean,
+      default: true
     }
   },
   data: function data() {
+    // 目前简单处理，存在topWindow时，始终不显示page head
+    var navigationBar = {};
     var titleNViewTypeList = {
       none: 'default',
       auto: 'transparent',
@@ -2744,7 +3816,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     var titleNView = this.titleNView;
 
     if ( // 无头
-    titleNView === false || titleNView === 'false' || this.navigationStyle === 'custom' && !Object(uni_shared__WEBPACK_IMPORTED_MODULE_2__[/* isPlainObject */ "k"])(titleNView) || this.transparentTitle === 'always' && !Object(uni_shared__WEBPACK_IMPORTED_MODULE_2__[/* isPlainObject */ "k"])(titleNView)) {
+    titleNView === false || titleNView === 'false' || this.navigationStyle === 'custom' && !Object(uni_shared__WEBPACK_IMPORTED_MODULE_2__[/* isPlainObject */ "l"])(titleNView) || this.transparentTitle === 'always' && !Object(uni_shared__WEBPACK_IMPORTED_MODULE_2__[/* isPlainObject */ "l"])(titleNView)) {
       titleNView = {
         type: 'none'
       };
@@ -2762,7 +3834,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       YES: true,
       NO: false
     };
-    var navigationBar = Object(uni_helpers_patch__WEBPACK_IMPORTED_MODULE_3__[/* mergeTitleNView */ "a"])({
+    navigationBar = Object(uni_helpers_patch__WEBPACK_IMPORTED_MODULE_3__[/* mergeTitleNView */ "a"])({
       loading: false,
       backButton: !this.isQuit && !this.$route.meta.isQuit,
       // redirectTo,reLaunch时可能动态修改 meta.isQuit
@@ -2783,15 +3855,15 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       range: 150,
       offset: 0
     }, this.pullToRefresh);
-    var offset = Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_0__[/* upx2px */ "d"])(refreshOptions.offset);
+    var offset = Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_0__[/* upx2px */ "e"])(refreshOptions.offset);
 
     if (titleNView.type !== 'none' && titleNView.type !== 'transparent') {
       offset += uni_helpers_constants__WEBPACK_IMPORTED_MODULE_1__[/* NAVBAR_HEIGHT */ "a"] + safe_area_insets__WEBPACK_IMPORTED_MODULE_8___default.a.top;
     }
 
     refreshOptions.offset = offset;
-    refreshOptions.height = Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_0__[/* upx2px */ "d"])(refreshOptions.height);
-    refreshOptions.range = Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_0__[/* upx2px */ "d"])(refreshOptions.range);
+    refreshOptions.height = Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_0__[/* upx2px */ "e"])(refreshOptions.height);
+    refreshOptions.range = Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_0__[/* upx2px */ "e"])(refreshOptions.range);
     return {
       navigationBar: navigationBar,
       refreshOptions: refreshOptions
@@ -2849,7 +3921,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         return;
       }
 
-      if (!Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(this._handleSubscribe)) {
+      if (!Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(this._handleSubscribe)) {
         return;
       } // 纠正VUniVideo等组件命名为Video
 
@@ -2885,6 +3957,79 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 /* harmony import */ var _node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__);
 /* unused harmony reexport * */
  /* unused harmony default export */ var _unused_webpack_default_export = (_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default.a); 
+
+/***/ }),
+
+/***/ "1c73":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(UniViewJSBridge) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return requestMediaQueryObserver; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return destroyMediaQueryObserver; });
+var mediaQueryObservers = {};
+var listeners = {}; // 用公用对象存储监听器
+// 拼接媒体查询条件
+
+function handleMediaQueryStr($props) {
+  var mediaQueryStr = [];
+  var propsMenu = ['width', 'minWidth', 'maxWidth', 'height', 'minHeight', 'maxHeight', 'orientation'];
+
+  for (var _i = 0, _propsMenu = propsMenu; _i < _propsMenu.length; _i++) {
+    var item = _propsMenu[_i];
+
+    if (item !== 'orientation' && $props[item] !== '' && Number($props[item]) >= 0) {
+      mediaQueryStr.push("(".concat(humpToLine(item), ": ").concat(Number($props[item]), "px)"));
+    }
+
+    if (item === 'orientation' && $props[item]) {
+      mediaQueryStr.push("(".concat(humpToLine(item), ": ").concat($props[item], ")"));
+    }
+  }
+
+  mediaQueryStr = mediaQueryStr.join(' and ');
+  return mediaQueryStr;
+}
+
+function humpToLine(name) {
+  return name.replace(/([A-Z])/g, '-$1').toLowerCase();
+} // 请求媒体查询对象
+
+
+function requestMediaQueryObserver(_ref) {
+  var reqId = _ref.reqId,
+      options = _ref.options;
+  // 创建一个媒体查询对象
+  var mediaQueryObserver = mediaQueryObservers[reqId] = window.matchMedia(handleMediaQueryStr(options)); // 创建一个监听器
+
+  var listener = listeners[reqId] = function (e) {
+    UniViewJSBridge.publishHandler('onRequestMediaQueryObserver', {
+      reqId: reqId,
+      res: e.matches
+    });
+  };
+
+  listener(mediaQueryObserver); // 监听前执行一次媒体查询
+
+  mediaQueryObserver.addListener(listener);
+} // 销毁媒体查询对象
+
+function destroyMediaQueryObserver(_ref2) {
+  var reqId = _ref2.reqId;
+  var listener = listeners[reqId]; // 需要移除的某个监听
+
+  var mediaQueryObserver = mediaQueryObservers[reqId];
+
+  if (mediaQueryObserver) {
+    mediaQueryObserver.removeListener(listener); // 移除监听
+
+    delete mediaQueryObservers[reqId];
+    UniViewJSBridge.publishHandler('onRequestMediaQueryObserver', {
+      reqId: reqId,
+      reqEnd: true
+    });
+  }
+}
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("501c")))
 
 /***/ }),
 
@@ -3323,6 +4468,13 @@ function uploadFile(args, callbackId) {
 
 /***/ }),
 
+/***/ "2209":
+/***/ (function(module) {
+
+module.exports = JSON.parse("{\"uni.app.quit\":\"再按一次退出应用\",\"uni.async.error\":\"连接服务器超时，点击屏幕重试\",\"uni.showActionSheet.cancel\":\"取消\",\"uni.showToast.unpaired\":\"请注意 showToast 与 hideToast 必须配对使用\",\"uni.showLoading.unpaired\":\"请注意 showLoading 与 hideLoading 必须配对使用\",\"uni.showModal.cancel\":\"取消\",\"uni.showModal.confirm\":\"确定\",\"uni.chooseImage.cancel\":\"取消\",\"uni.chooseImage.sourceType.album\":\"从相册选择\",\"uni.chooseImage.sourceType.camera\":\"拍摄\",\"uni.chooseVideo.cancel\":\"取消\",\"uni.chooseVideo.sourceType.album\":\"从相册选择\",\"uni.chooseVideo.sourceType.camera\":\"拍摄\",\"uni.previewImage.cancel\":\"取消\",\"uni.previewImage.button.save\":\"保存图像\",\"uni.previewImage.save.success\":\"保存图像到相册成功\",\"uni.previewImage.save.fail\":\"保存图像到相册失败\",\"uni.setClipboardData.success\":\"内容已复制\",\"uni.scanCode.title\":\"扫码\",\"uni.scanCode.album\":\"相册\",\"uni.scanCode.fail\":\"识别失败\",\"uni.scanCode.flash.on\":\"轻触照亮\",\"uni.scanCode.flash.off\":\"轻触关闭\",\"uni.startSoterAuthentication.authContent\":\"指纹识别中...\",\"uni.picker.done\":\"完成\",\"uni.picker.cancel\":\"取消\",\"uni.video.danmu\":\"弹幕\",\"uni.video.volume\":\"音量\",\"uni.button.feedback.title\":\"问题反馈\",\"uni.button.feedback.send\":\"发送\"}");
+
+/***/ }),
+
 /***/ "2246":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -3332,7 +4484,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showToast", function() { return showToast; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showLoading", function() { return showLoading; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showActionSheet", function() { return showActionSheet; });
-/* harmony import */ var uni_platform_helpers_get_real_path__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("cb0f");
+/* harmony import */ var uni_core_helpers_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("a6b0");
+/* harmony import */ var uni_platform_helpers_get_real_path__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("cb0f");
+
 
 var showModal = {
   title: {
@@ -3349,7 +4503,9 @@ var showModal = {
   },
   cancelText: {
     type: String,
-    default: '取消'
+    default: function _default() {
+      return Object(uni_core_helpers_i18n__WEBPACK_IMPORTED_MODULE_0__[/* t */ "c"])('uni.showModal.cancel');
+    }
   },
   cancelColor: {
     type: String,
@@ -3357,7 +4513,9 @@ var showModal = {
   },
   confirmText: {
     type: String,
-    default: '确定'
+    default: function _default() {
+      return Object(uni_core_helpers_i18n__WEBPACK_IMPORTED_MODULE_0__[/* t */ "c"])('uni.showModal.confirm');
+    }
   },
   confirmColor: {
     type: String,
@@ -3386,7 +4544,7 @@ var showToast = {
     default: '',
     validator: function validator(image, params) {
       if (image) {
-        params.image = Object(uni_platform_helpers_get_real_path__WEBPACK_IMPORTED_MODULE_0__[/* default */ "a"])(image);
+        params.image = Object(uni_platform_helpers_get_real_path__WEBPACK_IMPORTED_MODULE_1__[/* default */ "a"])(image);
       }
     }
   },
@@ -3590,7 +4748,7 @@ function beforeEach(to, from, next, routes) {
     // 相同页面阻止
     // 处理外部修改 history 导致卡在当前页面的问题
     if (to.fullPath !== from.fullPath) {
-      removeKeepAliveInclude.call(this, toName);
+      addKeepAliveInclude.call(this, toName);
       next();
     } else {
       next(false);
@@ -3653,8 +4811,8 @@ function beforeEach(to, from, next, routes) {
         break;
     }
 
-    if (to.type !== 'reLaunch' && from.meta.id) {
-      // 如果不是 reLaunch，且 meta 指定了 id
+    if (to.type !== 'reLaunch' && to.type !== 'redirectTo' && from.meta.id) {
+      // 如果不是 reLaunch、redirectTo，且 meta 指定了 id
       addKeepAliveInclude.call(this, fromName);
     } // if (to.type !== 'reLaunch') { // TODO 如果 reLaunch，1.keepAlive的话，无法触发页面生命周期，并刷新页面，2.不 keepAlive 的话，页面状态无法再次保留,且 routeView 的 cache 有问题
 
@@ -3691,6 +4849,17 @@ function afterEach(to, from) {
     return pageVm.$page.id === fromId;
   }); // 使用 beforeEach 时的 pages
 
+  function unloadPage(vm) {
+    if (vm) {
+      Object(_util__WEBPACK_IMPORTED_MODULE_0__[/* callPageHook */ "b"])(vm, 'onUnload');
+      var index = currentPages.indexOf(vm);
+
+      if (index >= 0) {
+        currentPages.splice(index, 1);
+      }
+    }
+  }
+
   switch (to.type) {
     case 'navigateTo':
       // 前一个页面触发 onHide
@@ -3699,7 +4868,7 @@ function afterEach(to, from) {
 
     case 'redirectTo':
       // 前一个页面触发 onUnload
-      fromVm && Object(_util__WEBPACK_IMPORTED_MODULE_0__[/* callPageHook */ "b"])(fromVm, 'onUnload');
+      unloadPage(fromVm);
       break;
 
     case 'switchTab':
@@ -3716,14 +4885,14 @@ function afterEach(to, from) {
     default:
       if (fromId && fromId > toId) {
         // history back
-        fromVm && Object(_util__WEBPACK_IMPORTED_MODULE_0__[/* callPageHook */ "b"])(fromVm, 'onUnload');
+        unloadPage(fromVm);
 
         if (this.$router._$delta > 1) {
           deltaIds.reverse().forEach(function (deltaId) {
             var pageVm = currentPages.find(function (pageVm) {
               return pageVm.$page.id === deltaId;
             });
-            pageVm && Object(_util__WEBPACK_IMPORTED_MODULE_0__[/* callPageHook */ "b"])(pageVm, 'onUnload');
+            unloadPage(pageVm);
           });
         }
       }
@@ -3799,32 +4968,32 @@ function wrapperMPEvent(event) {
  */
 
 function mergeTitleNView(navigationBar, titleNView) {
-  if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(titleNView)) {
-    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "h"])(titleNView, 'backgroundColor')) {
+  if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(titleNView)) {
+    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "i"])(titleNView, 'backgroundColor')) {
       navigationBar.backgroundColor = titleNView.backgroundColor;
     }
 
-    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "h"])(titleNView, 'buttons')) {
+    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "i"])(titleNView, 'buttons')) {
       navigationBar.buttons = titleNView.buttons;
     }
 
-    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "h"])(titleNView, 'titleColor')) {
+    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "i"])(titleNView, 'titleColor')) {
       navigationBar.textColor = titleNView.titleColor;
     }
 
-    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "h"])(titleNView, 'titleText')) {
+    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "i"])(titleNView, 'titleText')) {
       navigationBar.titleText = titleNView.titleText;
     }
 
-    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "h"])(titleNView, 'titleSize')) {
+    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "i"])(titleNView, 'titleSize')) {
       navigationBar.titleSize = titleNView.titleSize;
     }
 
-    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "h"])(titleNView, 'type')) {
+    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "i"])(titleNView, 'type')) {
       navigationBar.type = titleNView.type;
     }
 
-    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "h"])(titleNView, 'searchInput') && _typeof(titleNView.searchInput) === 'object') {
+    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "i"])(titleNView, 'searchInput') && _typeof(titleNView.searchInput) === 'object') {
       navigationBar.searchInput = Object.assign({
         autoFocus: false,
         align: 'center',
@@ -3850,17 +5019,31 @@ function mergeTitleNView(navigationBar, titleNView) {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/input/index.vue?vue&type=template&id=06076ee4&
-var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-input',_vm._g({on:{"change":function($event){$event.stopPropagation();}}},_vm.$listeners),[_c('div',{ref:"wrapper",staticClass:"uni-input-wrapper"},[_c('div',{directives:[{name:"show",rawName:"v-show",value:(!(_vm.composing || _vm.valueSync.length)),expression:"!(composing || valueSync.length)"}],ref:"placeholder",staticClass:"uni-input-placeholder",class:_vm.placeholderClass,style:(_vm.placeholderStyle),domProps:{"textContent":_vm._s(_vm.placeholder)}}),((_vm.inputType)==='checkbox')?_c('input',{directives:[{name:"model",rawName:"v-model",value:(_vm.valueSync),expression:"valueSync"}],ref:"input",staticClass:"uni-input-input",attrs:{"disabled":_vm.disabled,"maxlength":_vm.maxlength,"step":_vm.step,"autofocus":_vm.focus,"autocomplete":"off","type":"checkbox"},domProps:{"checked":Array.isArray(_vm.valueSync)?_vm._i(_vm.valueSync,null)>-1:(_vm.valueSync)},on:{"focus":_vm._onFocus,"blur":_vm._onBlur,"input":function($event){$event.stopPropagation();return _vm._onInput($event)},"compositionstart":_vm._onComposition,"compositionend":_vm._onComposition,"keyup":function($event){$event.stopPropagation();return _vm._onKeyup($event)},"change":function($event){var $$a=_vm.valueSync,$$el=$event.target,$$c=$$el.checked?(true):(false);if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&(_vm.valueSync=$$a.concat([$$v]))}else{$$i>-1&&(_vm.valueSync=$$a.slice(0,$$i).concat($$a.slice($$i+1)))}}else{_vm.valueSync=$$c}}}}):((_vm.inputType)==='radio')?_c('input',{directives:[{name:"model",rawName:"v-model",value:(_vm.valueSync),expression:"valueSync"}],ref:"input",staticClass:"uni-input-input",attrs:{"disabled":_vm.disabled,"maxlength":_vm.maxlength,"step":_vm.step,"autofocus":_vm.focus,"autocomplete":"off","type":"radio"},domProps:{"checked":_vm._q(_vm.valueSync,null)},on:{"focus":_vm._onFocus,"blur":_vm._onBlur,"input":function($event){$event.stopPropagation();return _vm._onInput($event)},"compositionstart":_vm._onComposition,"compositionend":_vm._onComposition,"keyup":function($event){$event.stopPropagation();return _vm._onKeyup($event)},"change":function($event){_vm.valueSync=null}}}):_c('input',{directives:[{name:"model",rawName:"v-model",value:(_vm.valueSync),expression:"valueSync"}],ref:"input",staticClass:"uni-input-input",attrs:{"disabled":_vm.disabled,"maxlength":_vm.maxlength,"step":_vm.step,"autofocus":_vm.focus,"autocomplete":"off","type":_vm.inputType},domProps:{"value":(_vm.valueSync)},on:{"focus":_vm._onFocus,"blur":_vm._onBlur,"input":[function($event){if($event.target.composing){ return; }_vm.valueSync=$event.target.value},function($event){$event.stopPropagation();return _vm._onInput($event)}],"compositionstart":_vm._onComposition,"compositionend":_vm._onComposition,"keyup":function($event){$event.stopPropagation();return _vm._onKeyup($event)}}})])])}
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/input/index.vue?vue&type=template&id=b9b27888&
+var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-input',_vm._g({},_vm.$listeners),[_c('div',{ref:"wrapper",staticClass:"uni-input-wrapper"},[_c('div',{directives:[{name:"show",rawName:"v-show",value:(!(_vm.composing || _vm.valueSync.length || !_vm.valid)),expression:"!(composing || valueSync.length || !valid)"}],ref:"placeholder",staticClass:"uni-input-placeholder",class:_vm.placeholderClass,style:(_vm.placeholderStyle),domProps:{"textContent":_vm._s(_vm.placeholder)}}),((_vm.inputType)==='checkbox'&&(!_vm.disabled || !_vm.fixColor))?_c('input',{directives:[{name:"model",rawName:"v-model",value:(_vm.valueSync),expression:"valueSync"},{name:"keyboard",rawName:"v-keyboard"},{name:"field",rawName:"v-field"}],ref:"input",staticClass:"uni-input-input",attrs:{"disabled":_vm.disabled,"maxlength":_vm.maxlength,"step":_vm.step,"enterkeyhint":_vm.confirmType,"autocomplete":"off","type":"checkbox"},domProps:{"checked":Array.isArray(_vm.valueSync)?_vm._i(_vm.valueSync,null)>-1:(_vm.valueSync)},on:{"change":[function($event){var $$a=_vm.valueSync,$$el=$event.target,$$c=$$el.checked?(true):(false);if(Array.isArray($$a)){var $$v=null,$$i=_vm._i($$a,$$v);if($$el.checked){$$i<0&&(_vm.valueSync=$$a.concat([$$v]))}else{$$i>-1&&(_vm.valueSync=$$a.slice(0,$$i).concat($$a.slice($$i+1)))}}else{_vm.valueSync=$$c}},function($event){$event.stopPropagation();}],"focus":_vm._onFocus,"blur":_vm._onBlur,"input":function($event){$event.stopPropagation();return _vm._onInput($event)},"compositionstart":function($event){$event.stopPropagation();return _vm._onComposition($event)},"compositionend":function($event){$event.stopPropagation();return _vm._onComposition($event)},"keyup":function($event){if(!$event.type.indexOf('key')&&_vm._k($event.keyCode,"enter",13,$event.key,"Enter")){ return null; }$event.stopPropagation();return _vm._onKeyup($event)}}}):((_vm.inputType)==='radio'&&(!_vm.disabled || !_vm.fixColor))?_c('input',{directives:[{name:"model",rawName:"v-model",value:(_vm.valueSync),expression:"valueSync"},{name:"keyboard",rawName:"v-keyboard"},{name:"field",rawName:"v-field"}],ref:"input",staticClass:"uni-input-input",attrs:{"disabled":_vm.disabled,"maxlength":_vm.maxlength,"step":_vm.step,"enterkeyhint":_vm.confirmType,"autocomplete":"off","type":"radio"},domProps:{"checked":_vm._q(_vm.valueSync,null)},on:{"change":[function($event){_vm.valueSync=null},function($event){$event.stopPropagation();}],"focus":_vm._onFocus,"blur":_vm._onBlur,"input":function($event){$event.stopPropagation();return _vm._onInput($event)},"compositionstart":function($event){$event.stopPropagation();return _vm._onComposition($event)},"compositionend":function($event){$event.stopPropagation();return _vm._onComposition($event)},"keyup":function($event){if(!$event.type.indexOf('key')&&_vm._k($event.keyCode,"enter",13,$event.key,"Enter")){ return null; }$event.stopPropagation();return _vm._onKeyup($event)}}}):(!_vm.disabled || !_vm.fixColor)?_c('input',{directives:[{name:"model",rawName:"v-model",value:(_vm.valueSync),expression:"valueSync"},{name:"keyboard",rawName:"v-keyboard"},{name:"field",rawName:"v-field"}],ref:"input",staticClass:"uni-input-input",attrs:{"disabled":_vm.disabled,"maxlength":_vm.maxlength,"step":_vm.step,"enterkeyhint":_vm.confirmType,"autocomplete":"off","type":_vm.inputType},domProps:{"value":(_vm.valueSync)},on:{"change":function($event){$event.stopPropagation();},"focus":_vm._onFocus,"blur":_vm._onBlur,"input":[function($event){if($event.target.composing){ return; }_vm.valueSync=$event.target.value},function($event){$event.stopPropagation();return _vm._onInput($event)}],"compositionstart":function($event){$event.stopPropagation();return _vm._onComposition($event)},"compositionend":function($event){$event.stopPropagation();return _vm._onComposition($event)},"keyup":function($event){if(!$event.type.indexOf('key')&&_vm._k($event.keyCode,"enter",13,$event.key,"Enter")){ return null; }$event.stopPropagation();return _vm._onKeyup($event)}}}):_vm._e(),(_vm.disabled && _vm.fixColor)?_c('input',{ref:"input",staticClass:"uni-input-input",attrs:{"tabindex":"-1","readonly":_vm.disabled,"type":_vm.inputType,"maxlength":_vm.maxlength,"step":_vm.step},domProps:{"value":_vm.valueSync},on:{"focus":function ($event) { return $event.target.blur(); }}}):_vm._e()])])}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/core/view/components/input/index.vue?vue&type=template&id=06076ee4&
+// CONCATENATED MODULE: ./src/core/view/components/input/index.vue?vue&type=template&id=b9b27888&
 
-// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 3 modules
+// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 1 modules
 var mixins = __webpack_require__("8af1");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/input/index.vue?vue&type=script&lang=js&
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -3903,7 +5086,7 @@ var INPUT_TYPES = ['text', 'number', 'idcard', 'digit', 'password'];
 var NUMBER_TYPES = ['number', 'digit'];
 /* harmony default export */ var inputvue_type_script_lang_js_ = ({
   name: 'Input',
-  mixins: [mixins["a" /* baseInput */]],
+  mixins: [mixins["b" /* field */]],
   props: {
     name: {
       type: String,
@@ -3937,10 +5120,6 @@ var NUMBER_TYPES = ['number', 'digit'];
       type: [Number, String],
       default: 140
     },
-    focus: {
-      type: [Boolean, String],
-      default: false
-    },
     confirmType: {
       type: String,
       default: 'done'
@@ -3949,8 +5128,11 @@ var NUMBER_TYPES = ['number', 'digit'];
   data: function data() {
     return {
       composing: false,
+      valid: true,
       wrapperHeight: 0,
-      cachedValue: ''
+      cachedValue: '',
+      // Safari 14 以上修正禁用状态颜色
+      fixColor: String(navigator.vendor).indexOf('Apple') === 0 && CSS.supports('image-orientation:from-image')
     };
   },
   computed: {
@@ -3984,9 +5166,6 @@ var NUMBER_TYPES = ['number', 'digit'];
     }
   },
   watch: {
-    focus: function focus(val) {
-      this.$refs.input && this.$refs.input[val ? 'focus' : 'blur']();
-    },
     maxlength: function maxlength(value) {
       var realValue = this.valueSync.slice(0, parseInt(value, 10));
       realValue !== this.valueSync && (this.valueSync = realValue);
@@ -4023,8 +5202,6 @@ var NUMBER_TYPES = ['number', 'digit'];
 
       $vm = $vm.$parent;
     }
-
-    this.initKeyboard(this.$refs.input);
   },
   beforeDestroy: function beforeDestroy() {
     this.$dispatch('Form', 'uni-form-group-update', {
@@ -4034,27 +5211,29 @@ var NUMBER_TYPES = ['number', 'digit'];
   },
   methods: {
     _onKeyup: function _onKeyup($event) {
-      if ($event.keyCode === 13) {
-        this.$trigger('confirm', $event, {
-          value: $event.target.value
-        });
-      }
+      this.$trigger('confirm', $event, {
+        value: $event.target.value
+      });
     },
-    _onInput: function _onInput($event) {
+    _onInput: function _onInput($event, force) {
       if (this.composing) {
         return;
-      } // 处理部分输入法可以输入其它字符的情况
-
+      }
 
       if (~NUMBER_TYPES.indexOf(this.type)) {
-        if (this.$refs.input.validity && !this.$refs.input.validity.valid) {
-          $event.target.value = this.cachedValue;
-          this.valueSync = $event.target.value; // 输入非法字符不触发 input 事件
+        // 在输入 - 负号 的情况下，event.target.value没有值，但是会触发校验 false，因此做此处理
+        this.valid = this.$refs.input.validity && this.$refs.input.validity.valid;
+        this.cachedValue = this.valueSync; // 处理部分输入法可以输入其它字符的情况
+        // 上一处理导致无法输入 - ，因此去除
 
-          return;
+        /* if (this.$refs.input.validity && !this.$refs.input.validity.valid) {
+          $event.target.value = this.cachedValue
+          this.valueSync = $event.target.value
+          // 输入非法字符不触发 input 事件
+          return
         } else {
-          this.cachedValue = this.valueSync;
-        }
+          this.cachedValue = this.valueSync
+        } */
       } // type="number" 不支持 maxlength 属性，因此需要主动限制长度。
 
 
@@ -4071,7 +5250,7 @@ var NUMBER_TYPES = ['number', 'digit'];
 
       this.$triggerInput($event, {
         value: this.valueSync
-      });
+      }, force);
     },
     _onFocus: function _onFocus($event) {
       this.$trigger('focus', $event, {
@@ -4079,6 +5258,13 @@ var NUMBER_TYPES = ['number', 'digit'];
       });
     },
     _onBlur: function _onBlur($event) {
+      // iOS 输入法 compositionend 事件可能晚于 blur
+      if (this.composing) {
+        this.composing = false;
+
+        this._onInput($event, true);
+      }
+
       this.$trigger('blur', $event, {
         value: $event.target.value
       });
@@ -4086,8 +5272,10 @@ var NUMBER_TYPES = ['number', 'digit'];
     _onComposition: function _onComposition($event) {
       if ($event.type === 'compositionstart') {
         this.composing = true;
-      } else {
-        this.composing = false;
+      } else if (this.composing) {
+        this.composing = false; // 部分输入法 compositionend 事件可能晚于 input
+
+        this._onInput($event);
       }
     },
     _resetFormData: function _resetFormData() {
@@ -4140,14 +5328,14 @@ var component = Object(componentNormalizer["a" /* default */])(
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/checkbox-group/index.vue?vue&type=template&id=d2fad642&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/checkbox-group/index.vue?vue&type=template&id=d2fad642&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-checkbox-group',_vm._g({},_vm.$listeners),[_vm._t("default")],2)}
 var staticRenderFns = []
 
 
 // CONCATENATED MODULE: ./src/core/view/components/checkbox-group/index.vue?vue&type=template&id=d2fad642&
 
-// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 3 modules
+// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 1 modules
 var mixins = __webpack_require__("8af1");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/checkbox-group/index.vue?vue&type=script&lang=js&
@@ -4160,7 +5348,7 @@ var mixins = __webpack_require__("8af1");
 
 /* harmony default export */ var checkbox_groupvue_type_script_lang_js_ = ({
   name: 'CheckboxGroup',
-  mixins: [mixins["b" /* emitter */], mixins["f" /* listeners */]],
+  mixins: [mixins["a" /* emitter */], mixins["f" /* listeners */]],
   props: {
     name: {
       type: String,
@@ -4329,8 +5517,9 @@ function tryCatch(fn) {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(console) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return invokeCallbackHandler; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return wrapperUnimplemented; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return wrapper; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return removeCallbackHandler; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return wrapperUnimplemented; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return wrapper; });
 /* harmony import */ var uni_shared__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("f2b3");
 /* harmony import */ var _catch__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("2608");
 /* harmony import */ var _promise__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("ed1a");
@@ -4401,7 +5590,7 @@ function validateParams(apiName, paramsData, callbackId) {
       paramsData = paramsDataObj;
     }
 
-    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(paramTypes.beforeValidate)) {
+    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(paramTypes.beforeValidate)) {
       var err = paramTypes.beforeValidate(paramsData);
 
       if (err) {
@@ -4433,24 +5622,32 @@ var invokeCallbacks = {};
 function createKeepAliveApiCallback(apiName, callback) {
   var callbackId = invokeCallbackId++;
   var invokeCallbackName = 'api.' + apiName + '.' + callbackId;
-
-  var invokeCallback = function invokeCallback(res, extras) {
-    callback(res, extras);
-  };
-
   invokeCallbacks[callbackId] = {
     name: invokeCallbackName,
     keepAlive: true,
-    callback: invokeCallback
+    callback: callback
   };
   return callbackId;
+}
+
+function getKeepAliveApiCallback(apiName, callback) {
+  for (var key in invokeCallbacks) {
+    var item = invokeCallbacks[key];
+
+    if (item.name.startsWith('api.' + apiName.replace(/^off/, 'on')) && item.callback === callback) {
+      delete invokeCallbacks[key];
+      return Number(key);
+    }
+  }
+
+  return 'fail';
 }
 
 function createApiCallback(apiName) {
   var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
   var extras = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-  if (!Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(params)) {
+  if (!Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(params)) {
     return {
       params: params
     };
@@ -4462,7 +5659,7 @@ function createApiCallback(apiName) {
   for (var name in params) {
     var param = params[name];
 
-    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(param)) {
+    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(param)) {
       apiCallbacks[name] = Object(_catch__WEBPACK_IMPORTED_MODULE_1__[/* tryCatch */ "a"])(param);
       delete params[name];
     }
@@ -4472,10 +5669,10 @@ function createApiCallback(apiName) {
       fail = apiCallbacks.fail,
       cancel = apiCallbacks.cancel,
       complete = apiCallbacks.complete;
-  var hasSuccess = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(success);
-  var hasFail = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(fail);
-  var hasCancel = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(cancel);
-  var hasComplete = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(complete);
+  var hasSuccess = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(success);
+  var hasFail = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(fail);
+  var hasCancel = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(cancel);
+  var hasComplete = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(complete);
 
   if (!hasSuccess && !hasFail && !hasCancel && !hasComplete) {
     // 无回调
@@ -4489,7 +5686,7 @@ function createApiCallback(apiName) {
   for (var _name in extras) {
     var extra = extras[_name];
 
-    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(extra)) {
+    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(extra)) {
       wrapperCallbacks[_name] = Object(_catch__WEBPACK_IMPORTED_MODULE_1__[/* tryCatchFramework */ "b"])(extra);
     }
   }
@@ -4523,27 +5720,27 @@ function createApiCallback(apiName) {
       res.errMsg = apiName + ':fail' + errDetail;
     }
 
-    Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(beforeAll) && beforeAll(res);
+    Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(beforeAll) && beforeAll(res);
     var errMsg = res.errMsg;
 
     if (errMsg.indexOf(apiName + ':ok') === 0) {
-      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(beforeSuccess) && beforeSuccess(res);
+      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(beforeSuccess) && beforeSuccess(res);
       hasSuccess && success(res);
-      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(afterSuccess) && afterSuccess(res);
+      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(afterSuccess) && afterSuccess(res);
     } else if (errMsg.indexOf(apiName + ':cancel') === 0) {
       res.errMsg = res.errMsg.replace(apiName + ':cancel', apiName + ':fail cancel');
       hasFail && fail(res);
-      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(beforeCancel) && beforeCancel(res);
+      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(beforeCancel) && beforeCancel(res);
       hasCancel && cancel(res);
-      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(afterCancel) && afterCancel(res);
+      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(afterCancel) && afterCancel(res);
     } else if (errMsg.indexOf(apiName + ':fail') === 0) {
-      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(beforeFail) && beforeFail(res);
+      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(beforeFail) && beforeFail(res);
       hasFail && fail(res);
-      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(afterFail) && afterFail(res);
+      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(afterFail) && afterFail(res);
     }
 
     hasComplete && complete(res);
-    Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(afterAll) && afterAll(res);
+    Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(afterAll) && afterAll(res);
   };
 
   invokeCallbacks[callbackId] = {
@@ -4564,7 +5761,7 @@ function createInvokeCallback(apiName) {
       args = _createApiCallback.params,
       callbackId = _createApiCallback.callbackId;
 
-  if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(args) && !validateParams(apiName, args, callbackId)) {
+  if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(args) && !validateParams(apiName, args, callbackId)) {
     return {
       params: args,
       callbackId: false
@@ -4593,6 +5790,9 @@ function invokeCallbackHandler(invokeCallbackId, res, extras) {
 
   return res;
 }
+function removeCallbackHandler(invokeCallbackId) {
+  delete invokeCallbacks[invokeCallbackId];
+}
 function wrapperUnimplemented(name) {
   return function todo(args) {
     console.error('API `' + name + '` is not yet implemented');
@@ -4603,15 +5803,15 @@ function wrapperExtras(name, extras) {
   var protocolOptions = uni_api_protocol__WEBPACK_IMPORTED_MODULE_3__[/* default */ "a"][name];
 
   if (protocolOptions) {
-    Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(protocolOptions.beforeAll) && (extras.beforeAll = protocolOptions.beforeAll);
-    Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(protocolOptions.beforeSuccess) && (extras.beforeSuccess = protocolOptions.beforeSuccess);
+    Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(protocolOptions.beforeAll) && (extras.beforeAll = protocolOptions.beforeAll);
+    Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(protocolOptions.beforeSuccess) && (extras.beforeSuccess = protocolOptions.beforeSuccess);
   }
 }
 
 function wrapper(name, invokeMethod) {
   var extras = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-  if (!Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(invokeMethod)) {
+  if (!Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(invokeMethod)) {
     return invokeMethod;
   }
 
@@ -4627,7 +5827,7 @@ function wrapper(name, invokeMethod) {
       }
     } else if (Object(_promise__WEBPACK_IMPORTED_MODULE_2__[/* isCallbackApi */ "a"])(name)) {
       if (validateParams(name, args, -1)) {
-        return invokeMethod(createKeepAliveApiCallback(name, args[0]));
+        return invokeMethod((name.startsWith('off') ? getKeepAliveApiCallback : createKeepAliveApiCallback)(name, args[0]));
       }
     } else {
       var argsObj = {};
@@ -4643,7 +5843,7 @@ function wrapper(name, invokeMethod) {
       if (callbackId !== false) {
         var res;
 
-        if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(params)) {
+        if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(params)) {
           res = invokeMethod(callbackId);
         } else {
           res = invokeMethod(params, callbackId);
@@ -4652,7 +5852,7 @@ function wrapper(name, invokeMethod) {
         if (res && !Object(_promise__WEBPACK_IMPORTED_MODULE_2__[/* isTaskApi */ "c"])(name)) {
           res = invokeCallbackHandler(callbackId, res);
 
-          if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(res)) {
+          if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(res)) {
             res.errMsg = res.errMsg || name + ':ok';
           }
         }
@@ -4673,7 +5873,7 @@ function wrapper(name, invokeMethod) {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// EXTERNAL MODULE: ./src/shared/index.js + 7 modules
+// EXTERNAL MODULE: ./src/shared/index.js + 6 modules
 var shared = __webpack_require__("f2b3");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/picker-view/index.vue?vue&type=script&lang=js&
@@ -4791,7 +5991,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     var items = [];
 
     if (this.$slots.default) {
-      Object(shared["d" /* deepClone */])(this.$slots.default, createElement).forEach(function (vnode) {
+      Object(shared["f" /* deepClone */])(this.$slots.default, createElement).forEach(function (vnode) {
         if (vnode.componentOptions && vnode.componentOptions.tag === 'v-uni-picker-view-column') {
           items.push(vnode);
         }
@@ -4853,12 +6053,12 @@ var component = Object(componentNormalizer["a" /* default */])(
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/editor/index.vue?vue&type=template&id=f25daffc&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/editor/index.vue?vue&type=template&id=8cdfab70&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-editor',_vm._g({staticClass:"ql-container",attrs:{"id":_vm.id}},_vm.$listeners))}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/core/view/components/editor/index.vue?vue&type=template&id=f25daffc&
+// CONCATENATED MODULE: ./src/core/view/components/editor/index.vue?vue&type=template&id=8cdfab70&
 
 // EXTERNAL MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/editor/index.vue?vue&type=script&lang=js&
 var editorvue_type_script_lang_js_ = __webpack_require__("3e4d");
@@ -5009,6 +6209,118 @@ function normalizeComponent (
 
 /***/ }),
 
+/***/ "28c0":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return EventChannel; });
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var EventChannel = /*#__PURE__*/function () {
+  function EventChannel(id, events) {
+    var _this = this;
+
+    _classCallCheck(this, EventChannel);
+
+    this.id = id;
+    this.listener = {};
+    this.emitCache = {};
+
+    if (events) {
+      Object.keys(events).forEach(function (name) {
+        _this.on(name, events[name]);
+      });
+    }
+  }
+
+  _createClass(EventChannel, [{
+    key: "emit",
+    value: function emit(eventName) {
+      for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
+
+      var fns = this.listener[eventName];
+
+      if (!fns) {
+        return (this.emitCache[eventName] || (this.emitCache[eventName] = [])).push(args);
+      }
+
+      fns.forEach(function (opt) {
+        opt.fn.apply(opt.fn, args);
+      });
+      this.listener[eventName] = fns.filter(function (opt) {
+        return opt.type !== 'once';
+      });
+    }
+  }, {
+    key: "on",
+    value: function on(eventName, fn) {
+      this._addListener(eventName, 'on', fn);
+
+      this._clearCache(eventName);
+    }
+  }, {
+    key: "once",
+    value: function once(eventName, fn) {
+      this._addListener(eventName, 'once', fn);
+
+      this._clearCache(eventName);
+    }
+  }, {
+    key: "off",
+    value: function off(eventName, fn) {
+      var fns = this.listener[eventName];
+
+      if (!fns) {
+        return;
+      }
+
+      if (fn) {
+        for (var i = 0; i < fns.length;) {
+          if (fns[i].fn === fn) {
+            fns.splice(i, 1);
+            i--;
+          }
+
+          i++;
+        }
+      } else {
+        delete this.listener[eventName];
+      }
+    }
+  }, {
+    key: "_clearCache",
+    value: function _clearCache(eventName) {
+      var cacheArgs = this.emitCache[eventName];
+
+      if (cacheArgs) {
+        for (; cacheArgs.length > 0;) {
+          this.emit.apply(this, [eventName].concat(cacheArgs.shift()));
+        }
+      }
+    }
+  }, {
+    key: "_addListener",
+    value: function _addListener(eventName, type, fn) {
+      (this.listener[eventName] || (this.listener[eventName] = [])).push({
+        fn: fn,
+        type: type
+      });
+    }
+  }]);
+
+  return EventChannel;
+}();
+
+
+
+/***/ }),
+
 /***/ "28da":
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -5030,7 +6342,7 @@ function normalizeComponent (
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/view/index.vue?vue&type=template&id=a268751e&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/view/index.vue?vue&type=template&id=a268751e&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return (_vm.hoverClass && _vm.hoverClass !== 'none')?_c('uni-view',_vm._g({class:[_vm.hovering?_vm.hoverClass:''],on:{"touchstart":_vm._hoverTouchStart,"touchend":_vm._hoverTouchEnd,"touchcancel":_vm._hoverTouchCancel}},_vm.$listeners),[_vm._t("default")],2):_c('uni-view',_vm._g({},_vm.$listeners),[_vm._t("default")],2)}
 var staticRenderFns = []
 
@@ -5114,41 +6426,63 @@ var component = Object(componentNormalizer["a" /* default */])(
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "enableAccelerometer", function() { return enableAccelerometer; });
-/* harmony import */ var _bridge__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("b865");
-
+/* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "startAccelerometer", function() { return startAccelerometer; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "stopAccelerometer", function() { return stopAccelerometer; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "onAccelerometerChange", function() { return onAccelerometerChange; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "offAccelerometerChange", function() { return offAccelerometerChange; });
 var listener;
-function enableAccelerometer(_ref) {
-  var enable = _ref.enable;
-  return enable ? startAccelerometer() : stopAccelerometer();
-}
-/**
- * 开始监听加速度数据
- */
+var callbackIds = [];
+function startAccelerometer(options, callbackId) {
+  var _UniServiceJSBridge = UniServiceJSBridge,
+      invoke = _UniServiceJSBridge.invokeCallbackHandler;
 
-function startAccelerometer() {
-  if (window.DeviceMotionEvent) {
+  if (!window.DeviceMotionEvent) {
+    return {
+      errMsg: 'startAccelerometer:fail'
+    };
+  }
+
+  function addEventListener() {
     listener = function listener(event) {
       var acceleration = event.acceleration || event.accelerationIncludingGravity;
-      Object(_bridge__WEBPACK_IMPORTED_MODULE_0__[/* publish */ "a"])('onAccelerometerChange', {
-        x: acceleration.x || 0,
-        y: acceleration.y || 0,
-        z: acceleration.z || 0,
-        errMsg: 'onAccelerometerChange:ok'
+      callbackIds.forEach(function (callbackId) {
+        invoke(callbackId, {
+          x: acceleration.x || 0,
+          y: acceleration.y || 0,
+          z: acceleration.z || 0
+        });
       });
     };
 
     window.addEventListener('devicemotion', listener, false);
-    return {};
-  } else {
-    throw new Error('device nonsupport devicemotion');
   }
+
+  if (!listener) {
+    if (DeviceMotionEvent.requestPermission) {
+      DeviceMotionEvent.requestPermission().then(function (res) {
+        if (res === 'granted') {
+          addEventListener();
+          invoke(callbackId, {
+            errMsg: 'startAccelerometer:ok'
+          });
+        } else {
+          invoke(callbackId, {
+            errMsg: "startAccelerometer:fail ".concat(res)
+          });
+        }
+      }).catch(function (error) {
+        invoke(callbackId, {
+          errMsg: "startAccelerometer:fail ".concat(error)
+        });
+      });
+      return;
+    }
+
+    addEventListener();
+  }
+
+  return {};
 }
-/**
- * 停止监听加速度数据
- */
-
-
 function stopAccelerometer() {
   if (listener) {
     window.removeEventListener('devicemotion', listener, false);
@@ -5157,6 +6491,28 @@ function stopAccelerometer() {
 
   return {};
 }
+function onAccelerometerChange(callbackId) {
+  if (!callbackIds.length) {
+    startAccelerometer();
+  }
+
+  callbackIds.push(callbackId);
+}
+function offAccelerometerChange(callbackId) {
+  // 暂不支持移除所有监听
+  if (callbackId) {
+    var index = callbackIds.indexOf(callbackId);
+
+    if (index >= 0) {
+      callbackIds.splice(index, 1);
+    }
+  }
+
+  if (!callbackIds.length) {
+    stopAccelerometer();
+  }
+}
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("0dd1")))
 
 /***/ }),
 
@@ -5172,195 +6528,72 @@ function stopAccelerometer() {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createInnerAudioContext", function() { return createInnerAudioContext; });
-/* harmony import */ var _platform__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("db70");
+/* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createAudioContext", function() { return createAudioContext; });
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
+function operateAudioPlayer(audioId, pageId, type, data) {
+  UniServiceJSBridge.publishHandler(pageId + '-audio-' + audioId, {
+    audioId: audioId,
+    type: type,
+    data: data
+  }, pageId);
+}
 
-var eventNames = ['canplay', 'play', 'pause', 'stop', 'ended', 'timeUpdate', 'error', 'waiting', 'seeking', 'seeked'];
-var props = [{
-  name: 'src',
-  cache: true
-}, {
-  name: 'startTime',
-  default: 0,
-  cache: true
-}, {
-  name: 'autoplay',
-  default: false,
-  cache: true
-}, {
-  name: 'loop',
-  default: false,
-  cache: true
-}, {
-  name: 'obeyMuteSwitch',
-  default: true,
-  readonly: true,
-  cache: true
-}, {
-  name: 'duration',
-  readonly: true
-}, {
-  name: 'currentTime',
-  readonly: true
-}, {
-  name: 'paused',
-  readonly: true
-}, {
-  name: 'buffered',
-  readonly: true
-}, {
-  name: 'volume'
-}];
-
-var InnerAudioContext = /*#__PURE__*/function () {
-  function InnerAudioContext(id) {
-    var _this = this;
-
-    _classCallCheck(this, InnerAudioContext);
+var AudioContext = /*#__PURE__*/function () {
+  function AudioContext(id, pageId) {
+    _classCallCheck(this, AudioContext);
 
     this.id = id;
-    this._callbacks = {};
-    this._options = {};
-    eventNames.forEach(function (name) {
-      _this._callbacks[name.toLowerCase()] = [];
-    });
-    props.forEach(function (item) {
-      var name = item.name;
-      var data = {
-        get: function get() {
-          var result = item.cache ? this._options : Object(_platform__WEBPACK_IMPORTED_MODULE_0__[/* invokeMethod */ "c"])('getAudioState', {
-            audioId: this.id
-          });
-          var value = name in result ? result[name] : item.default;
-          return typeof value === 'number' && name !== 'volume' ? value / 1e3 : value;
-        }
-      };
-
-      if (!item.readonly) {
-        data.set = function (value) {
-          this._options[name] = value;
-          Object(_platform__WEBPACK_IMPORTED_MODULE_0__[/* invokeMethod */ "c"])('setAudioState', Object.assign({}, this._options, {
-            audioId: this.id
-          }));
-        };
-      }
-
-      Object.defineProperty(_this, name, data);
-    });
+    this.pageId = pageId;
   }
 
-  _createClass(InnerAudioContext, [{
+  _createClass(AudioContext, [{
+    key: "setSrc",
+    value: function setSrc(src) {
+      operateAudioPlayer(this.id, this.pageId, 'setSrc', {
+        src: src
+      });
+    }
+  }, {
     key: "play",
     value: function play() {
-      this._operate('play');
+      operateAudioPlayer(this.id, this.pageId, 'play');
     }
   }, {
     key: "pause",
     value: function pause() {
-      this._operate('pause');
-    }
-  }, {
-    key: "stop",
-    value: function stop() {
-      this._operate('stop');
+      operateAudioPlayer(this.id, this.pageId, 'pause');
     }
   }, {
     key: "seek",
     value: function seek(position) {
-      this._operate('seek', {
-        currentTime: position * 1e3
+      operateAudioPlayer(this.id, this.pageId, 'seek', {
+        position: position
       });
-    }
-  }, {
-    key: "destroy",
-    value: function destroy() {
-      clearInterval(this.__timing);
-      Object(_platform__WEBPACK_IMPORTED_MODULE_0__[/* invokeMethod */ "c"])('destroyAudioInstance', {
-        audioId: this.id
-      });
-      delete innerAudioContexts[this.id];
-    }
-  }, {
-    key: "_operate",
-    value: function _operate(type, options) {
-      Object(_platform__WEBPACK_IMPORTED_MODULE_0__[/* invokeMethod */ "c"])('operateAudio', Object.assign({}, options, {
-        audioId: this.id,
-        operationType: type
-      }));
     }
   }]);
 
-  return InnerAudioContext;
+  return AudioContext;
 }();
 
-eventNames.forEach(function (item) {
-  var name = item[0].toUpperCase() + item.substr(1);
-  item = item.toLowerCase();
-
-  InnerAudioContext.prototype["on".concat(name)] = function (callback) {
-    this._callbacks[item].push(callback);
-  };
-
-  InnerAudioContext.prototype["off".concat(name)] = function (callback) {
-    var callbacks = this._callbacks[item];
-    var index = callbacks.indexOf(callback);
-
-    if (index >= 0) {
-      callbacks.splice(index, 1);
-    }
-  };
-});
-
-function emit(audio, state, errMsg, errCode) {
-  audio._callbacks[state].forEach(function (callback) {
-    if (typeof callback === 'function') {
-      callback(state === 'error' ? {
-        errMsg: errMsg,
-        errCode: errCode
-      } : {});
-    }
-  });
-}
-
-Object(_platform__WEBPACK_IMPORTED_MODULE_0__[/* onMethod */ "d"])('onAudioStateChange', function (_ref) {
-  var state = _ref.state,
-      audioId = _ref.audioId,
-      errMsg = _ref.errMsg,
-      errCode = _ref.errCode;
-  var audio = innerAudioContexts[audioId];
-
-  if (audio) {
-    emit(audio, state, errMsg, errCode);
-
-    if (state === 'play') {
-      var oldCurrentTime = audio.currentTime;
-      audio.__timing = setInterval(function () {
-        var currentTime = audio.currentTime;
-
-        if (currentTime !== oldCurrentTime) {
-          emit(audio, 'timeupdate');
-        }
-      }, 200);
-    } else if (state === 'pause' || state === 'stop' || state === 'error') {
-      clearInterval(audio.__timing);
-    }
+function createAudioContext(id, context) {
+  if (context) {
+    return new AudioContext(id, context.$page.id);
   }
-});
-var innerAudioContexts = Object.create(null);
-function createInnerAudioContext() {
-  var _invokeMethod = Object(_platform__WEBPACK_IMPORTED_MODULE_0__[/* invokeMethod */ "c"])('createAudioInstance'),
-      audioId = _invokeMethod.audioId;
 
-  var innerAudioContext = new InnerAudioContext(audioId);
-  innerAudioContexts[audioId] = innerAudioContext;
-  return innerAudioContext;
+  var app = getApp();
+
+  if (app.$route && app.$route.params.__id__) {
+    return new AudioContext(id, app.$route.params.__id__);
+  } else {
+    UniServiceJSBridge.emit('onError', 'createAudioContext:fail');
+  }
 }
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("0dd1")))
 
 /***/ }),
 
@@ -5369,12 +6602,12 @@ function createInnerAudioContext() {
 
 "use strict";
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/page/pageHead.vue?vue&type=template&id=d815a614&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/page/pageHead.vue?vue&type=template&id=39332000&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-page-head',{attrs:{"uni-page-head-type":_vm.type}},[_c('div',{staticClass:"uni-page-head",class:_vm.headClass,style:({transitionDuration:_vm.duration,transitionTimingFunction:_vm.timingFunc,backgroundColor:_vm.bgColor,color:_vm.textColor})},[_c('div',{staticClass:"uni-page-head-hd"},[_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.backButton),expression:"backButton"}],staticClass:"uni-page-head-btn",on:{"click":_vm._back}},[_c('i',{staticClass:"uni-btn-icon",style:({color:_vm.color,fontSize:'27px'})},[_vm._v("")])]),_vm._l((_vm.btns),function(btn,index){return [(btn.float === 'left')?_c('div',{key:index,staticClass:"uni-page-head-btn",class:{'uni-page-head-btn-red-dot':btn.redDot||btn.badgeText,'uni-page-head-btn-select':btn.select},style:({backgroundColor: _vm.type==='transparent'?btn.background:'transparent',width:btn.width}),attrs:{"badge-text":btn.badgeText}},[_c('i',{staticClass:"uni-btn-icon",style:(_vm._formatBtnStyle(btn)),domProps:{"innerHTML":_vm._s(_vm._formatBtnFontText(btn))},on:{"click":function($event){return _vm._onBtnClick(index)}}})]):_vm._e()]})],2),(!_vm.searchInput)?_c('div',{staticClass:"uni-page-head-bd"},[_c('div',{staticClass:"uni-page-head__title",style:({fontSize:_vm.titleSize,opacity:_vm.type==='transparent'?0:1})},[(_vm.loading)?_c('i',{staticClass:"uni-loading"}):_vm._e(),(_vm.titleImage!=='')?_c('img',{staticClass:"uni-page-head__title_image",attrs:{"src":_vm.titleImage}}):[_vm._v(" "+_vm._s(_vm.titleText)+" ")]],2)]):_vm._e(),(_vm.searchInput)?_c('div',{staticClass:"uni-page-head-search",style:({'border-radius':_vm.searchInput.borderRadius,'background-color':_vm.searchInput.backgroundColor})},[_c('div',{staticClass:"uni-page-head-search-placeholder",class:[("uni-page-head-search-placeholder-" + (_vm.focus || _vm.text ? 'left' : _vm.searchInput.align))],style:({color:_vm.searchInput.placeholderColor}),domProps:{"textContent":_vm._s(_vm.text || _vm.composing ? '' : _vm.searchInput.placeholder)}}),_c('v-uni-input',{ref:"input",staticClass:"uni-page-head-search-input",style:({color:_vm.searchInput.color}),attrs:{"focus":_vm.searchInput.autoFocus,"disabled":_vm.searchInput.disabled,"placeholder-style":("color:" + (_vm.searchInput.placeholderColor)),"confirm-type":"search"},on:{"focus":_vm._focus,"blur":_vm._blur,"update:value":_vm._input},model:{value:(_vm.text),callback:function ($$v) {_vm.text=$$v},expression:"text"}})],1):_vm._e(),_c('div',{staticClass:"uni-page-head-ft"},[_vm._l((_vm.btns),function(btn,index){return [(btn.float !== 'left')?_c('div',{key:index,staticClass:"uni-page-head-btn",class:{'uni-page-head-btn-red-dot':btn.redDot||btn.badgeText,'uni-page-head-btn-select':btn.select},style:({backgroundColor: _vm.type==='transparent'?btn.background:'transparent',width:btn.width}),attrs:{"badge-text":btn.badgeText}},[_c('i',{staticClass:"uni-btn-icon",style:(_vm._formatBtnStyle(btn)),domProps:{"innerHTML":_vm._s(_vm._formatBtnFontText(btn))},on:{"click":function($event){return _vm._onBtnClick(index)}}})]):_vm._e()]})],2)]),(_vm.type!=='transparent'&&_vm.type!=='float')?_c('div',{staticClass:"uni-placeholder",class:{'uni-placeholder-titlePenetrate': _vm.titlePenetrate}}):_vm._e()])}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/platforms/h5/components/page/pageHead.vue?vue&type=template&id=d815a614&
+// CONCATENATED MODULE: ./src/platforms/h5/components/page/pageHead.vue?vue&type=template&id=39332000&
 
 // EXTERNAL MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/page/pageHead.vue?vue&type=script&lang=js&
 var pageHeadvue_type_script_lang_js_ = __webpack_require__("a1a7");
@@ -5419,6 +6652,64 @@ var component = Object(componentNormalizer["a" /* default */])(
 /* harmony import */ var _node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__);
 /* unused harmony reexport * */
  /* unused harmony default export */ var _unused_webpack_default_export = (_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default.a); 
+
+/***/ }),
+
+/***/ "2da2":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "saveFile", function() { return saveFile; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getFileInfo", function() { return getFileInfo; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSavedFileInfo", function() { return getSavedFileInfo; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "removeSavedFile", function() { return removeSavedFile; });
+/* harmony import */ var uni_platform_helpers_get_real_path__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("cb0f");
+
+var saveFile = {
+  tempFilePath: {
+    type: String,
+    required: true,
+    validator: function validator(value, params) {
+      params.tempFilePath = Object(uni_platform_helpers_get_real_path__WEBPACK_IMPORTED_MODULE_0__[/* default */ "a"])(value);
+    }
+  }
+};
+var TYPES = ['md5', 'sha1'];
+var getFileInfo = {
+  filePath: {
+    type: String,
+    required: true,
+    validator: function validator(value, params) {
+      params.filePath = Object(uni_platform_helpers_get_real_path__WEBPACK_IMPORTED_MODULE_0__[/* default */ "a"])(value);
+    }
+  },
+  digestAlgorithm: {
+    type: String,
+    validator: function validator(value, params) {
+      params.digestAlgorithm = TYPES.includes(value) ? value : TYPES[0];
+    },
+    default: TYPES[0]
+  }
+};
+var getSavedFileInfo = {
+  filePath: {
+    type: String,
+    required: true,
+    validator: function validator(value, params) {
+      params.filePath = Object(uni_platform_helpers_get_real_path__WEBPACK_IMPORTED_MODULE_0__[/* default */ "a"])(value);
+    }
+  }
+};
+var removeSavedFile = {
+  filePath: {
+    type: String,
+    required: true,
+    validator: function validator(value, params) {
+      params.filePath = Object(uni_platform_helpers_get_real_path__WEBPACK_IMPORTED_MODULE_0__[/* default */ "a"])(value);
+    }
+  }
+};
 
 /***/ }),
 
@@ -5559,6 +6850,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var uni_helpers_callbacks__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("62b5");
 /* harmony import */ var _platform__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("db70");
 /* harmony import */ var _bridge__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__("a118");
+/* harmony import */ var uni_platform_service_api_constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__("8b67");
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
@@ -5583,19 +6875,11 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 
 
+
 var canvasEventCallbacks = Object(uni_helpers_callbacks__WEBPACK_IMPORTED_MODULE_1__[/* default */ "a"])('canvasEvent');
-UniServiceJSBridge.subscribe('onDrawCanvas', function (_ref) {
+UniServiceJSBridge.subscribe('onCanvasMethodCallback', function (_ref) {
   var callbackId = _ref.callbackId,
       data = _ref.data;
-  var callback = canvasEventCallbacks.pop(callbackId);
-
-  if (callback) {
-    callback(data);
-  }
-});
-UniServiceJSBridge.subscribe('onCanvasMethodCallback', function (_ref2) {
-  var callbackId = _ref2.callbackId,
-      data = _ref2.data;
   var callback = canvasEventCallbacks.pop(callbackId);
 
   if (callback) {
@@ -5802,7 +7086,7 @@ function checkColor(e) {
 
   var i = e.toLowerCase();
 
-  if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "h"])(predefinedColor, i)) {
+  if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "i"])(predefinedColor, i)) {
     t = /^#([0-9|A-F|a-f]{6,8})$/.exec(predefinedColor[i]);
 
     var _n2 = parseInt(t[1].slice(0, 2), 16);
@@ -5816,9 +7100,7 @@ function checkColor(e) {
     return [_n2, _o2, _r2, a];
   }
 
-  console.group('非法颜色: ' + e);
-  console.error('不支持颜色：' + e);
-  console.groupEnd();
+  console.error('unsupported color:' + e);
   return [0, 0, 0, 255];
 }
 
@@ -5849,19 +7131,12 @@ var CanvasGradient = /*#__PURE__*/function () {
 var methods1 = ['scale', 'rotate', 'translate', 'setTransform', 'transform'];
 var methods2 = ['drawImage', 'fillText', 'fill', 'stroke', 'fillRect', 'strokeRect', 'clearRect', 'strokeText'];
 var methods3 = ['setFillStyle', 'setTextAlign', 'setStrokeStyle', 'setGlobalAlpha', 'setShadow', 'setFontSize', 'setLineCap', 'setLineJoin', 'setLineWidth', 'setMiterLimit', 'setTextBaseline', 'setLineDash'];
-var tempCanvas;
 
-function getTempCanvas() {
-  var width = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-  var height = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-
-  if (!tempCanvas) {
-    tempCanvas = document.createElement('canvas');
-  }
-
-  tempCanvas.width = width;
-  tempCanvas.height = height;
-  return tempCanvas;
+function _measureText(text, font) {
+  var canvas = document.createElement('canvas');
+  var c2d = canvas.getContext('2d');
+  c2d.font = font;
+  return c2d.measureText(text).width || 0;
 }
 
 function TextMetrics(width) {
@@ -5936,18 +7211,18 @@ var CanvasContext = /*#__PURE__*/function () {
       } else {
         return new Pattern(image, repetition);
       }
-    } // TODO
-
+    }
   }, {
     key: "measureText",
     value: function measureText(text) {
-      if ((typeof document === "undefined" ? "undefined" : _typeof(document)) === 'object') {
-        var c2d = getTempCanvas().getContext('2d');
-        c2d.font = this.state.font;
-        return new TextMetrics(c2d.measureText(text).width || 0);
-      } else {
-        return new TextMetrics(0);
-      }
+      var font = this.state.font;
+      var width = 0;
+
+      if (true) {
+        width = _measureText(text, font);
+      } else { var webview; }
+
+      return new TextMetrics(width);
     }
   }, {
     key: "save",
@@ -6457,12 +7732,12 @@ function createCanvasContext(id, context) {
     UniServiceJSBridge.emit('onError', 'createCanvasContext:fail');
   }
 }
-function canvasGetImageData(_ref3, callbackId) {
-  var canvasId = _ref3.canvasId,
-      x = _ref3.x,
-      y = _ref3.y,
-      width = _ref3.width,
-      height = _ref3.height;
+function canvasGetImageData(_ref2, callbackId) {
+  var canvasId = _ref2.canvasId,
+      x = _ref2.x,
+      y = _ref2.y,
+      width = _ref2.width,
+      height = _ref2.height;
   var pageId = Object(_platform__WEBPACK_IMPORTED_MODULE_2__[/* getCurrentPageId */ "a"])();
 
   if (!pageId) {
@@ -6476,6 +7751,8 @@ function canvasGetImageData(_ref3, callbackId) {
     var imgData = data.data;
 
     if (imgData && imgData.length) {
+      if (false) { var pako; }
+
       data.data = new Uint8ClampedArray(imgData);
     }
 
@@ -6489,13 +7766,13 @@ function canvasGetImageData(_ref3, callbackId) {
     callbackId: cId
   });
 }
-function canvasPutImageData(_ref4, callbackId) {
-  var canvasId = _ref4.canvasId,
-      data = _ref4.data,
-      x = _ref4.x,
-      y = _ref4.y,
-      width = _ref4.width,
-      height = _ref4.height;
+function canvasPutImageData(_ref3, callbackId) {
+  var canvasId = _ref3.canvasId,
+      data = _ref3.data,
+      x = _ref3.x,
+      y = _ref3.y,
+      width = _ref3.width,
+      height = _ref3.height;
   var pageId = Object(_platform__WEBPACK_IMPORTED_MODULE_2__[/* getCurrentPageId */ "a"])();
 
   if (!pageId) {
@@ -6507,29 +7784,36 @@ function canvasPutImageData(_ref4, callbackId) {
 
   var cId = canvasEventCallbacks.push(function (data) {
     Object(_bridge__WEBPACK_IMPORTED_MODULE_3__[/* invoke */ "a"])(callbackId, data);
-  }); // fix ...
+  });
+  var compressed; // iOS真机非调试模式压缩太慢暂时排除
+
+  if (false) { var pako; } else {
+    // fix ...
+    data = Array.prototype.slice.call(data);
+  }
 
   operateCanvas(canvasId, pageId, 'putImageData', {
-    data: Array.prototype.slice.call(data),
+    data: data,
     x: x,
     y: y,
     width: width,
     height: height,
+    compressed: compressed,
     callbackId: cId
   });
 }
-function canvasToTempFilePath(_ref5, callbackId) {
-  var _ref5$x = _ref5.x,
-      x = _ref5$x === void 0 ? 0 : _ref5$x,
-      _ref5$y = _ref5.y,
-      y = _ref5$y === void 0 ? 0 : _ref5$y,
-      width = _ref5.width,
-      height = _ref5.height,
-      destWidth = _ref5.destWidth,
-      destHeight = _ref5.destHeight,
-      canvasId = _ref5.canvasId,
-      fileType = _ref5.fileType,
-      qualit = _ref5.qualit;
+function canvasToTempFilePath(_ref4, callbackId) {
+  var _ref4$x = _ref4.x,
+      x = _ref4$x === void 0 ? 0 : _ref4$x,
+      _ref4$y = _ref4.y,
+      y = _ref4$y === void 0 ? 0 : _ref4$y,
+      width = _ref4.width,
+      height = _ref4.height,
+      destWidth = _ref4.destWidth,
+      destHeight = _ref4.destHeight,
+      canvasId = _ref4.canvasId,
+      fileType = _ref4.fileType,
+      qualit = _ref4.qualit;
   var pageId = Object(_platform__WEBPACK_IMPORTED_MODULE_2__[/* getCurrentPageId */ "a"])();
 
   if (!pageId) {
@@ -6539,38 +7823,20 @@ function canvasToTempFilePath(_ref5, callbackId) {
     return;
   }
 
-  var cId = canvasEventCallbacks.push(function (_ref6) {
-    var base64 = _ref6.base64;
-
-    if (!base64 || !base64.length) {
-      Object(_bridge__WEBPACK_IMPORTED_MODULE_3__[/* invoke */ "a"])(callbackId, {
-        errMsg: 'canvasToTempFilePath:fail'
-      });
-    }
-
-    Object(_platform__WEBPACK_IMPORTED_MODULE_2__[/* invokeMethod */ "c"])('base64ToTempFilePath', {
-      base64Data: base64,
-      x: x,
-      y: y,
-      width: width,
-      height: height,
-      destWidth: destWidth,
-      destHeight: destHeight,
-      canvasId: canvasId,
-      fileType: fileType,
-      qualit: qualit
-    }, callbackId);
+  var cId = canvasEventCallbacks.push(function (res) {
+    Object(_bridge__WEBPACK_IMPORTED_MODULE_3__[/* invoke */ "a"])(callbackId, res);
   });
-  operateCanvas(canvasId, pageId, 'getDataUrl', {
+  var dirname = "".concat(uni_platform_service_api_constants__WEBPACK_IMPORTED_MODULE_4__["TEMP_PATH"], "/canvas");
+  operateCanvas(canvasId, pageId, 'toTempFilePath', {
     x: x,
     y: y,
     width: width,
     height: height,
     destWidth: destWidth,
     destHeight: destHeight,
-    hidpi: false,
     fileType: fileType,
     qualit: qualit,
+    dirname: dirname,
     callbackId: cId
   });
 }
@@ -6585,18 +7851,21 @@ function canvasToTempFilePath(_ref5, callbackId) {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/video/index.vue?vue&type=template&id=7bae7bcf&
-var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-video',_vm._g({attrs:{"id":_vm.id}},_vm.$listeners),[_c('div',{ref:"container",staticClass:"uni-video-container",on:{"click":_vm.triggerControls,"touchstart":_vm.touchstart,"touchend":_vm.touchend,"touchmove":_vm.touchmove,"fullscreenchange":function($event){$event.stopPropagation();return _vm.onFullscreenChange($event)},"webkitfullscreenchange":function($event){$event.stopPropagation();return _vm.onFullscreenChange($event,true)}}},[_c('video',_vm._b({ref:"video",staticClass:"uni-video-video",style:({objectFit:_vm.objectFit}),attrs:{"loop":_vm.loop,"src":_vm.srcSync,"poster":_vm.poster,"autoplay":_vm.autoplay,"webkit-playsinline":"","playsinline":""},domProps:{"muted":_vm.muted},on:{"durationchange":_vm.onDurationChange,"loadedmetadata":_vm.onLoadedMetadata,"progress":_vm.onProgress,"waiting":_vm.onWaiting,"error":_vm.onVideoError,"play":_vm.onPlay,"pause":_vm.onPause,"ended":_vm.onEnded,"timeupdate":_vm.onTimeUpdate,"webkitbeginfullscreen":function($event){return _vm.emitFullscreenChange(true)},"x5videoenterfullscreen":function($event){return _vm.emitFullscreenChange(true)},"webkitendfullscreen":function($event){return _vm.emitFullscreenChange(false)},"x5videoexitfullscreen":function($event){return _vm.emitFullscreenChange(false)}}},'video',_vm.$attrs,false)),_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.controlsShow),expression:"controlsShow"}],staticClass:"uni-video-bar uni-video-bar-full",on:{"click":function($event){$event.stopPropagation();}}},[_c('div',{staticClass:"uni-video-controls"},[_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.showPlayBtn),expression:"showPlayBtn"}],staticClass:"uni-video-control-button",class:{'uni-video-control-button-play':!_vm.playing,'uni-video-control-button-pause':_vm.playing},on:{"click":function($event){$event.stopPropagation();return _vm.trigger($event)}}}),_c('div',{staticClass:"uni-video-current-time"},[_vm._v(" "+_vm._s(_vm._f("time")(_vm.currentTime))+" ")]),_c('div',{ref:"progress",staticClass:"uni-video-progress-container",on:{"click":function($event){$event.stopPropagation();return _vm.clickProgress($event)}}},[_c('div',{staticClass:"uni-video-progress"},[_c('div',{staticClass:"uni-video-progress-buffered",style:({width:_vm.buffered+'%'})}),_c('div',{ref:"ball",staticClass:"uni-video-ball",style:({left:_vm.progress+'%'})},[_c('div',{staticClass:"uni-video-inner"})])])]),_c('div',{staticClass:"uni-video-duration"},[_vm._v(" "+_vm._s(_vm._f("time")((_vm.duration||_vm.durationTime)))+" ")])]),(_vm.danmuBtn)?_c('div',{staticClass:"uni-video-danmu-button",class:{'uni-video-danmu-button-active':_vm.enableDanmuSync},on:{"click":function($event){$event.stopPropagation();return _vm.triggerDanmu($event)}}},[_vm._v(" 弹幕 ")]):_vm._e(),_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.showFullscreenBtn),expression:"showFullscreenBtn"}],staticClass:"uni-video-fullscreen",class:{'uni-video-type-fullscreen':_vm.fullscreen},on:{"click":function($event){$event.stopPropagation();return _vm.triggerFullscreen(!_vm.fullscreen)}}})]),_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.start&&_vm.enableDanmuSync),expression:"start&&enableDanmuSync"}],ref:"danmu",staticClass:"uni-video-danmu",staticStyle:{"z-index":"0"}}),(_vm.centerPlayBtnShow)?_c('div',{staticClass:"uni-video-cover",on:{"click":function($event){$event.stopPropagation();}}},[_c('div',{staticClass:"uni-video-cover-play-button",on:{"click":function($event){$event.stopPropagation();return _vm.play($event)}}}),_c('p',{staticClass:"uni-video-cover-duration"},[_vm._v(" "+_vm._s(_vm._f("time")((_vm.duration||_vm.durationTime)))+" ")])]):_vm._e(),_c('div',{staticClass:"uni-video-toast",class:{'uni-video-toast-volume':_vm.gestureType==='volume'}},[_c('div',{staticClass:"uni-video-toast-title"},[_vm._v(" 音量 ")]),_c('svg',{staticClass:"uni-video-toast-icon",attrs:{"width":"200px","height":"200px","viewBox":"0 0 1024 1024","version":"1.1","xmlns":"http://www.w3.org/2000/svg"}},[_c('path',{attrs:{"d":"M475.400704 201.19552l0 621.674496q0 14.856192-10.856448 25.71264t-25.71264 10.856448-25.71264-10.856448l-190.273536-190.273536-149.704704 0q-14.856192 0-25.71264-10.856448t-10.856448-25.71264l0-219.414528q0-14.856192 10.856448-25.71264t25.71264-10.856448l149.704704 0 190.273536-190.273536q10.856448-10.856448 25.71264-10.856448t25.71264 10.856448 10.856448 25.71264zm219.414528 310.837248q0 43.425792-24.28416 80.851968t-64.2816 53.425152q-5.71392 2.85696-14.2848 2.85696-14.856192 0-25.71264-10.570752t-10.856448-25.998336q0-11.999232 6.856704-20.284416t16.570368-14.2848 19.427328-13.142016 16.570368-20.284416 6.856704-32.569344-6.856704-32.569344-16.570368-20.284416-19.427328-13.142016-16.570368-14.2848-6.856704-20.284416q0-15.427584 10.856448-25.998336t25.71264-10.570752q8.57088 0 14.2848 2.85696 39.99744 15.427584 64.2816 53.139456t24.28416 81.137664zm146.276352 0q0 87.422976-48.56832 161.41824t-128.5632 107.707392q-7.428096 2.85696-14.2848 2.85696-15.427584 0-26.284032-10.856448t-10.856448-25.71264q0-22.284288 22.284288-33.712128 31.997952-16.570368 43.425792-25.141248 42.283008-30.855168 65.995776-77.423616t23.712768-99.136512-23.712768-99.136512-65.995776-77.423616q-11.42784-8.57088-43.425792-25.141248-22.284288-11.42784-22.284288-33.712128 0-14.856192 10.856448-25.71264t25.71264-10.856448q7.428096 0 14.856192 2.85696 79.99488 33.712128 128.5632 107.707392t48.56832 161.41824zm146.276352 0q0 131.42016-72.566784 241.41312t-193.130496 161.989632q-7.428096 2.85696-14.856192 2.85696-14.856192 0-25.71264-10.856448t-10.856448-25.71264q0-20.570112 22.284288-33.712128 3.999744-2.285568 12.85632-5.999616t12.85632-5.999616q26.284032-14.2848 46.854144-29.140992 70.281216-51.996672 109.707264-129.705984t39.426048-165.132288-39.426048-165.132288-109.707264-129.705984q-20.570112-14.856192-46.854144-29.140992-3.999744-2.285568-12.85632-5.999616t-12.85632-5.999616q-22.284288-13.142016-22.284288-33.712128 0-14.856192 10.856448-25.71264t25.71264-10.856448q7.428096 0 14.856192 2.85696 120.563712 51.996672 193.130496 161.989632t72.566784 241.41312z"}})]),_c('div',{staticClass:"uni-video-toast-value"},[_c('div',{staticClass:"uni-video-toast-value-content",style:({width:_vm.volumeNew*100+'%'})},[_c('div',{staticClass:"uni-video-toast-volume-grids"},_vm._l((10),function(item,index){return _c('div',{key:index,staticClass:"uni-video-toast-volume-grids-item"})}),0)])])]),_c('div',{staticClass:"uni-video-toast",class:{'uni-video-toast-progress':_vm.gestureType=='progress'}},[_c('div',{staticClass:"uni-video-toast-title"},[_vm._v(" "+_vm._s(_vm._f("time")(_vm.currentTimeNew))+" / "+_vm._s(_vm._f("time")(_vm.durationTime))+" ")])])]),_c('div',{staticStyle:{"position":"absolute","top":"0","width":"100%","height":"100%","overflow":"hidden","pointer-events":"none"}},[_vm._t("default")],2)])}
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/video/index.vue?vue&type=template&id=4547d82e&
+var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-video',_vm._g({attrs:{"id":_vm.id}},_vm.$listeners),[_c('div',{ref:"container",staticClass:"uni-video-container",on:{"touchstart":_vm.touchstart,"touchend":_vm.touchend,"touchmove":_vm.touchmove,"fullscreenchange":function($event){$event.stopPropagation();return _vm.onFullscreenChange($event)},"webkitfullscreenchange":function($event){$event.stopPropagation();return _vm.onFullscreenChange($event,true)}}},[_c('video',_vm._b({ref:"video",staticClass:"uni-video-video",style:({objectFit:_vm.objectFit}),attrs:{"loop":_vm.loop,"src":_vm.srcSync,"poster":_vm.poster,"autoplay":_vm.autoplay,"webkit-playsinline":"","playsinline":""},domProps:{"muted":_vm.muted},on:{"click":_vm.triggerControls,"durationchange":_vm.onDurationChange,"loadedmetadata":_vm.onLoadedMetadata,"progress":_vm.onProgress,"waiting":_vm.onWaiting,"error":_vm.onVideoError,"play":_vm.onPlay,"pause":_vm.onPause,"ended":_vm.onEnded,"timeupdate":_vm.onTimeUpdate,"webkitbeginfullscreen":function($event){return _vm.emitFullscreenChange(true)},"x5videoenterfullscreen":function($event){return _vm.emitFullscreenChange(true)},"webkitendfullscreen":function($event){return _vm.emitFullscreenChange(false)},"x5videoexitfullscreen":function($event){return _vm.emitFullscreenChange(false)}}},'video',_vm.$attrs,false)),_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.controlsShow),expression:"controlsShow"}],staticClass:"uni-video-bar uni-video-bar-full",on:{"click":function($event){$event.stopPropagation();}}},[_c('div',{staticClass:"uni-video-controls"},[_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.showPlayBtn),expression:"showPlayBtn"}],staticClass:"uni-video-control-button",class:{'uni-video-control-button-play':!_vm.playing,'uni-video-control-button-pause':_vm.playing},on:{"click":function($event){$event.stopPropagation();return _vm.trigger($event)}}}),_c('div',{staticClass:"uni-video-current-time"},[_vm._v(" "+_vm._s(_vm._f("time")(_vm.currentTime))+" ")]),_c('div',{ref:"progress",staticClass:"uni-video-progress-container",on:{"click":function($event){$event.stopPropagation();return _vm.clickProgress($event)}}},[_c('div',{staticClass:"uni-video-progress"},[_c('div',{staticClass:"uni-video-progress-buffered",style:({width:_vm.buffered+'%'})}),_c('div',{ref:"ball",staticClass:"uni-video-ball",style:({left:_vm.progress+'%'})},[_c('div',{staticClass:"uni-video-inner"})])])]),_c('div',{staticClass:"uni-video-duration"},[_vm._v(" "+_vm._s(_vm._f("time")((_vm.duration||_vm.durationTime)))+" ")])]),(_vm.danmuBtn)?_c('div',{staticClass:"uni-video-danmu-button",class:{'uni-video-danmu-button-active':_vm.enableDanmuSync},on:{"click":function($event){$event.stopPropagation();return _vm.triggerDanmu($event)}}},[_vm._v(" "+_vm._s(_vm.$$t("uni.video.danmu"))+" ")]):_vm._e(),_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.showFullscreenBtn),expression:"showFullscreenBtn"}],staticClass:"uni-video-fullscreen",class:{'uni-video-type-fullscreen':_vm.fullscreen},on:{"click":function($event){$event.stopPropagation();return _vm.triggerFullscreen(!_vm.fullscreen)}}})]),_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.start&&_vm.enableDanmuSync),expression:"start&&enableDanmuSync"}],ref:"danmu",staticClass:"uni-video-danmu",staticStyle:{"z-index":"0"}}),(_vm.centerPlayBtnShow)?_c('div',{staticClass:"uni-video-cover",on:{"click":function($event){$event.stopPropagation();}}},[_c('div',{staticClass:"uni-video-cover-play-button",on:{"click":function($event){$event.stopPropagation();return _vm.play($event)}}}),_c('p',{staticClass:"uni-video-cover-duration"},[_vm._v(" "+_vm._s(_vm._f("time")((_vm.duration||_vm.durationTime)))+" ")])]):_vm._e(),_c('div',{staticClass:"uni-video-toast",class:{'uni-video-toast-volume':_vm.gestureType==='volume'}},[_c('div',{staticClass:"uni-video-toast-title"},[_vm._v(" "+_vm._s(_vm.$$t("uni.video.volume"))+" ")]),_c('svg',{staticClass:"uni-video-toast-icon",attrs:{"width":"200px","height":"200px","viewBox":"0 0 1024 1024","version":"1.1","xmlns":"http://www.w3.org/2000/svg"}},[_c('path',{attrs:{"d":"M475.400704 201.19552l0 621.674496q0 14.856192-10.856448 25.71264t-25.71264 10.856448-25.71264-10.856448l-190.273536-190.273536-149.704704 0q-14.856192 0-25.71264-10.856448t-10.856448-25.71264l0-219.414528q0-14.856192 10.856448-25.71264t25.71264-10.856448l149.704704 0 190.273536-190.273536q10.856448-10.856448 25.71264-10.856448t25.71264 10.856448 10.856448 25.71264zm219.414528 310.837248q0 43.425792-24.28416 80.851968t-64.2816 53.425152q-5.71392 2.85696-14.2848 2.85696-14.856192 0-25.71264-10.570752t-10.856448-25.998336q0-11.999232 6.856704-20.284416t16.570368-14.2848 19.427328-13.142016 16.570368-20.284416 6.856704-32.569344-6.856704-32.569344-16.570368-20.284416-19.427328-13.142016-16.570368-14.2848-6.856704-20.284416q0-15.427584 10.856448-25.998336t25.71264-10.570752q8.57088 0 14.2848 2.85696 39.99744 15.427584 64.2816 53.139456t24.28416 81.137664zm146.276352 0q0 87.422976-48.56832 161.41824t-128.5632 107.707392q-7.428096 2.85696-14.2848 2.85696-15.427584 0-26.284032-10.856448t-10.856448-25.71264q0-22.284288 22.284288-33.712128 31.997952-16.570368 43.425792-25.141248 42.283008-30.855168 65.995776-77.423616t23.712768-99.136512-23.712768-99.136512-65.995776-77.423616q-11.42784-8.57088-43.425792-25.141248-22.284288-11.42784-22.284288-33.712128 0-14.856192 10.856448-25.71264t25.71264-10.856448q7.428096 0 14.856192 2.85696 79.99488 33.712128 128.5632 107.707392t48.56832 161.41824zm146.276352 0q0 131.42016-72.566784 241.41312t-193.130496 161.989632q-7.428096 2.85696-14.856192 2.85696-14.856192 0-25.71264-10.856448t-10.856448-25.71264q0-20.570112 22.284288-33.712128 3.999744-2.285568 12.85632-5.999616t12.85632-5.999616q26.284032-14.2848 46.854144-29.140992 70.281216-51.996672 109.707264-129.705984t39.426048-165.132288-39.426048-165.132288-109.707264-129.705984q-20.570112-14.856192-46.854144-29.140992-3.999744-2.285568-12.85632-5.999616t-12.85632-5.999616q-22.284288-13.142016-22.284288-33.712128 0-14.856192 10.856448-25.71264t25.71264-10.856448q7.428096 0 14.856192 2.85696 120.563712 51.996672 193.130496 161.989632t72.566784 241.41312z"}})]),_c('div',{staticClass:"uni-video-toast-value"},[_c('div',{staticClass:"uni-video-toast-value-content",style:({width:_vm.volumeNew*100+'%'})},[_c('div',{staticClass:"uni-video-toast-volume-grids"},_vm._l((10),function(item,index){return _c('div',{key:index,staticClass:"uni-video-toast-volume-grids-item"})}),0)])])]),_c('div',{staticClass:"uni-video-toast",class:{'uni-video-toast-progress':_vm.gestureType=='progress'}},[_c('div',{staticClass:"uni-video-toast-title"},[_vm._v(" "+_vm._s(_vm._f("time")(_vm.currentTimeNew))+" / "+_vm._s(_vm._f("time")(_vm.durationTime))+" ")])]),_c('div',{staticClass:"uni-video-slots"},[_vm._t("default")],2)])])}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/platforms/h5/view/components/video/index.vue?vue&type=template&id=7bae7bcf&
+// CONCATENATED MODULE: ./src/platforms/h5/view/components/video/index.vue?vue&type=template&id=4547d82e&
 
-// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 3 modules
+// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 1 modules
 var mixins = __webpack_require__("8af1");
 
-// EXTERNAL MODULE: ./src/shared/index.js + 7 modules
+// EXTERNAL MODULE: ./src/shared/index.js + 6 modules
 var shared = __webpack_require__("f2b3");
+
+// EXTERNAL MODULE: ./src/core/helpers/i18n/index.js
+var i18n = __webpack_require__("a6b0");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/video/index.vue?vue&type=script&lang=js&
 //
@@ -6760,11 +8029,10 @@ var shared = __webpack_require__("f2b3");
 //
 //
 //
-//
-//
 
 
-var passiveOptions = shared["o" /* supportsPassive */] ? {
+
+var passiveOptions = shared["p" /* supportsPassive */] ? {
   passive: false
 } : false;
 var GestureType = {
@@ -6793,7 +8061,7 @@ var GestureType = {
       return str;
     }
   },
-  mixins: [mixins["g" /* subscriber */], mixins["d" /* interact */]],
+  mixins: [i18n["b" /* i18nMixin */], mixins["g" /* subscriber */], mixins["d" /* interact */]],
   props: {
     id: {
       type: String,
@@ -7544,7 +8812,7 @@ function createValidator(type) {
     } // 主要拦截目标为用户快速点击时触发的多次跳转，该情况，通常前后 url 是一样的
 
 
-    if (navigatorLock === url) {
+    if (navigatorLock === url && params.openType !== 'appLaunch') {
       return "".concat(navigatorLock, " locked");
     } // 至少 onLaunch 之后，再启用lock逻辑（onLaunch之前可能开发者手动调用路由API，来提前跳转）
     // enableNavigatorLock 临时开关（不对外开放），避免该功能上线后，有部分情况异常，可以让开发者临时关闭 lock 功能
@@ -7824,6 +9092,70 @@ function getImageInfo(_ref, callbackId) {
 
 /***/ }),
 
+/***/ "3563":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var uni_shared__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("f2b3");
+
+var ALL = '*';
+
+function isWXEnv() {
+  var ua = window.navigator.userAgent.toLowerCase();
+
+  if (ua.match(/MicroMessenger/i) && ua.match(/MicroMessenger/i)[0] === 'micromessenger') {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (function (_ref) {
+  var count = _ref.count,
+      sourceType = _ref.sourceType,
+      type = _ref.type,
+      extension = _ref.extension;
+  var inputEl = document.createElement('input');
+  inputEl.type = 'file';
+  Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* updateElementStyle */ "s"])(inputEl, {
+    position: 'absolute',
+    visibility: 'hidden',
+    'z-index': -999,
+    width: 0,
+    height: 0,
+    top: 0,
+    left: 0
+  });
+  inputEl.accept = extension.map(function (item) {
+    if (type !== ALL) {
+      // 剔除.拼接在type后
+      return "".concat(type, "/").concat(item.replace('.', ''));
+    } else {
+      // 在微信环境里，'.jpeg,.png' 会提示没有应用可执行此操作
+      if (isWXEnv()) {
+        return '.';
+      } // 在后缀前方加上.
+
+
+      return item.indexOf('.') === 0 ? item : ".".concat(item);
+    }
+  }).join(',');
+
+  if (count > 1) {
+    inputEl.multiple = 'multiple';
+  } // 经过测试，仅能限制只通过相机拍摄，不能限制只允许从相册选择。
+
+
+  if (sourceType.length === 1 && sourceType[0] === 'camera') {
+    inputEl.capture = 'camera';
+  }
+
+  return inputEl;
+});
+
+/***/ }),
+
 /***/ "3590":
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -7841,12 +9173,12 @@ __webpack_require__.r(__webpack_exports__);
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, "canIUse", function() { return /* binding */ canIUse; });
 
-// EXTERNAL MODULE: ./src/shared/index.js + 7 modules
+// EXTERNAL MODULE: ./src/shared/index.js + 6 modules
 var shared = __webpack_require__("f2b3");
 
 // CONCATENATED MODULE: ./src/platforms/h5/helpers/can-i-use.js
 function cssSupports(css) {
-  return window.CSS && window.CSS.supports && window.CSS.supports(css);
+  return window.CSS && CSS.supports && (CSS.supports(css) || CSS.supports.apply(CSS, css.split(':')));
 }
 
 /* harmony default export */ var can_i_use = ({
@@ -7859,7 +9191,7 @@ function cssSupports(css) {
  // TODO 待处理其他 API 的检测
 
 function canIUse(schema) {
-  if (Object(shared["h" /* hasOwn */])(can_i_use, schema)) {
+  if (Object(shared["i" /* hasOwn */])(can_i_use, schema)) {
     return can_i_use[schema];
   }
 
@@ -7979,6 +9311,85 @@ function getRecorderManager() {
 
 /***/ }),
 
+/***/ "3898":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "chooseFile", function() { return chooseFile; });
+/* harmony import */ var uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("e2e2");
+/* harmony import */ var _create_input__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("3563");
+
+
+var _UniServiceJSBridge = UniServiceJSBridge,
+    invoke = _UniServiceJSBridge.invokeCallbackHandler;
+var fileInput = null;
+function chooseFile(_ref, callbackId) {
+  var count = _ref.count,
+      sourceType = _ref.sourceType,
+      type = _ref.type,
+      extension = _ref.extension;
+
+  // TODO handle sizeType 尝试通过 canvas 压缩
+  if (fileInput) {
+    document.body.removeChild(fileInput);
+    fileInput = null;
+  }
+
+  fileInput = Object(_create_input__WEBPACK_IMPORTED_MODULE_1__["default"])({
+    count: count,
+    sourceType: sourceType,
+    type: type,
+    extension: extension
+  });
+  document.body.appendChild(fileInput);
+  fileInput.addEventListener('change', function (event) {
+    var tempFiles = [];
+    var fileCount = event.target.files.length;
+
+    var _loop = function _loop(i) {
+      var file = event.target.files[i];
+      var filePath = void 0;
+      Object.defineProperty(file, 'path', {
+        get: function get() {
+          filePath = filePath || Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* fileToUrl */ "b"])(file);
+          return filePath;
+        }
+      });
+      if (i < count) tempFiles.push(file);
+    };
+
+    for (var i = 0; i < fileCount; i++) {
+      _loop(i);
+    }
+
+    var res = {
+      errMsg: 'chooseFile:ok',
+
+      get tempFilePaths() {
+        return tempFiles.map(function (_ref2) {
+          var path = _ref2.path;
+          return path;
+        });
+      },
+
+      tempFiles: tempFiles
+    };
+    invoke(callbackId, res); // TODO 用户取消选择时，触发 fail，目前尚未找到合适的方法。
+  });
+  fileInput.click();
+}
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("0dd1")))
+
+/***/ }),
+
+/***/ "39aa":
+/***/ (function(module) {
+
+module.exports = JSON.parse("{\"uni.app.quit\":\"Press back button again to exit\",\"uni.async.error\":\"The connection timed out, click the screen to try again.\",\"uni.showActionSheet.cancel\":\"Cancel\",\"uni.showToast.unpaired\":\"Please note showToast must be paired with hideToast\",\"uni.showLoading.unpaired\":\"Please note showLoading must be paired with hideLoading\",\"uni.showModal.cancel\":\"Cancel\",\"uni.showModal.confirm\":\"OK\",\"uni.chooseImage.cancel\":\"Cancel\",\"uni.chooseImage.sourceType.album\":\"Album\",\"uni.chooseImage.sourceType.camera\":\"Camera\",\"uni.chooseVideo.cancel\":\"Cancel\",\"uni.chooseVideo.sourceType.album\":\"Album\",\"uni.chooseVideo.sourceType.camera\":\"Camera\",\"uni.previewImage.cancel\":\"Cancel\",\"uni.previewImage.button.save\":\"Save Image\",\"uni.previewImage.save.success\":\"Saved successfully\",\"uni.previewImage.save.fail\":\"Save failed\",\"uni.setClipboardData.success\":\"Content copied\",\"uni.scanCode.title\":\"Scan code\",\"uni.scanCode.album\":\"Album\",\"uni.scanCode.fail\":\"Recognition failure\",\"uni.scanCode.flash.on\":\"Tap to turn light on\",\"uni.scanCode.flash.off\":\"Tap to turn light off\",\"uni.startSoterAuthentication.authContent\":\"Fingerprint recognition\",\"uni.picker.done\":\"Done\",\"uni.picker.cancel\":\"Cancel\",\"uni.video.danmu\":\"Danmu\",\"uni.video.volume\":\"Volume\",\"uni.button.feedback.title\":\"feedback\",\"uni.button.feedback.send\":\"send\"}");
+
+/***/ }),
+
 /***/ "3ad9":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -8030,14 +9441,14 @@ function getFileInfo() {
 
   var callbackId = arguments.length > 1 ? arguments[1] : undefined;
   // TODO 计算文件摘要
-  Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* urlToFile */ "c"])(filePath).then(function (res) {
+  Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* urlToFile */ "f"])(filePath).then(function (res) {
     invoke(callbackId, {
       errMsg: 'getFileInfo:ok',
       size: res.size
     });
   }).catch(function (err) {
     invoke(callbackId, {
-      errMsg: 'getFileInfo:fail 文件[' + filePath + '] getFileInfo 失败:' + err.message
+      errMsg: 'getFileInfo:fail ' + err.message
     });
   });
 }
@@ -8105,7 +9516,7 @@ var createCanvasContext = [{
 
 /* harmony default export */ __webpack_exports__["a"] = ({
   name: 'Label',
-  mixins: [uni_mixins__WEBPACK_IMPORTED_MODULE_0__[/* emitter */ "b"]],
+  mixins: [uni_mixins__WEBPACK_IMPORTED_MODULE_0__[/* emitter */ "a"]],
   props: {
     for: {
       type: String,
@@ -8205,6 +9616,24 @@ function initSubscribe(subscribe, _ref) {
     }
   }
 
+  var requestMediaQueryObserverCallbacks = Object(uni_helpers_callbacks__WEBPACK_IMPORTED_MODULE_0__[/* default */ "a"])('requestMediaQueryObserver');
+
+  function onRequestMediaQueryObserver(_ref4) {
+    var reqId = _ref4.reqId,
+        reqEnd = _ref4.reqEnd,
+        res = _ref4.res;
+    var callback = requestMediaQueryObserverCallbacks.get(reqId);
+
+    if (callback) {
+      if (reqEnd) {
+        requestMediaQueryObserverCallbacks.pop(reqId);
+        return;
+      }
+
+      callback(res);
+    }
+  }
+
   if (true) {
     subscribe('onPageReady', createPageEvent('onReady'));
   }
@@ -8213,6 +9642,7 @@ function initSubscribe(subscribe, _ref) {
   subscribe('onReachBottom', createPageEvent('onReachBottom'));
   subscribe('onRequestComponentInfo', onRequestComponentInfo);
   subscribe('onRequestComponentObserver', onRequestComponentObserver);
+  subscribe('onRequestMediaQueryObserver', onRequestMediaQueryObserver);
 }
 
 /***/ }),
@@ -8223,6 +9653,7 @@ function initSubscribe(subscribe, _ref) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "onNetworkStatusChange", function() { return onNetworkStatusChange; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "offNetworkStatusChange", function() { return offNetworkStatusChange; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getNetworkType", function() { return getNetworkType; });
 var _UniServiceJSBridge = UniServiceJSBridge,
     invoke = _UniServiceJSBridge.invokeCallbackHandler;
@@ -8250,6 +9681,27 @@ function onNetworkStatusChange(callbackId) {
   } else {
     window.addEventListener('offline', changeHandler);
     window.addEventListener('online', changeHandler);
+  }
+}
+function offNetworkStatusChange(callbackId) {
+  // 暂不支持移除所有监听
+  if (callbackId) {
+    var index = callbackIds.indexOf(callbackId);
+
+    if (index >= 0) {
+      callbackIds.splice(index, 1);
+    }
+  }
+
+  if (!callbackIds.length) {
+    var connection = navigator.connection || navigator.webkitConnection;
+
+    if (connection) {
+      connection.removeEventListener('change', changeHandler);
+    } else {
+      window.removeEventListener('offline', changeHandler);
+      window.removeEventListener('online', changeHandler);
+    }
   }
 }
 function getNetworkType() {
@@ -8295,6 +9747,7 @@ function getNetworkType() {
 /* WEBPACK VAR INJECTION */(function(UniViewJSBridge) {/* harmony import */ var uni_mixins__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("8af1");
 /* harmony import */ var uni_helpers_html_parser__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("18fd");
 /* harmony import */ var _formats__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("b253");
+/* harmony import */ var _load_script__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__("93ab");
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 //
@@ -8308,9 +9761,10 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 
 
+
 /* harmony default export */ __webpack_exports__["a"] = ({
   name: 'Editor',
-  mixins: [uni_mixins__WEBPACK_IMPORTED_MODULE_0__[/* subscriber */ "g"], uni_mixins__WEBPACK_IMPORTED_MODULE_0__[/* emitter */ "b"], uni_mixins__WEBPACK_IMPORTED_MODULE_0__[/* keyboard */ "e"]],
+  mixins: [uni_mixins__WEBPACK_IMPORTED_MODULE_0__[/* subscriber */ "g"], uni_mixins__WEBPACK_IMPORTED_MODULE_0__[/* emitter */ "a"], uni_mixins__WEBPACK_IMPORTED_MODULE_0__[/* keyboard */ "e"]],
   props: {
     id: {
       type: String,
@@ -8377,9 +9831,11 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       imageResizeModules.push('Resize');
     }
 
-    this.loadQuill(function () {
+    var quillSrc =  false ? undefined : 'https://unpkg.com/quill@1.3.7/dist/quill.min.js';
+    Object(_load_script__WEBPACK_IMPORTED_MODULE_3__[/* default */ "a"])(window.Quill, quillSrc, function () {
       if (imageResizeModules.length) {
-        _this.loadImageResizeModule(function () {
+        var imageResizeSrc =  false ? undefined : 'https://unpkg.com/quill-image-resize-mp@3.0.1/image-resize.min.js';
+        Object(_load_script__WEBPACK_IMPORTED_MODULE_3__[/* default */ "a"])(window.ImageResize, imageResizeSrc, function () {
           _this.initQuill(imageResizeModules);
         });
       } else {
@@ -8540,6 +9996,26 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
             quill.history.redo();
             break;
 
+          case 'blur':
+            quill.blur();
+            break;
+
+          case 'getSelectionText':
+            range = quill.selection.savedRange;
+            res = {
+              text: ''
+            };
+
+            if (range && range.length !== 0) {
+              res.text = quill.getText(range.index, range.length);
+            }
+
+            break;
+
+          case 'scrollIntoView':
+            quill.scrollIntoView();
+            break;
+
           default:
             break;
         }
@@ -8557,34 +10033,6 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
           })
         }, this.$page.id);
       }
-    },
-    loadQuill: function loadQuill(callback) {
-      if (typeof window.Quill === 'function') {
-        if (typeof callback === 'function') {
-          callback();
-        }
-
-        return;
-      }
-
-      var script = document.createElement('script');
-      script.src = window.plus ? './__uniappquill.js' : 'https://unpkg.com/quill@1.3.7/dist/quill.min.js';
-      document.body.appendChild(script);
-      script.onload = callback;
-    },
-    loadImageResizeModule: function loadImageResizeModule(callback) {
-      if (typeof window.ImageResize === 'function') {
-        if (typeof callback === 'function') {
-          callback();
-        }
-
-        return;
-      }
-
-      var script = document.createElement('script');
-      script.src = window.plus ? './__uniappquillimageresize.js' : 'https://unpkg.com/quill-image-resize-mp@3.0.1/image-resize.min.js';
-      document.body.appendChild(script);
-      script.onload = callback;
     },
     initQuill: function initQuill(imageResizeModules) {
       var _this2 = this;
@@ -8631,17 +10079,16 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
           return delta;
         }
 
-        return {
-          ops: delta.ops.filter(function (_ref2) {
-            var insert = _ref2.insert;
-            return typeof insert === 'string';
-          }).map(function (_ref3) {
-            var insert = _ref3.insert;
-            return {
-              insert: insert
-            };
-          })
-        };
+        delta.ops = delta.ops.filter(function (_ref2) {
+          var insert = _ref2.insert;
+          return typeof insert === 'string';
+        }).map(function (_ref3) {
+          var insert = _ref3.insert;
+          return {
+            insert: insert
+          };
+        });
+        return delta;
       });
       this.initKeyboard($el);
       this.quillReady = true;
@@ -8720,7 +10167,25 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/resize-sensor/index.vue?vue&type=template&id=06e270d2&
+var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-resize-sensor',{on:{"~animationstart":function($event){return _vm.update($event)}}},[_c('div',{on:{"scroll":_vm.update}},[_c('div')]),_c('div',{on:{"scroll":_vm.update}},[_c('div')])])}
+var staticRenderFns = []
+
+
+// CONCATENATED MODULE: ./src/core/view/components/resize-sensor/index.vue?vue&type=template&id=06e270d2&
+
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/resize-sensor/index.vue?vue&type=script&lang=js&
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+var MAX = 100000;
 /* harmony default export */ var resize_sensorvue_type_script_lang_js_ = ({
   name: 'ResizeSensor',
   props: {
@@ -8758,35 +10223,23 @@ __webpack_require__.r(__webpack_exports__);
       this.reset();
     }
   },
+  activated: function activated() {
+    this.reset();
+  },
   methods: {
     reset: function reset() {
       var expand = this.$el.firstChild;
+      expand.scrollLeft = MAX;
+      expand.scrollTop = MAX;
       var shrink = this.$el.lastChild;
-      expand.scrollLeft = 100000;
-      expand.scrollTop = 100000;
-      shrink.scrollLeft = 100000;
-      shrink.scrollTop = 100000;
+      shrink.scrollLeft = MAX;
+      shrink.scrollTop = MAX;
     },
     update: function update() {
       this.size.width = this.$el.offsetWidth;
       this.size.height = this.$el.offsetHeight;
       this.reset();
     }
-  },
-  render: function render(create) {
-    return create('uni-resize-sensor', {
-      on: {
-        '~animationstart': this.update
-      }
-    }, [create('div', {
-      on: {
-        scroll: this.update
-      }
-    }, [create('div')]), create('div', {
-      on: {
-        scroll: this.update
-      }
-    }, [create('div')])]);
   }
 });
 // CONCATENATED MODULE: ./src/core/view/components/resize-sensor/index.vue?vue&type=script&lang=js&
@@ -8798,7 +10251,7 @@ var resize_sensorvue_type_style_index_0_lang_css_ = __webpack_require__("64d0");
 var componentNormalizer = __webpack_require__("2877");
 
 // CONCATENATED MODULE: ./src/core/view/components/resize-sensor/index.vue
-var render, staticRenderFns
+
 
 
 
@@ -8853,6 +10306,13 @@ var downloadFile = {
 
 /***/ }),
 
+/***/ "43a1":
+/***/ (function(module, exports, __webpack_require__) {
+
+// extracted by mini-css-extract-plugin
+
+/***/ }),
+
 /***/ "442e":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -8861,15 +10321,18 @@ var downloadFile = {
 /* harmony import */ var uni_helpers_tags__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("5129");
 /* harmony import */ var uni_helpers_tags__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(uni_helpers_tags__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var uni_helpers_index__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("85b6");
+/* harmony import */ var uni_shared__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("f2b3");
 // 使用白名单过滤（前期有一批自定义组件使用了 uni-）
+
 
 
 function initVue(Vue) {
   Vue.config.errorHandler = function (err, vm, info) {
-    Vue.util.warn("Error in ".concat(info, ": \"").concat(err.toString(), "\""), vm);
+    var errType = Object(uni_shared__WEBPACK_IMPORTED_MODULE_2__[/* toRawType */ "r"])(err);
+    Vue.util.warn("Error in ".concat(info, ": \"").concat(errType === 'Error' ? err.toString() : err, "\""), vm);
     var app = typeof getApp === 'function' && getApp(); // 有生命周期钩子函数onError
 
-    if (app && Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_1__[/* hasLifecycleHook */ "a"])(app.$options, 'onError')) {
+    if (app && Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_1__[/* hasLifecycleHook */ "c"])(app.$options, 'onError')) {
       // 调用onError钩子函数
       app.__call_hook('onError', err);
     } else {
@@ -9005,6 +10468,11 @@ function checkDeviceWidth() {
   isIOS = platform === 'ios';
 }
 
+function checkValue(value, defaultValue) {
+  value = Number(value);
+  return isNaN(value) ? defaultValue : value;
+}
+
 function upx2px(number, newDeviceWidth) {
   if (deviceWidth === 0) {
     checkDeviceWidth();
@@ -9016,7 +10484,13 @@ function upx2px(number, newDeviceWidth) {
     return 0;
   }
 
-  var result = number / BASE_DEVICE_WIDTH * (newDeviceWidth || deviceWidth);
+  var config = __uniConfig.globalStyle || __uniConfig.window || {};
+  var maxWidth = checkValue(config.rpxCalcMaxDeviceWidth, 960);
+  var baseWidth = checkValue(config.rpxCalcBaseDeviceWidth, 375);
+  var includeWidth = checkValue(config.rpxCalcIncludeWidth, 750);
+  var width = newDeviceWidth || deviceWidth;
+  width = number === includeWidth || width <= maxWidth ? width : baseWidth;
+  var result = number / BASE_DEVICE_WIDTH * width;
 
   if (result < 0) {
     result = -result;
@@ -9246,7 +10720,7 @@ function getLocation() {
               console.error(err);
             }];
           }
-        } else if (Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_1__[/* isPage */ "b"])(this)) {
+        } else if (Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_1__[/* isPage */ "d"])(this)) {
           var pageMixin = Object(_page__WEBPACK_IMPORTED_MODULE_3__[/* createPageMixin */ "a"])(); // mixin page hooks
 
           Object.keys(pageMixin).forEach(function (hook) {
@@ -9278,10 +10752,101 @@ function getLocation() {
       return uni.createIntersectionObserver(this, args);
     };
 
+    Vue.prototype.createMediaQueryObserver = function createMediaQueryObserver(args) {
+      return uni.createMediaQueryObserver(this, args);
+    };
+
     Vue.use(vue_router__WEBPACK_IMPORTED_MODULE_0___default.a);
   }
 });
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("3ad9")["default"]))
+
+/***/ }),
+
+/***/ "4ccd":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = ({
+  data: function data() {
+    return {
+      popupWidth: 0,
+      popupHeight: 0
+    };
+  },
+  computed: {
+    isDesktop: function isDesktop() {
+      return this.popupWidth >= 500 && this.popupHeight >= 500;
+    },
+    popupStyle: function popupStyle() {
+      var style = {};
+      var contentStyle = style.content = {};
+      var triangleStyle = style.triangle = {};
+      var popover = this.popover;
+
+      function getNumber(value) {
+        return Number(value) || 0;
+      }
+
+      if (this.isDesktop && popover) {
+        Object.assign(triangleStyle, {
+          position: 'absolute',
+          width: '0',
+          height: '0',
+          'margin-left': '-6px',
+          'border-style': 'solid'
+        });
+        var popoverLeft = getNumber(popover.left);
+        var popoverWidth = getNumber(popover.width);
+        var popoverTop = getNumber(popover.top);
+        var popoverHeight = getNumber(popover.height);
+        var center = popoverLeft + popoverWidth / 2;
+        contentStyle.transform = 'none !important';
+        var contentLeft = Math.max(0, center - 300 / 2);
+        contentStyle.left = "".concat(contentLeft, "px");
+        var triangleLeft = Math.max(12, center - contentLeft);
+        triangleLeft = Math.min(300 - 12, triangleLeft);
+        triangleStyle.left = "".concat(triangleLeft, "px");
+        var vcl = this.popupHeight / 2;
+
+        if (popoverTop + popoverHeight - vcl > vcl - popoverTop) {
+          contentStyle.top = 'auto';
+          contentStyle.bottom = "".concat(this.popupHeight - popoverTop + 6, "px");
+          triangleStyle.bottom = '-6px';
+          triangleStyle['border-width'] = '6px 6px 0 6px';
+          triangleStyle['border-color'] = '#fcfcfd transparent transparent transparent';
+        } else {
+          contentStyle.top = "".concat(popoverTop + popoverHeight + 6, "px");
+          triangleStyle.top = '-6px';
+          triangleStyle['border-width'] = '0 6px 6px 6px';
+          triangleStyle['border-color'] = 'transparent transparent #fcfcfd transparent';
+        }
+      }
+
+      return style;
+    }
+  },
+  mounted: function mounted() {
+    var _this = this;
+
+    var fixSize = function fixSize() {
+      var _uni$getSystemInfoSyn = uni.getSystemInfoSync(),
+          windowWidth = _uni$getSystemInfoSyn.windowWidth,
+          windowHeight = _uni$getSystemInfoSyn.windowHeight,
+          windowTop = _uni$getSystemInfoSyn.windowTop;
+
+      _this.popupWidth = windowWidth;
+      _this.popupHeight = windowHeight + windowTop;
+    };
+
+    window.addEventListener('resize', fixSize);
+    fixSize();
+    this.$once('hook:beforeDestroy', function () {
+      window.removeEventListener('resize', fixSize);
+    });
+  }
+});
 
 /***/ }),
 
@@ -9369,14 +10934,14 @@ var getProvider = {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/switch/index.vue?vue&type=template&id=593be283&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/switch/index.vue?vue&type=template&id=593be283&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-switch',_vm._g({attrs:{"disabled":_vm.disabled},on:{"click":_vm._onClick}},_vm.$listeners),[_c('div',{staticClass:"uni-switch-wrapper"},[_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.type === 'switch'),expression:"type === 'switch'"}],staticClass:"uni-switch-input",class:[_vm.switchChecked ? 'uni-switch-input-checked' : ''],style:({backgroundColor: _vm.switchChecked ? _vm.color : '#DFDFDF',borderColor:_vm.switchChecked ? _vm.color : '#DFDFDF'})}),_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.type === 'checkbox'),expression:"type === 'checkbox'"}],staticClass:"uni-checkbox-input",class:[_vm.switchChecked ? 'uni-checkbox-input-checked' : ''],style:({color: _vm.color})})])])}
 var staticRenderFns = []
 
 
 // CONCATENATED MODULE: ./src/core/view/components/switch/index.vue?vue&type=template&id=593be283&
 
-// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 3 modules
+// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 1 modules
 var mixins = __webpack_require__("8af1");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/switch/index.vue?vue&type=script&lang=js&
@@ -9405,7 +10970,7 @@ var mixins = __webpack_require__("8af1");
 
 /* harmony default export */ var switchvue_type_script_lang_js_ = ({
   name: 'Switch',
-  mixins: [mixins["b" /* emitter */], mixins["f" /* listeners */]],
+  mixins: [mixins["a" /* emitter */], mixins["f" /* listeners */]],
   props: {
     name: {
       type: String,
@@ -9597,8 +11162,9 @@ var DownloadTask = /*#__PURE__*/function () {
 
 function downloadFile(_ref, callbackId) {
   var url = _ref.url,
-      header = _ref.header;
-  var timeout = __uniConfig.networkTimeout && __uniConfig.networkTimeout.downloadFile || 60 * 1000;
+      header = _ref.header,
+      _ref$timeout = _ref.timeout,
+      timeout = _ref$timeout === void 0 ? __uniConfig.networkTimeout && __uniConfig.networkTimeout.request || 60 * 1000 : _ref$timeout;
   var _UniServiceJSBridge = UniServiceJSBridge,
       invoke = _UniServiceJSBridge.invokeCallbackHandler;
   var timer;
@@ -9614,10 +11180,24 @@ function downloadFile(_ref, callbackId) {
     clearTimeout(timer);
     var statusCode = xhr.status;
     var blob = this.response;
+    var filename; // 使用 getResponseHeader 跨域时会出现警告，但相比 getAllResponseHeaders 更方便
+
+    var contentDisposition = xhr.getResponseHeader('content-disposition');
+
+    if (contentDisposition) {
+      // 暂时仅解析 filename 不解析 filename*
+      var res = contentDisposition.match(/filename="?(\S+)"?\b/);
+
+      if (res) {
+        filename = res[1];
+      }
+    }
+
+    blob.name = filename || Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* getFileName */ "c"])(url);
     invoke(callbackId, {
       errMsg: 'downloadFile:ok',
       statusCode: statusCode,
-      tempFilePath: Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* fileToUrl */ "a"])(blob)
+      tempFilePath: Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* fileToUrl */ "b"])(blob)
     });
   };
 
@@ -9738,7 +11318,11 @@ var request_component_info = __webpack_require__("6bdf");
 // EXTERNAL MODULE: ./src/core/view/bridge/subscribe/api/request-component-observer.js
 var request_component_observer = __webpack_require__("5dc1");
 
+// EXTERNAL MODULE: ./src/core/view/bridge/subscribe/api/request-media-query-observer.js
+var request_media_query_observer = __webpack_require__("1c73");
+
 // CONCATENATED MODULE: ./src/core/view/bridge/subscribe/api/index.js
+
 
 
 
@@ -9746,7 +11330,9 @@ var request_component_observer = __webpack_require__("5dc1");
   setPageMeta: setPageMeta,
   requestComponentInfo: request_component_info["a" /* requestComponentInfo */],
   requestComponentObserver: request_component_observer["b" /* requestComponentObserver */],
-  destroyComponentObserver: request_component_observer["a" /* destroyComponentObserver */]
+  destroyComponentObserver: request_component_observer["a" /* destroyComponentObserver */],
+  requestMediaQueryObserver: request_media_query_observer["b" /* requestMediaQueryObserver */],
+  destroyMediaQueryObserver: request_media_query_observer["a" /* destroyMediaQueryObserver */]
 });
 // EXTERNAL MODULE: ./src/core/view/bridge/subscribe/scroll.js
 var subscribe_scroll = __webpack_require__("33ed");
@@ -9833,7 +11419,7 @@ initSubscribe(view_bridge_subscribe);
 /**
  * uniapp 内置的标签
  */
-module.exports = ['uni-app', 'uni-tabbar', 'uni-page', 'uni-page-head', 'uni-page-wrapper', 'uni-page-body', 'uni-page-refresh', 'uni-actionsheet', 'uni-modal', 'uni-toast', 'uni-resize-sensor', 'uni-shadow-root', 'uni-ad', 'uni-audio', 'uni-button', 'uni-camera', 'uni-canvas', 'uni-checkbox', 'uni-checkbox-group', 'uni-cover-image', 'uni-cover-view', 'uni-editor', 'uni-form', 'uni-functional-page-navigator', 'uni-icon', 'uni-image', 'uni-input', 'uni-label', 'uni-live-player', 'uni-live-pusher', 'uni-map', 'uni-movable-area', 'uni-movable-view', 'uni-navigator', 'uni-official-account', 'uni-open-data', 'uni-picker', 'uni-picker-view', 'uni-picker-view-column', 'uni-progress', 'uni-radio', 'uni-radio-group', 'uni-rich-text', 'uni-scroll-view', 'uni-slider', 'uni-swiper', 'uni-swiper-item', 'uni-switch', 'uni-text', 'uni-textarea', 'uni-video', 'uni-view', 'uni-web-view'];
+module.exports = ['uni-app', 'uni-layout', 'uni-content', 'uni-main', 'uni-top-window', 'uni-left-window', 'uni-right-window', 'uni-tabbar', 'uni-page', 'uni-page-head', 'uni-page-wrapper', 'uni-page-body', 'uni-page-refresh', 'uni-actionsheet', 'uni-modal', 'uni-toast', 'uni-resize-sensor', 'uni-shadow-root', 'uni-ad', 'uni-audio', 'uni-button', 'uni-camera', 'uni-canvas', 'uni-checkbox', 'uni-checkbox-group', 'uni-cover-image', 'uni-cover-view', 'uni-editor', 'uni-form', 'uni-functional-page-navigator', 'uni-icon', 'uni-image', 'uni-input', 'uni-label', 'uni-live-player', 'uni-live-pusher', 'uni-map', 'uni-movable-area', 'uni-movable-view', 'uni-navigator', 'uni-official-account', 'uni-open-data', 'uni-picker', 'uni-picker-view', 'uni-picker-view-column', 'uni-progress', 'uni-radio', 'uni-radio-group', 'uni-rich-text', 'uni-scroll-view', 'uni-slider', 'uni-swiper', 'uni-swiper-item', 'uni-switch', 'uni-text', 'uni-textarea', 'uni-video', 'uni-view', 'uni-web-view'];
 
 /***/ }),
 
@@ -9919,10 +11505,22 @@ Friction.prototype.configuration = function () {
 
 /***/ }),
 
+/***/ "5378":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var _node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_image_view_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("43a1");
+/* harmony import */ var _node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_image_view_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_image_view_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__);
+/* unused harmony reexport * */
+ /* unused harmony default export */ var _unused_webpack_default_export = (_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_image_view_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default.a); 
+
+/***/ }),
+
 /***/ "5408":
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
+	"./audio/index.vue": "6150",
 	"./button/index.vue": "d3bd",
 	"./canvas/index.vue": "bacd",
 	"./checkbox-group/index.vue": "25ce",
@@ -9982,6 +11580,22 @@ webpackContext.id = "5408";
 
 /***/ }),
 
+/***/ "54f4":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hideKeyboard", function() { return hideKeyboard; });
+function hideKeyboard() {
+  var activeElement = document.activeElement;
+
+  if (activeElement && (activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'INPUT')) {
+    activeElement.blur();
+  }
+}
+
+/***/ }),
+
 /***/ "5513":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -9992,7 +11606,7 @@ __webpack_require__.r(__webpack_exports__);
 // EXTERNAL MODULE: ./src/core/view/mixins/touchtrack.js
 var touchtrack = __webpack_require__("ba15");
 
-// EXTERNAL MODULE: ./src/shared/index.js + 7 modules
+// EXTERNAL MODULE: ./src/shared/index.js + 6 modules
 var shared = __webpack_require__("f2b3");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/swiper/index.vue?vue&type=script&lang=js&
@@ -10691,7 +12305,7 @@ var shared = __webpack_require__("f2b3");
     var swiperItems = [];
 
     if (this.$slots.default) {
-      Object(shared["d" /* deepClone */])(this.$slots.default, createElement).forEach(function (vnode) {
+      Object(shared["f" /* deepClone */])(this.$slots.default, createElement).forEach(function (vnode) {
         if (vnode.componentOptions && vnode.componentOptions.tag === 'v-uni-swiper-item') {
           swiperItems.push(vnode);
         }
@@ -10809,6 +12423,9 @@ var setTabBarItem = {
   },
   selectedIconPath: {
     type: String
+  },
+  pagePath: {
+    type: String
   }
 };
 var setTabBarStyle = {
@@ -10868,7 +12485,7 @@ var setTabBarBadge = {
     type: String,
     required: true,
     validator: function validator(text, params) {
-      if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* getLen */ "g"])(text) >= 4) {
+      if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* getLen */ "h"])(text) >= 4) {
         params.text = '...';
       }
     }
@@ -10960,17 +12577,33 @@ function showActionSheet(args, callbackId) {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/textarea/index.vue?vue&type=template&id=01e1c8c7&
-var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-textarea',_vm._g({on:{"change":function($event){$event.stopPropagation();}}},_vm.$listeners),[_c('div',{staticClass:"uni-textarea-wrapper"},[_c('div',{directives:[{name:"show",rawName:"v-show",value:(!(_vm.composition||_vm.valueSync.length)),expression:"!(composition||valueSync.length)"}],ref:"placeholder",staticClass:"uni-textarea-placeholder",class:_vm.placeholderClass,style:(_vm.placeholderStyle),domProps:{"textContent":_vm._s(_vm.placeholder)}}),_c('div',{ref:"line",staticClass:"uni-textarea-line",domProps:{"textContent":_vm._s(' ')}}),_c('div',{staticClass:"uni-textarea-compute"},[_vm._l((_vm.valueCompute),function(item,index){return _c('div',{key:index,domProps:{"textContent":_vm._s(item.trim() ? item : '.')}})}),_c('v-uni-resize-sensor',{ref:"sensor",on:{"resize":_vm._resize}})],2),_c('textarea',{directives:[{name:"model",rawName:"v-model",value:(_vm.valueSync),expression:"valueSync"}],ref:"textarea",staticClass:"uni-textarea-textarea",class:{'uni-textarea-textarea-fix-margin': _vm.fixMargin},style:({'overflow-y': _vm.autoHeight? 'hidden':'auto'}),attrs:{"disabled":_vm.disabled,"maxlength":_vm.maxlengthNumber,"autofocus":_vm.autoFocus || _vm.focus},domProps:{"value":(_vm.valueSync)},on:{"compositionstart":_vm._compositionstart,"compositionend":_vm._compositionend,"input":[function($event){if($event.target.composing){ return; }_vm.valueSync=$event.target.value},function($event){$event.stopPropagation();return _vm._input($event)}],"focus":_vm._focus,"blur":_vm._blur,"&touchstart":function($event){return _vm._touchstart($event)}}})])])}
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/textarea/index.vue?vue&type=template&id=515e2e2e&
+var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-textarea',_vm._g({},_vm.$listeners),[_c('div',{staticClass:"uni-textarea-wrapper"},[_c('div',{directives:[{name:"show",rawName:"v-show",value:(!(_vm.composing || _vm.valueSync.length)),expression:"!(composing || valueSync.length)"}],ref:"placeholder",staticClass:"uni-textarea-placeholder",class:_vm.placeholderClass,style:(_vm.placeholderStyle),domProps:{"textContent":_vm._s(_vm.placeholder)}}),_c('div',{ref:"line",staticClass:"uni-textarea-line",domProps:{"textContent":_vm._s(' ')}}),_c('div',{staticClass:"uni-textarea-compute"},[_vm._l((_vm.valueCompute),function(item,index){return _c('div',{key:index,domProps:{"textContent":_vm._s(item.trim() ? item : '.')}})}),_c('v-uni-resize-sensor',{ref:"sensor",on:{"resize":_vm._resize}})],2),(!_vm.disabled || !_vm.fixColor)?_c('textarea',{directives:[{name:"model",rawName:"v-model",value:(_vm.valueSync),expression:"valueSync"},{name:"keyboard",rawName:"v-keyboard"},{name:"field",rawName:"v-field"}],ref:"textarea",staticClass:"uni-textarea-textarea",class:{ 'uni-textarea-textarea-fix-margin': _vm.fixMargin },style:({ 'overflow-y': _vm.autoHeight ? 'hidden' : 'auto' }),attrs:{"disabled":_vm.disabled,"maxlength":_vm.maxlengthNumber,"enterkeyhint":_vm.confirmType},domProps:{"value":(_vm.valueSync)},on:{"change":function($event){$event.stopPropagation();},"compositionstart":function($event){$event.stopPropagation();return _vm._onCompositionstart($event)},"compositionend":function($event){$event.stopPropagation();return _vm._onCompositionend($event)},"input":[function($event){if($event.target.composing){ return; }_vm.valueSync=$event.target.value},function($event){$event.stopPropagation();return _vm._onInput($event)}],"focus":_vm._onFocus,"blur":_vm._onBlur,"&touchstart":function($event){return _vm._onTouchstart($event)},"keyup":function($event){if(!$event.type.indexOf('key')&&_vm._k($event.keyCode,"enter",13,$event.key,"Enter")){ return null; }return _vm._onKeyUpEnter($event)},"keydown":function($event){if(!$event.type.indexOf('key')&&_vm._k($event.keyCode,"enter",13,$event.key,"Enter")){ return null; }return _vm._onKeyDownEnter($event)}}}):_vm._e(),_vm._v(" "),(_vm.disabled && _vm.fixColor)?_c('textarea',{ref:"textarea",staticClass:"uni-textarea-textarea",class:{ 'uni-textarea-textarea-fix-margin': _vm.fixMargin },style:({ 'overflow-y': _vm.autoHeight ? 'hidden' : 'auto' }),attrs:{"tabindex":"-1","readonly":_vm.disabled,"maxlength":_vm.maxlengthNumber},domProps:{"value":_vm.valueSync},on:{"focus":function ($event) { return $event.target.blur(); }}}):_vm._e()])])}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/core/view/components/textarea/index.vue?vue&type=template&id=01e1c8c7&
+// CONCATENATED MODULE: ./src/core/view/components/textarea/index.vue?vue&type=template&id=515e2e2e&
 
-// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 3 modules
+// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 1 modules
 var mixins = __webpack_require__("8af1");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/textarea/index.vue?vue&type=script&lang=js&
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -11024,7 +12657,7 @@ var mixins = __webpack_require__("8af1");
 var DARK_TEST_STRING = '(prefers-color-scheme: dark)';
 /* harmony default export */ var textareavue_type_script_lang_js_ = ({
   name: 'Textarea',
-  mixins: [mixins["a" /* baseInput */]],
+  mixins: [mixins["b" /* field */]],
   props: {
     name: {
       type: String,
@@ -11039,14 +12672,6 @@ var DARK_TEST_STRING = '(prefers-color-scheme: dark)';
       default: ''
     },
     disabled: {
-      type: [Boolean, String],
-      default: false
-    },
-    focus: {
-      type: [Boolean, String],
-      default: false
-    },
-    autoFocus: {
       type: [Boolean, String],
       default: false
     },
@@ -11073,17 +12698,23 @@ var DARK_TEST_STRING = '(prefers-color-scheme: dark)';
     selectionEnd: {
       type: [Number, String],
       default: -1
+    },
+    confirmType: {
+      type: String,
+      default: ''
     }
   },
   data: function data() {
     return {
       valueComposition: '',
-      composition: false,
+      composing: false,
       focusSync: this.focus,
       height: 0,
       focusChangeSource: '',
       // iOS 13 以下版本需要修正边距
-      fixMargin: String(navigator.platform).indexOf('iP') === 0 && String(navigator.vendor).indexOf('Apple') === 0 && window.matchMedia(DARK_TEST_STRING).media !== DARK_TEST_STRING
+      fixMargin: String(navigator.platform).indexOf('iP') === 0 && String(navigator.vendor).indexOf('Apple') === 0 && window.matchMedia(DARK_TEST_STRING).media !== DARK_TEST_STRING,
+      // Safari 14 以上修正禁用状态颜色
+      fixColor: String(navigator.vendor).indexOf('Apple') === 0 && CSS.supports('image-orientation:from-image')
     };
   },
   computed: {
@@ -11104,21 +12735,16 @@ var DARK_TEST_STRING = '(prefers-color-scheme: dark)';
       return isNaN(selectionEnd) ? -1 : selectionEnd;
     },
     valueCompute: function valueCompute() {
-      return (this.composition ? this.valueComposition : this.valueSync).split('\n');
+      return (this.composing ? this.valueComposition : this.valueSync).split('\n');
+    },
+    isDone: function isDone() {
+      return ['done', 'go', 'next', 'search', 'send'].includes(this.confirmType);
     }
   },
   watch: {
     focus: function focus(val) {
       if (val) {
         this.focusChangeSource = 'focus';
-
-        if (this.$refs.textarea) {
-          this.$refs.textarea.focus();
-        }
-      } else {
-        if (this.$refs.textarea) {
-          this.$refs.textarea.blur();
-        }
       }
     },
     focusSync: function focusSync(val) {
@@ -11178,8 +12804,6 @@ var DARK_TEST_STRING = '(prefers-color-scheme: dark)';
 
       $vm = $vm.$parent;
     }
-
-    this.initKeyboard(this.$refs.textarea);
   },
   beforeDestroy: function beforeDestroy() {
     this.$dispatch('Form', 'uni-form-group-update', {
@@ -11188,7 +12812,19 @@ var DARK_TEST_STRING = '(prefers-color-scheme: dark)';
     });
   },
   methods: {
-    _focus: function _focus($event) {
+    _onKeyDownEnter: function _onKeyDownEnter($event) {
+      if (this.isDone) {
+        $event.preventDefault();
+      }
+    },
+    _onKeyUpEnter: function _onKeyUpEnter($event) {
+      if (this.isDone) {
+        this._confirm($event);
+
+        this.$refs.textarea.blur();
+      }
+    },
+    _onFocus: function _onFocus($event) {
       this.focusSync = true;
       this.$trigger('focus', $event, {
         value: this.valueSync
@@ -11205,18 +12841,29 @@ var DARK_TEST_STRING = '(prefers-color-scheme: dark)';
         this.$refs.textarea.selectionEnd = this.$refs.textarea.selectionStart = this.cursorNumber;
       }
     },
-    _blur: function _blur($event) {
+    _onBlur: function _onBlur($event) {
+      // iOS 输入法 compositionend 事件可能晚于 blur
+      if (this.composing) {
+        this.composing = false;
+
+        this._onInput($event, true);
+      }
+
       this.focusSync = false;
       this.$trigger('blur', $event, {
         value: this.valueSync,
         cursor: this.$refs.textarea.selectionEnd
       });
     },
-    _compositionstart: function _compositionstart($event) {
-      this.composition = true;
+    _onCompositionstart: function _onCompositionstart($event) {
+      this.composing = true;
     },
-    _compositionend: function _compositionend($event) {
-      this.composition = false;
+    _onCompositionend: function _onCompositionend($event) {
+      if (this.composing) {
+        this.composing = false; // 部分输入法 compositionend 事件可能晚于 input
+
+        this._onInput($event);
+      }
     },
     // 暂无完成按钮，此功能未实现
     _confirm: function _confirm($event) {
@@ -11229,15 +12876,15 @@ var DARK_TEST_STRING = '(prefers-color-scheme: dark)';
         value: this.valueSync
       });
     },
-    _touchstart: function _touchstart() {
+    _onTouchstart: function _onTouchstart() {
       this.focusChangeSource = 'touch';
     },
     _resize: function _resize(_ref) {
       var height = _ref.height;
       this.height = height;
     },
-    _input: function _input($event) {
-      if (this.composition) {
+    _onInput: function _onInput($event, force) {
+      if (this.composing) {
         this.valueComposition = $event.target.value;
         return;
       }
@@ -11245,7 +12892,7 @@ var DARK_TEST_STRING = '(prefers-color-scheme: dark)';
       this.$triggerInput($event, {
         value: this.valueSync,
         cursor: this.$refs.textarea.selectionEnd
-      });
+      }, force);
     },
     _getFormData: function _getFormData() {
       return {
@@ -11290,6 +12937,210 @@ var component = Object(componentNormalizer["a" /* default */])(
 
 /***/ }),
 
+/***/ "57a7":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createInnerAudioContext", function() { return createInnerAudioContext; });
+/* harmony import */ var _platform__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("db70");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+
+var eventNames = ['canplay', 'play', 'pause', 'stop', 'ended', 'timeUpdate', 'error', 'waiting', 'seeking', 'seeked'];
+var props = [{
+  name: 'src',
+  cache: true
+}, {
+  name: 'startTime',
+  default: 0,
+  cache: true
+}, {
+  name: 'autoplay',
+  default: false,
+  cache: true
+}, {
+  name: 'loop',
+  default: false,
+  cache: true
+}, {
+  name: 'obeyMuteSwitch',
+  default: true,
+  readonly: true,
+  cache: true
+}, {
+  name: 'duration',
+  readonly: true
+}, {
+  name: 'currentTime',
+  readonly: true
+}, {
+  name: 'paused',
+  readonly: true
+}, {
+  name: 'buffered',
+  readonly: true
+}, {
+  name: 'volume'
+}];
+
+var InnerAudioContext = /*#__PURE__*/function () {
+  function InnerAudioContext(id) {
+    var _this = this;
+
+    _classCallCheck(this, InnerAudioContext);
+
+    this.id = id;
+    this._callbacks = {};
+    this._options = {};
+    eventNames.forEach(function (name) {
+      _this._callbacks[name.toLowerCase()] = [];
+    });
+    props.forEach(function (item) {
+      var name = item.name;
+      var data = {
+        get: function get() {
+          var result = item.cache ? this._options : Object(_platform__WEBPACK_IMPORTED_MODULE_0__[/* invokeMethod */ "c"])('getAudioState', {
+            audioId: this.id
+          });
+          var value = name in result ? result[name] : item.default;
+          return typeof value === 'number' && name !== 'volume' ? value / 1e3 : value;
+        }
+      };
+
+      if (!item.readonly) {
+        data.set = function (value) {
+          this._options[name] = value;
+          Object(_platform__WEBPACK_IMPORTED_MODULE_0__[/* invokeMethod */ "c"])('setAudioState', Object.assign({}, this._options, {
+            audioId: this.id
+          }));
+        };
+      }
+
+      Object.defineProperty(_this, name, data);
+    });
+  }
+
+  _createClass(InnerAudioContext, [{
+    key: "play",
+    value: function play() {
+      this._operate('play');
+    }
+  }, {
+    key: "pause",
+    value: function pause() {
+      this._operate('pause');
+    }
+  }, {
+    key: "stop",
+    value: function stop() {
+      this._operate('stop');
+    }
+  }, {
+    key: "seek",
+    value: function seek(position) {
+      this._operate('seek', {
+        currentTime: position * 1e3
+      });
+    }
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      clearInterval(this.__timing);
+      Object(_platform__WEBPACK_IMPORTED_MODULE_0__[/* invokeMethod */ "c"])('destroyAudioInstance', {
+        audioId: this.id
+      });
+      delete innerAudioContexts[this.id];
+    }
+  }, {
+    key: "_operate",
+    value: function _operate(type, options) {
+      Object(_platform__WEBPACK_IMPORTED_MODULE_0__[/* invokeMethod */ "c"])('operateAudio', Object.assign({}, options, {
+        audioId: this.id,
+        operationType: type
+      }));
+    }
+  }]);
+
+  return InnerAudioContext;
+}();
+
+eventNames.forEach(function (item) {
+  var name = item[0].toUpperCase() + item.substr(1);
+  item = item.toLowerCase();
+
+  InnerAudioContext.prototype["on".concat(name)] = function (callback) {
+    this._callbacks[item].push(callback);
+  };
+
+  InnerAudioContext.prototype["off".concat(name)] = function (callback) {
+    var callbacks = this._callbacks[item];
+    var index = callbacks.indexOf(callback);
+
+    if (index >= 0) {
+      callbacks.splice(index, 1);
+    }
+  };
+});
+
+function emit(audio, state, errMsg, errCode) {
+  audio._callbacks[state].forEach(function (callback) {
+    if (typeof callback === 'function') {
+      callback(state === 'error' ? {
+        errMsg: errMsg,
+        errCode: errCode
+      } : {});
+    }
+  });
+}
+
+Object(_platform__WEBPACK_IMPORTED_MODULE_0__[/* onMethod */ "d"])('onAudioStateChange', function (_ref) {
+  var state = _ref.state,
+      audioId = _ref.audioId,
+      errMsg = _ref.errMsg,
+      errCode = _ref.errCode;
+  var audio = innerAudioContexts[audioId];
+
+  if (audio) {
+    emit(audio, state, errMsg, errCode);
+
+    if (state === 'play') {
+      var oldCurrentTime = audio.currentTime;
+      audio.__timing = setInterval(function () {
+        var currentTime = audio.currentTime;
+
+        if (currentTime !== oldCurrentTime) {
+          emit(audio, 'timeupdate');
+        }
+      }, 200);
+    } else if (state === 'pause' || state === 'stop' || state === 'error') {
+      clearInterval(audio.__timing);
+    }
+  }
+});
+var innerAudioContexts = Object.create(null);
+function createInnerAudioContext() {
+  var _invokeMethod = Object(_platform__WEBPACK_IMPORTED_MODULE_0__[/* invokeMethod */ "c"])('createAudioInstance'),
+      audioId = _invokeMethod.audioId;
+
+  var innerAudioContext = new InnerAudioContext(audioId);
+  innerAudioContexts[audioId] = innerAudioContext;
+  return innerAudioContext;
+}
+
+/***/ }),
+
+/***/ "581a":
+/***/ (function(module, exports, __webpack_require__) {
+
+// extracted by mini-css-extract-plugin
+
+/***/ }),
+
 /***/ "594d":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -11297,12 +13148,12 @@ var component = Object(componentNormalizer["a" /* default */])(
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/map/index.vue?vue&type=template&id=de8138da&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/map/index.vue?vue&type=template&id=3bd257cf&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-map',_vm._g({attrs:{"id":_vm.id}},_vm.$listeners),[_c('div',{ref:"map",staticStyle:{"width":"100%","height":"100%","position":"relative","overflow":"hidden"}}),_c('div',{staticStyle:{"position":"absolute","top":"0","width":"100%","height":"100%","overflow":"hidden","pointer-events":"none"}},[_vm._t("default")],2)])}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/platforms/h5/view/components/map/index.vue?vue&type=template&id=de8138da&
+// CONCATENATED MODULE: ./src/platforms/h5/view/components/map/index.vue?vue&type=template&id=3bd257cf&
 
 // EXTERNAL MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/map/index.vue?vue&type=script&lang=js&
 var mapvue_type_script_lang_js_ = __webpack_require__("7351");
@@ -11348,12 +13199,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showNavigationBarLoading", function() { return showNavigationBarLoading; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hideNavigationBarLoading", function() { return hideNavigationBarLoading; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setNavigationBarTitle", function() { return setNavigationBarTitle; });
-function setNavigationBar(type, args) {
-  var pages = getCurrentPages();
+/* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("79d5");
 
-  if (pages.length) {
-    var page = pages[pages.length - 1].$holder;
 
+function setNavigationBar(type) {
+  var args = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  var page = Object(_util_js__WEBPACK_IMPORTED_MODULE_0__["getPageHolder"])(args.__page__);
+
+  if (page) {
     switch (type) {
       case 'setNavigationBarColor':
         {
@@ -11392,7 +13245,12 @@ function setNavigationBar(type, args) {
         {
           var title = args.title;
           page.navigationBar.titleText = title;
-          document.title = title;
+
+          if (Object(_util_js__WEBPACK_IMPORTED_MODULE_0__["isCurrentPage"])(page)) {
+            // 仅当前页面
+            document.title = title;
+          }
+
           UniServiceJSBridge.emit('onNavigationBarChange', {
             titleText: title
           });
@@ -11407,11 +13265,11 @@ function setNavigationBar(type, args) {
 function setNavigationBarColor(args) {
   return setNavigationBar('setNavigationBarColor', args);
 }
-function showNavigationBarLoading() {
-  return setNavigationBar('showNavigationBarLoading');
+function showNavigationBarLoading(args) {
+  return setNavigationBar('showNavigationBarLoading', args);
 }
-function hideNavigationBarLoading() {
-  return setNavigationBar('hideNavigationBarLoading');
+function hideNavigationBarLoading(args) {
+  return setNavigationBar('hideNavigationBarLoading', args);
 }
 function setNavigationBarTitle(args) {
   return setNavigationBar('setNavigationBarTitle', args);
@@ -11424,21 +13282,90 @@ function setNavigationBarTitle(args) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(UniViewJSBridge) {/* harmony import */ var uni_shared__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("f2b3");
+/* harmony import */ var uni_shared__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("f2b3");
+/* harmony import */ var _emitter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("5cf8");
 
 
-function hideKeyboard() {
-  document.activeElement.blur();
-}
 /**
  * 保证iOS点击输入框外隐藏键盘
  */
 
-
 function iosHideKeyboard() {}
+
+function setSoftinputTemporary(vm, reset) {
+  Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* plusReady */ "n"])(function () {
+    var MODE_ADJUSTRESIZE = 'adjustResize';
+    var MODE_ADJUSTPAN = 'adjustPan';
+    var MODE_NOTHING = 'nothing';
+    var currentWebview = plus.webview.currentWebview();
+    var style = currentWebview.getStyle() || {};
+    var options = {
+      mode: reset || style.softinputMode === MODE_ADJUSTRESIZE ? MODE_ADJUSTRESIZE : vm.adjustPosition ? MODE_ADJUSTPAN : MODE_NOTHING,
+      position: {
+        top: 0,
+        height: 0
+      }
+    };
+
+    if (options.mode === MODE_ADJUSTPAN) {
+      var rect = vm.$el.getBoundingClientRect();
+      options.position.top = rect.top;
+      options.position.height = rect.height + (Number(vm.cursorSpacing) || 0);
+    }
+
+    currentWebview.setSoftinputTemporary(options);
+  });
+}
+
+function setSoftinputNavBar(vm) {
+  if (vm.showConfirmBar === 'auto') {
+    delete vm.__softinputNavBar;
+    return;
+  }
+
+  Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* plusReady */ "n"])(function () {
+    var currentWebview = plus.webview.currentWebview();
+
+    var _ref = currentWebview.getStyle() || {},
+        softinputNavBar = _ref.softinputNavBar;
+
+    var showConfirmBar = softinputNavBar !== 'none';
+
+    if (showConfirmBar !== vm.showConfirmBar) {
+      vm.__softinputNavBar = softinputNavBar || 'auto';
+      currentWebview.setStyle({
+        softinputNavBar: vm.showConfirmBar ? 'auto' : 'none'
+      });
+    } else {
+      delete vm.__softinputNavBar;
+    }
+  });
+}
+
+function resetSoftinputNavBar(vm) {
+  var softinputNavBar = vm.__softinputNavBar;
+
+  if (softinputNavBar) {
+    Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* plusReady */ "n"])(function () {
+      var currentWebview = plus.webview.currentWebview();
+      currentWebview.setStyle({
+        softinputNavBar: softinputNavBar
+      });
+    });
+  }
+}
+
+var resetTimer;
+var isAndroid;
+var osVersion;
+var keyboardHeight;
+var keyboardChangeCallback;
+
+if (false) {}
 
 /* harmony default export */ __webpack_exports__["a"] = ({
   name: 'Keyboard',
+  mixins: [_emitter__WEBPACK_IMPORTED_MODULE_1__[/* default */ "a"]],
   props: {
     cursorSpacing: {
       type: [Number, String],
@@ -11449,116 +13376,72 @@ function iosHideKeyboard() {}
       default: 'auto'
     },
     adjustPosition: {
-      type: Boolean,
+      type: [Boolean, String],
       default: true
+    },
+    autoBlur: {
+      type: [Boolean, String],
+      default: false
     }
   },
-  watch: {
-    focus: function focus(val) {
-      if (val && "h5" === 'app-plus') {
-        this.showSoftKeybord();
+  directives: {
+    keyboard: {
+      inserted: function inserted(el, binding, vnode) {
+        vnode.context.initKeyboard(el);
       }
     }
-  },
-  mounted: function mounted() {
-    if (this.autoFocus || this.focus) {
-      this.showSoftKeybord();
-    }
-  },
-  beforeDestroy: function beforeDestroy() {
-    this.onKeyboardHide();
   },
   methods: {
     initKeyboard: function initKeyboard(el) {
       var _this = this;
 
-      el.addEventListener('focus', function () {
-        _this.hideKeyboardTemp = function () {
-          hideKeyboard();
-        };
+      var focus;
 
-        UniViewJSBridge.subscribe('hideKeyboard', _this.hideKeyboardTemp);
+      var keyboardChange = function keyboardChange() {
+        _this.$trigger('keyboardheightchange', {}, {
+          height: keyboardHeight,
+          duration: 0.25
+        }); // 安卓切换不同键盘类型时会导致键盘收回，需重新设置
+
+
+        if (focus && keyboardHeight === 0) {
+          setSoftinputTemporary(_this);
+        } // 安卓/iOS13收起键盘时主动失去焦点
+
+
+        if (_this.autoBlur && focus && keyboardHeight === 0 && (isAndroid || parseInt(osVersion) >= 13)) {
+          document.activeElement.blur();
+        }
+      };
+
+      el.addEventListener('focus', function () {
+        focus = true;
+        clearTimeout(resetTimer);
         document.addEventListener('click', iosHideKeyboard, false);
 
         if (false) {}
       });
-      el.addEventListener('blur', this.onKeyboardHide.bind(this));
-    },
-    showSoftKeybord: function showSoftKeybord() {
-      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* plusReady */ "m"])(function () {
-        plus.key.showSoftKeybord();
-      });
-    },
-    setSoftinputTemporary: function setSoftinputTemporary() {
-      var _this2 = this;
 
-      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* plusReady */ "m"])(function () {
-        var currentWebview = plus.webview.currentWebview();
-        var style = currentWebview.getStyle() || {};
+      if (false) {}
 
-        var rect = _this2.$el.getBoundingClientRect();
+      var onKeyboardHide = function onKeyboardHide() {
+        document.removeEventListener('click', iosHideKeyboard, false);
 
-        currentWebview.setSoftinputTemporary && currentWebview.setSoftinputTemporary({
-          mode: style.softinputMode === 'adjustResize' ? 'adjustResize' : _this2.adjustPosition ? 'adjustPan' : 'nothing',
-          position: {
-            top: rect.top,
-            height: rect.height + (Number(_this2.cursorSpacing) || 0)
-          }
-        });
-      });
-    },
-    setSoftinputNavBar: function setSoftinputNavBar() {
-      var _this3 = this;
+        if (false) {} // 修复ios端显示与点击位置错位的Bug by:wyq
 
-      if (this.showConfirmBar === 'auto') {
-        delete this.__softinputNavBar;
-        return;
-      }
 
-      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* plusReady */ "m"])(function () {
-        var currentWebview = plus.webview.currentWebview();
-
-        var _ref = currentWebview.getStyle() || {},
-            softinputNavBar = _ref.softinputNavBar;
-
-        var showConfirmBar = softinputNavBar !== 'none';
-
-        if (showConfirmBar !== _this3.showConfirmBar) {
-          _this3.__softinputNavBar = softinputNavBar || 'auto';
-          currentWebview.setStyle({
-            softinputNavBar: _this3.showConfirmBar ? 'auto' : 'none'
-          });
-        } else {
-          delete _this3.__softinputNavBar;
+        if (String(navigator.vendor).indexOf('Apple') === 0) {
+          document.documentElement.scrollTo(document.documentElement.scrollLeft, document.documentElement.scrollTop);
         }
+      };
+
+      el.addEventListener('blur', function () {
+        focus = false;
+        onKeyboardHide();
       });
-    },
-    resetSoftinputNavBar: function resetSoftinputNavBar() {
-      var softinputNavBar = this.__softinputNavBar;
-
-      if (softinputNavBar) {
-        Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* plusReady */ "m"])(function () {
-          var currentWebview = plus.webview.currentWebview();
-          currentWebview.setStyle({
-            softinputNavBar: softinputNavBar
-          });
-        });
-      }
-    },
-    onKeyboardHide: function onKeyboardHide() {
-      UniViewJSBridge.unsubscribe('hideKeyboard', this.hideKeyboardTemp);
-      document.removeEventListener('click', iosHideKeyboard, false);
-
-      if (false) {} // 修复ios端显示与点击位置错位的Bug by:wyq
-
-
-      if (String(navigator.vendor).indexOf('Apple') === 0) {
-        document.documentElement.scrollTo(document.documentElement.scrollLeft, document.documentElement.scrollTop);
-      }
     }
   }
 });
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("501c")))
 
 /***/ }),
 
@@ -12335,6 +14218,86 @@ window.IntersectionObserverEntry = IntersectionObserverEntry;
 
 /***/ }),
 
+/***/ "5cf8":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+// 暂不提供通知所有
+// function broadcast (componentName, eventName, ...params) {
+//   this.$children.forEach(child => {
+//     const name = child.$options.name && child.$options.name.substr(1)
+//     if (~componentName.indexOf(name)) {
+//       child.$emit.apply(child, [eventName].concat(params))
+//     } else {
+//       broadcast.apply(child, [componentName, eventName].concat([params]))
+//     }
+//   })
+// }
+function broadcast(componentName, eventName) {
+  var children = this.$children;
+  var len = children.length;
+
+  for (var _len = arguments.length, params = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+    params[_key - 2] = arguments[_key];
+  }
+
+  for (var i = 0; i < len; i++) {
+    var child = children[i];
+    var name = child.$options.name && child.$options.name.substr(4);
+
+    if (~componentName.indexOf(name)) {
+      child.$emit.apply(child, [eventName].concat(params));
+      return false;
+    } else {
+      if (broadcast.apply(child, [componentName, eventName].concat([params])) === false) {
+        return false;
+      }
+    }
+  }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = ({
+  methods: {
+    $dispatch: function $dispatch(componentName, eventName) {
+      if (typeof componentName === 'string') {
+        componentName = [componentName];
+      }
+
+      var parent = this.$parent || this.$root;
+      var name = parent.$options.name && parent.$options.name.substr(4);
+
+      while (parent && (!name || !~componentName.indexOf(name))) {
+        parent = parent.$parent;
+
+        if (parent) {
+          name = parent.$options.name && parent.$options.name.substr(4);
+        }
+      }
+
+      if (parent) {
+        for (var _len2 = arguments.length, params = new Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+          params[_key2 - 2] = arguments[_key2];
+        }
+
+        parent.$emit.apply(parent, [eventName].concat(params));
+      }
+    },
+    $broadcast: function $broadcast(componentName, eventName) {
+      if (typeof componentName === 'string') {
+        componentName = [componentName];
+      }
+
+      for (var _len3 = arguments.length, params = new Array(_len3 > 2 ? _len3 - 2 : 0), _key3 = 2; _key3 < _len3; _key3++) {
+        params[_key3 - 2] = arguments[_key3];
+      }
+
+      broadcast.apply(this, [componentName, eventName].concat(params));
+    }
+  }
+});
+
+/***/ }),
+
 /***/ "5d1d":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -12357,7 +14320,7 @@ window.IntersectionObserverEntry = IntersectionObserverEntry;
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(UniViewJSBridge) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return requestComponentObserver; });
+/* WEBPACK VAR INJECTION */(function(UniViewJSBridge, console) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return requestComponentObserver; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return destroyComponentObserver; });
 /* harmony import */ var intersection_observer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("5abe");
 /* harmony import */ var intersection_observer__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(intersection_observer__WEBPACK_IMPORTED_MODULE_0__);
@@ -12383,17 +14346,25 @@ function requestComponentObserver(_ref, pageId) {
   var reqId = _ref.reqId,
       component = _ref.component,
       options = _ref.options;
-  var pages = getCurrentPages();
-  var page = pages.find(function (page) {
-    return page.$page.id === pageId;
-  });
+  var pageVm;
 
-  if (!page) {
-    throw new Error("Not Found\uFF1APage[".concat(pageId, "]"));
+  if (pageId._isVue) {
+    pageVm = pageId;
+  } else {
+    var pages = getCurrentPages(); // 跨平台时，View 层也应该实现该方法，举例 App 上，View 层的 getCurrentPages 返回长度为1的当前页面数组
+
+    var page = pages.find(function (page) {
+      return page.$page.id === pageId;
+    });
+
+    if (!page) {
+      throw new Error("Not Found\uFF1APage[".concat(pageId, "]"));
+    }
+
+    pageVm = page.$vm;
   }
 
-  var pageVm = page.$vm;
-  var $el = Object(_util__WEBPACK_IMPORTED_MODULE_2__[/* findElm */ "a"])(component, pageVm);
+  var $el = Object(_util__WEBPACK_IMPORTED_MODULE_2__[/* findElm */ "b"])(component, pageVm);
   var root = options.relativeToSelector ? $el.querySelector(options.relativeToSelector) : null;
   var intersectionObserver = intersectionObservers[reqId] = new IntersectionObserver(function (entries, observer) {
     entries.forEach(function (entrie) {
@@ -12405,10 +14376,10 @@ function requestComponentObserver(_ref, pageId) {
           boundingClientRect: getRect(entrie.boundingClientRect),
           relativeRect: getRect(entrie.rootBounds),
           time: Date.now(),
-          dataset: Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_1__[/* normalizeDataset */ "c"])(entrie.target.dataset || {}),
+          dataset: Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_1__[/* getTargetDataset */ "b"])(entrie.target),
           id: entrie.target.id
         }
-      }, pageVm.$page.id);
+      });
     });
   }, {
     root: root,
@@ -12419,11 +14390,23 @@ function requestComponentObserver(_ref, pageId) {
   if (options.observeAll) {
     intersectionObserver.USE_MUTATION_OBSERVER = true;
     Array.prototype.map.call($el.querySelectorAll(options.selector), function (el) {
+      if (!el) {
+        console.warn("Node ".concat(options.selector, " is not found. Intersection observer will not trigger."));
+        return;
+      }
+
       intersectionObserver.observe(el);
     });
   } else {
     intersectionObserver.USE_MUTATION_OBSERVER = false;
-    intersectionObserver.observe($el.querySelector(options.selector));
+    var el = $el.querySelector(options.selector);
+
+    if (!el) {
+      console.warn("Node ".concat(options.selector, " is not found. Intersection observer will not trigger."));
+      return;
+    }
+
+    intersectionObserver.observe(el);
   }
 }
 function destroyComponentObserver(_ref2) {
@@ -12439,7 +14422,7 @@ function destroyComponentObserver(_ref2) {
     });
   }
 }
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("501c")))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("501c"), __webpack_require__("3ad9")["default"]))
 
 /***/ }),
 
@@ -12524,7 +14507,7 @@ UniServiceJSBridge.subscribe('onEditorMethodCallback', function (_ref) {
       data = _ref.data;
   uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* callback */ "a"].invoke(callbackId, data);
 });
-var methods = ['insertDivider', 'insertImage', 'insertText', 'setContents', 'getContents', 'clear', 'removeFormat', 'undo', 'redo'];
+var methods = ['insertDivider', 'insertImage', 'insertText', 'setContents', 'getContents', 'clear', 'removeFormat', 'undo', 'redo', 'blur', 'getSelectionText', 'scrollIntoView'];
 var EditorContext = /*#__PURE__*/function () {
   function EditorContext(id, pageId) {
     _classCallCheck(this, EditorContext);
@@ -12566,6 +14549,228 @@ methods.forEach(function (method) {
 
 /***/ }),
 
+/***/ "6150":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+// ESM COMPAT FLAG
+__webpack_require__.r(__webpack_exports__);
+
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/audio/index.vue?vue&type=template&id=377bd9b0&
+var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-audio',_vm._g({attrs:{"id":_vm.id,"controls":!!_vm.controls}},_vm.$listeners),[_c('audio',{ref:"audio",staticStyle:{"display":"none"},attrs:{"loop":_vm.loop}}),_c('div',{staticClass:"uni-audio-default"},[_c('div',{staticClass:"uni-audio-left",style:('background-image: url('+_vm.$getRealPath(_vm.poster)+');')},[_c('div',{staticClass:"uni-audio-button",class:{play:!_vm.playing,pause:_vm.playing},on:{"click":_vm.trigger}})]),_c('div',{staticClass:"uni-audio-right"},[_c('div',{staticClass:"uni-audio-time"},[_vm._v(" "+_vm._s(_vm.currentTime)+" ")]),_c('div',{staticClass:"uni-audio-info"},[_c('div',{staticClass:"uni-audio-name"},[_vm._v(" "+_vm._s(_vm.name)+" ")]),_c('div',{staticClass:"uni-audio-author"},[_vm._v(" "+_vm._s(_vm.author)+" ")])])])])])}
+var staticRenderFns = []
+
+
+// CONCATENATED MODULE: ./src/core/view/components/audio/index.vue?vue&type=template&id=377bd9b0&
+
+// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 1 modules
+var mixins = __webpack_require__("8af1");
+
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/audio/index.vue?vue&type=script&lang=js&
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ var audiovue_type_script_lang_js_ = ({
+  name: 'Audio',
+  mixins: [mixins["g" /* subscriber */]],
+  props: {
+    id: {
+      type: String,
+      default: ''
+    },
+    src: {
+      type: String,
+      default: ''
+    },
+    loop: {
+      type: [Boolean, String],
+      default: false
+    },
+    controls: {
+      type: [Boolean, String],
+      default: false
+    },
+    poster: {
+      type: String,
+      default: ''
+    },
+    name: {
+      type: String,
+      default: ''
+    },
+    author: {
+      type: String,
+      default: ''
+    }
+  },
+  data: function data() {
+    return {
+      playing: false,
+      currentTime: this.getTime(0)
+    };
+  },
+  watch: {
+    src: function src(val) {
+      if (this.$refs.audio) {
+        this.$refs.audio.src = this.$getRealPath(val);
+      }
+    }
+  },
+  mounted: function mounted() {
+    var _this = this;
+
+    var audio = this.$refs.audio;
+    audio.addEventListener('error', function ($event) {
+      _this.playing = false;
+
+      _this.$trigger('error', $event, {});
+    });
+    audio.addEventListener('play', function ($event) {
+      _this.playing = true;
+
+      _this.$trigger('play', $event, {});
+    });
+    audio.addEventListener('pause', function ($event) {
+      _this.playing = false;
+
+      _this.$trigger('pause', $event, {});
+    });
+    audio.addEventListener('ended', function ($event) {
+      _this.playing = false;
+
+      _this.$trigger('ended', $event, {});
+    });
+    audio.addEventListener('timeupdate', function ($event) {
+      var currentTime = audio.currentTime;
+      _this.currentTime = _this.getTime(currentTime);
+      var duration = audio.duration;
+
+      _this.$trigger('timeupdate', $event, {
+        currentTime: currentTime,
+        duration: duration
+      });
+    });
+    audio.src = this.$getRealPath(this.src);
+  },
+  methods: {
+    _handleSubscribe: function _handleSubscribe(_ref) {
+      var type = _ref.type,
+          _ref$data = _ref.data,
+          data = _ref$data === void 0 ? {} : _ref$data;
+      var audio = this.$refs.audio;
+
+      switch (type) {
+        case 'setSrc':
+          audio.src = this.$getRealPath(data.src);
+          this.$emit('update:src', data.src);
+          break;
+
+        case 'play':
+          audio.play();
+          break;
+
+        case 'pause':
+          audio.pause();
+          break;
+
+        case 'seek':
+          audio.currentTime = data.position;
+          break;
+      }
+    },
+    trigger: function trigger() {
+      if (this.playing) {
+        this.$refs.audio.pause();
+      } else {
+        this.$refs.audio.play();
+      }
+    },
+    getTime: function getTime(time) {
+      var h = Math.floor(time / 3600);
+      var m = Math.floor(time % 3600 / 60);
+      var s = Math.floor(time % 3600 % 60);
+      h = (h < 10 ? '0' : '') + h;
+      m = (m < 10 ? '0' : '') + m;
+      s = (s < 10 ? '0' : '') + s;
+      var str = m + ':' + s;
+
+      if (h !== '00') {
+        str = h + ':' + str;
+      }
+
+      return str;
+    }
+  }
+});
+// CONCATENATED MODULE: ./src/core/view/components/audio/index.vue?vue&type=script&lang=js&
+ /* harmony default export */ var components_audiovue_type_script_lang_js_ = (audiovue_type_script_lang_js_); 
+// EXTERNAL MODULE: ./src/core/view/components/audio/index.vue?vue&type=style&index=0&lang=css&
+var audiovue_type_style_index_0_lang_css_ = __webpack_require__("02b5");
+
+// EXTERNAL MODULE: ./node_modules/vue-loader/lib/runtime/componentNormalizer.js
+var componentNormalizer = __webpack_require__("2877");
+
+// CONCATENATED MODULE: ./src/core/view/components/audio/index.vue
+
+
+
+
+
+
+/* normalize component */
+
+var component = Object(componentNormalizer["a" /* default */])(
+  components_audiovue_type_script_lang_js_,
+  render,
+  staticRenderFns,
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* harmony default export */ var audio = __webpack_exports__["default"] = (component.exports);
+
+/***/ }),
+
 /***/ "61c2":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -12574,10 +14779,10 @@ methods.forEach(function (method) {
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, "a", function() { return /* binding */ initBehaviors; });
 
-// EXTERNAL MODULE: ./src/shared/index.js + 7 modules
+// EXTERNAL MODULE: ./src/shared/index.js + 6 modules
 var shared = __webpack_require__("f2b3");
 
-// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 3 modules
+// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 1 modules
 var mixins = __webpack_require__("8af1");
 
 // CONCATENATED MODULE: ./src/core/view/plugins/behaviors/form-field.js
@@ -12630,11 +14835,11 @@ function beforeDestroy() {
     var $vnode = vm.$vnode;
 
     if ($vnode && $vnode.data && $vnode.data.attrs) {
-      if (Object(shared["h" /* hasOwn */])($vnode.data.attrs, 'name')) {
+      if (Object(shared["i" /* hasOwn */])($vnode.data.attrs, 'name')) {
         options.propsData.name = $vnode.data.attrs.name;
       }
 
-      if (Object(shared["h" /* hasOwn */])($vnode.data.attrs, 'value')) {
+      if (Object(shared["i" /* hasOwn */])($vnode.data.attrs, 'value')) {
         options.propsData.value = $vnode.data.attrs.value;
       }
     }
@@ -12663,8 +14868,8 @@ function beforeDestroy() {
       Object.assign(vm.constructor.options.methods, formMethods);
       Object.assign(options.methods, formMethods); // add $dispatch
 
-      Object.assign(vm.constructor.options.methods, mixins["b" /* emitter */].methods);
-      Object.assign(options.methods, mixins["b" /* emitter */].methods);
+      Object.assign(vm.constructor.options.methods, mixins["a" /* emitter */].methods);
+      Object.assign(options.methods, mixins["a" /* emitter */].methods);
       var createdHooks = options.created;
       vm.constructor.options.created = options.created = createdHooks ? [].concat(created, createdHooks) : [created];
       var beforeDestroyHooks = options.beforeDestroy;
@@ -12729,7 +14934,7 @@ __webpack_require__.r(__webpack_exports__);
     // 处理 actionSheet close 回调
     _onActionSheetClose: function _onActionSheetClose(type) {
       this.showActionSheet.visible = false;
-      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(this.onActionSheetCloseCallback) && this.onActionSheetCloseCallback(type);
+      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(this.onActionSheetCloseCallback) && this.onActionSheetCloseCallback(type);
     }
   }
 });
@@ -12784,6 +14989,17 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__6389__;
 
 /***/ }),
 
+/***/ "639e":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var _node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_layout_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("15ff");
+/* harmony import */ var _node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_layout_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_layout_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__);
+/* unused harmony reexport * */
+ /* unused harmony default export */ var _unused_webpack_default_export = (_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_layout_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default.a); 
+
+/***/ }),
+
 /***/ "6428":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -12822,14 +15038,14 @@ var arrayBufferToBase64 = [{
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/radio/index.vue?vue&type=template&id=27ac7840&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/radio/index.vue?vue&type=template&id=27ac7840&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-radio',_vm._g({attrs:{"disabled":_vm.disabled},on:{"click":_vm._onClick}},_vm.$listeners),[_c('div',{staticClass:"uni-radio-wrapper"},[_c('div',{staticClass:"uni-radio-input",class:_vm.radioChecked ? 'uni-radio-input-checked' : '',style:(_vm.radioChecked ? _vm.checkedStyle : '')}),_vm._t("default")],2)])}
 var staticRenderFns = []
 
 
 // CONCATENATED MODULE: ./src/core/view/components/radio/index.vue?vue&type=template&id=27ac7840&
 
-// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 3 modules
+// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 1 modules
 var mixins = __webpack_require__("8af1");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/radio/index.vue?vue&type=script&lang=js&
@@ -12852,7 +15068,7 @@ var mixins = __webpack_require__("8af1");
 
 /* harmony default export */ var radiovue_type_script_lang_js_ = ({
   name: 'Radio',
-  mixins: [mixins["b" /* emitter */], mixins["f" /* listeners */]],
+  mixins: [mixins["a" /* emitter */], mixins["f" /* listeners */]],
   props: {
     checked: {
       type: [Boolean, String],
@@ -13023,9 +15239,12 @@ function openLocation(_ref, callbackId) {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return NAVBAR_HEIGHT; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return TABBAR_HEIGHT; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return TABBAR_HEIGHT; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return RESPONSIVE_MIN_WIDTH; });
 var NAVBAR_HEIGHT = 44;
-var TABBAR_HEIGHT = 50;
+var TABBAR_HEIGHT = 50; // 576:landscape phones,768:tablets,992:desktops,1200:large desktops
+
+var RESPONSIVE_MIN_WIDTH = 768;
 
 /***/ }),
 
@@ -13037,6 +15256,79 @@ var TABBAR_HEIGHT = 50;
 /* harmony import */ var _node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__);
 /* unused harmony reexport * */
  /* unused harmony default export */ var _unused_webpack_default_export = (_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default.a); 
+
+/***/ }),
+
+/***/ "68fb":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createMediaQueryObserver", function() { return createMediaQueryObserver; });
+/* harmony import */ var uni_helpers_callbacks__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("62b5");
+/* harmony import */ var _platform__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("db70");
+/* harmony import */ var uni_helpers_windows__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("1634");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+
+
+
+var createMediaQueryObserverCallbacks = Object(uni_helpers_callbacks__WEBPACK_IMPORTED_MODULE_0__[/* default */ "a"])('requestMediaQueryObserver');
+
+var ServiceMediaQueryObserver = /*#__PURE__*/function () {
+  function ServiceMediaQueryObserver(component, options) {
+    _classCallCheck(this, ServiceMediaQueryObserver);
+
+    this.pageId = component.$page && component.$page.id;
+    this.component = component._$id || component; // app-plus 平台传输_$id
+
+    this.options = options;
+  }
+
+  _createClass(ServiceMediaQueryObserver, [{
+    key: "observe",
+    value: function observe(options, callback) {
+      if (typeof callback !== 'function') {
+        return;
+      }
+
+      this.options = options;
+      this.reqId = createMediaQueryObserverCallbacks.push(callback);
+      UniServiceJSBridge.publishHandler('requestMediaQueryObserver', {
+        reqId: this.reqId,
+        component: this.component,
+        options: this.options
+      }, Object(uni_helpers_windows__WEBPACK_IMPORTED_MODULE_2__[/* checkInWindows */ "a"])(this.component) ? this.component : this.pageId);
+    }
+  }, {
+    key: "disconnect",
+    value: function disconnect() {
+      UniServiceJSBridge.publishHandler('destroyMediaQueryObserver', {
+        reqId: this.reqId
+      }, Object(uni_helpers_windows__WEBPACK_IMPORTED_MODULE_2__[/* checkInWindows */ "a"])(this.component) ? this.component : this.pageId);
+    }
+  }]);
+
+  return ServiceMediaQueryObserver;
+}();
+
+function createMediaQueryObserver(context, options) {
+  if (!context._isVue) {
+    options = context;
+    context = null;
+  }
+
+  if (context) {
+    return new ServiceMediaQueryObserver(context, options);
+  }
+
+  return new ServiceMediaQueryObserver(Object(_platform__WEBPACK_IMPORTED_MODULE_1__[/* getCurrentPageVm */ "b"])('createMediaQueryObserver'), options);
+}
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("0dd1")))
 
 /***/ }),
 
@@ -13058,10 +15350,6 @@ var TABBAR_HEIGHT = 50;
 
 
 
-/**
- * 获取根信息
- * @param {*} fields
- */
 
 function getRootInfo(fields) {
   var info = {};
@@ -13087,18 +15375,16 @@ function getRootInfo(fields) {
   }
 
   if (fields.scrollOffset) {
-    info.scrollLeft = document.documentElement.scrollLeft || document.body.scrollLeft || 0;
-    info.scrollTop = document.documentElement.scrollTop || document.body.scrollTop || 0;
+    var documentElement = document.documentElement;
+    var body = document.body;
+    info.scrollLeft = documentElement.scrollLeft || body.scrollLeft || 0;
+    info.scrollTop = documentElement.scrollTop || body.scrollTop || 0;
+    info.scrollHeight = documentElement.scrollHeight || body.scrollHeight || 0;
+    info.scrollWidth = documentElement.scrollWidth || body.scrollWidth || 0;
   }
 
   return info;
 }
-/**
- * 获取节点信息
- * @param {*} el
- * @param {*} fields
- */
-
 
 function getNodeInfo(el, fields) {
   var info = {};
@@ -13111,7 +15397,7 @@ function getNodeInfo(el, fields) {
   }
 
   if (fields.dataset) {
-    info.dataset = Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_0__[/* normalizeDataset */ "c"])(el.dataset || {});
+    info.dataset = Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_0__[/* getTargetDataset */ "b"])(el);
   }
 
   if (fields.rect || fields.size) {
@@ -13131,7 +15417,7 @@ function getNodeInfo(el, fields) {
   } // TODO 组件 props
 
 
-  if (fields.properties) {
+  if (Array.isArray(fields.properties)) {
     fields.properties.forEach(function (prop) {
       prop = prop.replace(/-([a-z])/g, function (e, t) {
         return t.toUpperCase();
@@ -13145,7 +15431,16 @@ function getNodeInfo(el, fields) {
     } else {
       info.scrollLeft = 0;
       info.scrollTop = 0;
+      info.scrollHeight = 0;
+      info.scrollWidth = 0;
     }
+  }
+
+  if (Array.isArray(fields.computedStyle)) {
+    var sytle = getComputedStyle(el);
+    fields.computedStyle.forEach(function (name) {
+      info[name] = sytle[name];
+    });
   }
 
   if (fields.context) {
@@ -13158,7 +15453,7 @@ function getNodeInfo(el, fields) {
 }
 
 function getNodesInfo(pageVm, component, selector, single, fields) {
-  var $el = Object(_util__WEBPACK_IMPORTED_MODULE_2__[/* findElm */ "a"])(component, pageVm);
+  var $el = Object(_util__WEBPACK_IMPORTED_MODULE_2__[/* elementMatchesPolyfill */ "a"])(Object(_util__WEBPACK_IMPORTED_MODULE_2__[/* findElm */ "b"])(component, pageVm));
 
   if (!$el || $el && $el.nodeType === 8) {
     // Comment
@@ -13194,18 +15489,24 @@ function getNodesInfo(pageVm, component, selector, single, fields) {
 function requestComponentInfo(_ref, pageId) {
   var reqId = _ref.reqId,
       reqs = _ref.reqs;
-  // 获取当前页面的历史栈
-  var pages = getCurrentPages(); // 跨平台时，View 层也应该实现该方法，举例 App 上，View 层的 getCurrentPages 返回长度为1的当前页面数组
+  var pageVm;
 
-  var page = pages.find(function (page) {
-    return page.$page.id === pageId;
-  });
+  if (pageId._isVue) {
+    pageVm = pageId;
+  } else {
+    var pages = getCurrentPages(); // 跨平台时，View 层也应该实现该方法，举例 App 上，View 层的 getCurrentPages 返回长度为1的当前页面数组
 
-  if (!page) {
-    throw new Error("Not Found\uFF1APage[".concat(pageId, "]"));
+    var page = pages.find(function (page) {
+      return page.$page.id === pageId;
+    });
+
+    if (!page) {
+      throw new Error("Not Found\uFF1APage[".concat(pageId, "]"));
+    }
+
+    pageVm = page.$vm;
   }
 
-  var pageVm = page.$vm;
   var result = [];
   reqs.forEach(function (_ref2) {
     var component = _ref2.component,
@@ -13222,7 +15523,7 @@ function requestComponentInfo(_ref, pageId) {
   UniViewJSBridge.publishHandler('onRequestComponentInfo', {
     reqId: reqId,
     res: result
-  }, pageId);
+  });
 }
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("501c")))
 
@@ -13268,18 +15569,28 @@ function $emit() {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/picker/index.vue?vue&type=template&id=fbdcd0ba&
-var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-picker',_vm._g({attrs:{"disabled":_vm.disabled},on:{"click":_vm._show}},_vm.$listeners),[_c('div',{ref:"picker",staticClass:"uni-picker-container",on:{"touchmove":function($event){$event.preventDefault();}}},[_c('transition',{attrs:{"name":"uni-fade"}},[_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.visible),expression:"visible"}],staticClass:"uni-mask",on:{"click":_vm._cancel}})]),_c('div',{staticClass:"uni-picker",class:{'uni-picker-toggle':_vm.visible}},[_c('div',{staticClass:"uni-picker-header",on:{"click":function($event){$event.stopPropagation();}}},[_c('div',{staticClass:"uni-picker-action uni-picker-action-cancel",on:{"click":_vm._cancel}},[_vm._v(" 取消 ")]),_c('div',{staticClass:"uni-picker-action uni-picker-action-confirm",on:{"click":_vm._change}},[_vm._v(" 确定 ")])]),(_vm.visible)?_c('v-uni-picker-view',{staticClass:"uni-picker-content",attrs:{"value":_vm.valueArray},on:{"update:value":function($event){_vm.valueArray=$event}}},_vm._l((_vm.rangeArray),function(rangeItem,index0){return _c('v-uni-picker-view-column',{key:index0},_vm._l((rangeItem),function(item,index){return _c('div',{key:index,staticClass:"uni-picker-item"},[_vm._v(" "+_vm._s(typeof item==='object'?item[_vm.rangeKey]||'':item)+_vm._s(_vm.units[index0]||'')+" ")])}),0)}),1):_vm._e()],1)],1),_c('div',[_vm._t("default")],2)])}
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/picker/index.vue?vue&type=template&id=7fdae864&
+var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-picker',_vm._g({attrs:{"disabled":_vm.disabled},on:{"click":_vm._show}},_vm.$listeners),[_c('div',{ref:"picker",staticClass:"uni-picker-container",class:("uni-" + _vm.mode + "-" + _vm.selectorTypeComputed),on:{"wheel":function($event){$event.preventDefault();},"touchmove":function($event){$event.preventDefault();}}},[_c('transition',{attrs:{"name":"uni-fade"}},[_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.visible),expression:"visible"}],staticClass:"uni-mask uni-picker-mask",on:{"click":_vm._cancel,"mousemove":_vm._fixInputPosition}})]),(!_vm.system)?_c('div',{staticClass:"uni-picker-custom",class:{ 'uni-picker-toggle': _vm.visible },style:(_vm.popupStyle.content)},[_c('div',{staticClass:"uni-picker-header",on:{"click":function($event){$event.stopPropagation();}}},[_c('div',{staticClass:"uni-picker-action uni-picker-action-cancel",on:{"click":_vm._cancel}},[_vm._v(" "+_vm._s(_vm.$$t("uni.picker.cancel"))+" ")]),_c('div',{staticClass:"uni-picker-action uni-picker-action-confirm",on:{"click":_vm._change}},[_vm._v(" "+_vm._s(_vm.$$t("uni.picker.done"))+" ")])]),(_vm.contentVisible)?_c('v-uni-picker-view',{staticClass:"uni-picker-content",attrs:{"value":_vm._l10nColumn(_vm.valueArray)},on:{"change":_vm._pickerViewChange}},_vm._l((_vm._l10nColumn(_vm.rangeArray)),function(rangeItem,index0){return _c('v-uni-picker-view-column',{key:index0},_vm._l((rangeItem),function(item,index){return _c('div',{key:index,staticClass:"uni-picker-item"},[_vm._v(" "+_vm._s(typeof item === "object" ? item[_vm.rangeKey] || "" : _vm._l10nItem(item, index0))+" ")])}),0)}),1):_vm._e(),_c('div',{ref:"select",staticClass:"uni-picker-select",on:{"wheel":function($event){$event.stopPropagation();},"touchmove":function($event){$event.stopPropagation();}}},_vm._l((_vm.rangeArray[0]),function(item,index){return _c('div',{key:index,staticClass:"uni-picker-item",class:{ selected: _vm.valueArray[0] === index },on:{"click":function($event){_vm.valueArray[0] = index;
+            _vm._change();}}},[_vm._v(" "+_vm._s(typeof item === "object" ? item[_vm.rangeKey] || "" : item)+" ")])}),0),_c('div',{style:(_vm.popupStyle.triangle)})],1):_vm._e()],1),_c('div',[_vm._t("default")],2),(_vm.system)?_c('div',{staticClass:"uni-picker-system",on:{"mousemove":_vm._fixInputPosition}},[_c('input',{ref:"input",class:[_vm.system, _vm.popupStyle.dock],attrs:{"type":_vm.mode,"tabindex":"-1","min":_vm.start,"max":_vm.end},domProps:{"value":_vm.valueSync},on:{"change":function($event){$event.stopPropagation();return _vm._input($event)}}})]):_vm._e(),_c('keypress',{attrs:{"disable":!_vm.visible},on:{"esc":_vm._cancel,"enter":_vm._change}})],1)}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/platforms/h5/view/components/picker/index.vue?vue&type=template&id=fbdcd0ba&
+// CONCATENATED MODULE: ./src/platforms/h5/view/components/picker/index.vue?vue&type=template&id=7fdae864&
 
-// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 3 modules
+// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 1 modules
 var mixins = __webpack_require__("8af1");
 
-// EXTERNAL MODULE: ./src/shared/index.js + 7 modules
+// EXTERNAL MODULE: ./src/shared/index.js + 6 modules
 var shared = __webpack_require__("f2b3");
+
+// EXTERNAL MODULE: ./src/platforms/h5/components/app/popup/mixins/popup.js
+var popup = __webpack_require__("4ccd");
+
+// EXTERNAL MODULE: ./src/platforms/h5/helpers/keypress.js
+var keypress = __webpack_require__("da71");
+
+// EXTERNAL MODULE: ./src/core/helpers/i18n/index.js
+var i18n = __webpack_require__("a6b0");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/picker/index.vue?vue&type=script&lang=js&
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
@@ -13363,6 +15674,56 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
 
 
 
@@ -13376,12 +15737,12 @@ function getDefaultStartValue() {
 
     switch (this.fields) {
       case fields.YEAR:
-        return year;
+        return year.toString();
 
       case fields.MONTH:
         return year + '-01';
 
-      case fields.DAY:
+      default:
         return year + '-01-01';
     }
   }
@@ -13399,12 +15760,12 @@ function getDefaultEndValue() {
 
     switch (this.fields) {
       case fields.YEAR:
-        return year;
+        return year.toString();
 
       case fields.MONTH:
         return year + '-12';
 
-      case fields.DAY:
+      default:
         return year + '-12-31';
     }
   }
@@ -13425,9 +15786,16 @@ var fields = {
   MONTH: 'month',
   DAY: 'day'
 };
+var selectorType = {
+  PICKER: 'picker',
+  SELECT: 'select'
+};
 /* harmony default export */ var pickervue_type_script_lang_js_ = ({
   name: 'Picker',
-  mixins: [mixins["b" /* emitter */]],
+  components: {
+    keypress: keypress["a" /* default */]
+  },
+  mixins: [i18n["b" /* i18nMixin */], mixins["a" /* emitter */], popup["default"]],
   props: {
     name: {
       type: String,
@@ -13451,15 +15819,12 @@ var fields = {
       type: String,
       default: mode.SELECTOR,
       validator: function validator(val) {
-        return Object.values(mode).indexOf(val) >= 0;
+        return Object.values(mode).includes(val);
       }
     },
     fields: {
       type: String,
-      default: 'day',
-      validator: function validator(val) {
-        return Object.values(fields).indexOf(val) >= 0;
-      }
+      default: ''
     },
     start: {
       type: String,
@@ -13472,12 +15837,18 @@ var fields = {
     disabled: {
       type: [Boolean, String],
       default: false
+    },
+    selectorType: {
+      type: String,
+      default: ''
     }
   },
   data: function data() {
     return {
       valueSync: null,
       visible: false,
+      contentVisible: false,
+      popover: null,
       valueChangeSource: '',
       timeArray: [],
       dateArray: [],
@@ -13510,7 +15881,7 @@ var fields = {
               case fields.MONTH:
                 return [dateArray[0], dateArray[1]];
 
-              case fields.DAY:
+              default:
                 return [dateArray[0], dateArray[1], dateArray[2]];
             }
           }
@@ -13524,20 +15895,42 @@ var fields = {
     endArray: function endArray() {
       return this._getDateValueArray(this.end, getDefaultEndValue.bind(this)());
     },
-    units: function units() {
-      switch (this.mode) {
-        case mode.DATE:
-          return ['年', '月', '日'];
+    selectorTypeComputed: function selectorTypeComputed() {
+      var type = this.selectorType;
 
-        case mode.TIME:
-          return ['时', '分'];
-
-        default:
-          return [];
+      if (Object.values(selectorType).includes(type)) {
+        return type;
       }
+
+      return String(navigator.vendor).indexOf('Apple') === 0 && navigator.maxTouchPoints > 0 ? selectorType.PICKER : selectorType.SELECT;
+    },
+    system: function system() {
+      if (this.mode === mode.DATE && !Object.values(fields).includes(this.fields) && this.isDesktop && /win|mac/i.test(navigator.platform)) {
+        if (navigator.vendor === 'Google Inc.') {
+          return 'chrome';
+        } else if (/Firefox/.test(navigator.userAgent)) {
+          return 'firefox';
+        }
+      }
+
+      return '';
     }
   },
   watch: {
+    visible: function visible(val) {
+      var _this = this;
+
+      if (val) {
+        clearTimeout(this.__contentVisibleDelay);
+        this.contentVisible = val;
+
+        this._select();
+      } else {
+        this.__contentVisibleDelay = setTimeout(function () {
+          _this.contentVisible = val;
+        }, 300);
+      }
+    },
     value: function value() {
       this._setValueSync();
     },
@@ -13551,7 +15944,7 @@ var fields = {
       this._setValueArray();
     },
     valueArray: function valueArray(val) {
-      var _this = this;
+      var _this2 = this;
 
       if (this.mode === mode.TIME || this.mode === mode.DATE) {
         var getValue = this.mode === mode.TIME ? this._getTimeValue : this._getDateValue;
@@ -13578,11 +15971,11 @@ var fields = {
       }
 
       val.forEach(function (value, column) {
-        if (value !== _this.oldValueArray[column]) {
-          _this.oldValueArray[column] = value;
+        if (value !== _this2.oldValueArray[column]) {
+          _this2.oldValueArray[column] = value;
 
-          if (_this.mode === mode.MULTISELECTOR) {
-            _this.$trigger('columnchange', {}, {
+          if (_this2.mode === mode.MULTISELECTOR) {
+            _this2.$trigger('columnchange', {}, {
               column: column,
               value: value
             });
@@ -13611,8 +16004,8 @@ var fields = {
     });
   },
   methods: {
-    _show: function _show() {
-      var _this2 = this;
+    _show: function _show(event) {
+      var _this3 = this;
 
       if (this.disabled) {
         return;
@@ -13623,8 +16016,15 @@ var fields = {
       $picker.remove();
       (document.querySelector('uni-app') || document.body).appendChild($picker);
       $picker.style.display = 'block';
+      var rect = event.currentTarget.getBoundingClientRect();
+      this.popover = {
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height
+      };
       setTimeout(function () {
-        _this2.visible = true;
+        _this3.visible = true;
       }, 20);
     },
     _getFormData: function _getFormData() {
@@ -13636,7 +16036,7 @@ var fields = {
     _resetFormData: function _resetFormData() {
       switch (this.mode) {
         case mode.SELECTOR:
-          this.valueSync = -1;
+          this.valueSync = 0;
           break;
 
         case mode.MULTISELECTOR:
@@ -13697,7 +16097,8 @@ var fields = {
       return val[0] * 60 + val[1];
     },
     _getDateValue: function _getDateValue(val) {
-      return val[0] * 366 + (val[1] || 0) * 31 + (val[2] || 0);
+      var DAY = 31;
+      return val[0] * DAY * 12 + (val[1] || 0) * DAY + (val[2] || 0);
     },
 
     /**
@@ -13729,7 +16130,7 @@ var fields = {
               var val1 = Number(this.valueSync[index]);
               var val2 = isNaN(val0) ? isNaN(val1) ? 0 : val1 : val0;
               var maxVal = this.range[index] ? this.range[index].length - 1 : 0;
-              this.valueSync.splice(index, 1, val2 > maxVal ? 0 : val2);
+              this.valueSync.splice(index, 1, val2 < 0 || val2 > maxVal ? 0 : val2);
             }
           }
           break;
@@ -13740,8 +16141,11 @@ var fields = {
           break;
 
         default:
-          this.valueSync = Number(val) || 0;
-          break;
+          {
+            var valueSync = Number(val);
+            this.valueSync = valueSync < 0 ? 0 : valueSync;
+            break;
+          }
       }
     },
     _setValueArray: function _setValueArray() {
@@ -13754,13 +16158,13 @@ var fields = {
           break;
 
         case mode.TIME:
-          valueArray = this._getDateValueArray(val, Object(shared["f" /* formatDateTime */])({
+          valueArray = this._getDateValueArray(val, Object(shared["g" /* formatDateTime */])({
             mode: mode.TIME
           }));
           break;
 
         case mode.DATE:
-          valueArray = this._getDateValueArray(val, Object(shared["f" /* formatDateTime */])({
+          valueArray = this._getDateValueArray(val, Object(shared["g" /* formatDateTime */])({
             mode: mode.DATE
           }));
           break;
@@ -13774,7 +16178,7 @@ var fields = {
       this.valueArray = _toConsumableArray(valueArray);
     },
     _getValue: function _getValue() {
-      var _this3 = this;
+      var _this4 = this;
 
       var val = this.valueArray;
 
@@ -13789,12 +16193,12 @@ var fields = {
 
         case mode.TIME:
           return this.valueArray.map(function (val, i) {
-            return _this3.timeArray[i][val];
+            return _this4.timeArray[i][val];
           }).join(':');
 
         case mode.DATE:
           return this.valueArray.map(function (val, i) {
-            return _this3.dateArray[i][val];
+            return _this4.dateArray[i][val];
           }).join('-');
       }
     },
@@ -13851,23 +16255,123 @@ var fields = {
         value: value
       });
     },
-    _cancel: function _cancel() {
+    _cancel: function _cancel($event) {
+      if (this.system === 'firefox') {
+        // Firefox 在 input 同位置区域点击无法隐藏控件
+        var _this$popover = this.popover,
+            top = _this$popover.top,
+            left = _this$popover.left,
+            width = _this$popover.width,
+            height = _this$popover.height;
+        var pageX = $event.pageX,
+            pageY = $event.pageY;
+
+        if (pageX > left && pageX < left + width && pageY > top && pageY < top + height) {
+          return;
+        }
+      }
+
       this._close();
 
       this.$trigger('cancel', {}, {});
     },
     _close: function _close() {
-      var _this4 = this;
+      var _this5 = this;
 
       this.visible = false;
       setTimeout(function () {
-        var $picker = _this4.$refs.picker;
+        var $picker = _this5.$refs.picker;
         $picker.remove();
 
-        _this4.$el.prepend($picker);
+        _this5.$el.prepend($picker);
 
         $picker.style.display = 'none';
       }, 260);
+    },
+    _select: function _select() {
+      if (this.mode === mode.SELECTOR && this.selectorTypeComputed === selectorType.SELECT) {
+        this.$refs.select.scrollTop = this.valueArray[0] * 34;
+      }
+    },
+    _input: function _input($event) {
+      var _this6 = this;
+
+      this.valueSync = $event.target.value;
+      this.$nextTick(function () {
+        _this6._change();
+      });
+    },
+    _fixInputPosition: function _fixInputPosition($event) {
+      if (this.system === 'chrome') {
+        var rect = this.$el.getBoundingClientRect();
+        var style = this.$refs.input.style;
+        var fontSize = 32;
+        style.left = "".concat($event.clientX - rect.left - fontSize * 1.5, "px");
+        style.top = "".concat($event.clientY - rect.top - fontSize * 0.5, "px");
+      }
+    },
+    _pickerViewChange: function _pickerViewChange(event) {
+      this.valueArray = this._l10nColumn(event.detail.value, true);
+    },
+    _l10nColumn: function _l10nColumn(array, normalize) {
+      if (this.mode === mode.DATE) {
+        var locale = Object(i18n["a" /* getLocale */])();
+
+        if (!locale.startsWith('zh')) {
+          switch (this.fields) {
+            case fields.YEAR:
+              return array;
+
+            case fields.MONTH:
+              return [array[1], array[0]];
+
+            default:
+              switch (locale) {
+                case 'es':
+                case 'fr':
+                  return [array[2], array[1], array[0]];
+                // case 'en':
+
+                default:
+                  return normalize ? [array[2], array[0], array[1]] : [array[1], array[2], array[0]];
+              }
+
+          }
+        }
+      }
+
+      return array;
+    },
+    _l10nItem: function _l10nItem(item, index) {
+      if (this.mode === mode.DATE) {
+        var locale = Object(i18n["a" /* getLocale */])();
+
+        if (locale.startsWith('zh')) {
+          var array = ['年', '月', '日'];
+          return item + array[index];
+        } else if (this.fields !== fields.YEAR && index === (this.fields !== fields.MONTH && (locale === 'es' || locale === 'fr') ? 1 : 0)) {
+          var _array;
+
+          switch (locale) {
+            case 'es':
+              _array = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', '​​julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+              break;
+
+            case 'fr':
+              _array = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+              break;
+            // case 'en':
+
+            default:
+              _array = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+              break;
+          }
+
+          return _array[Number(item) - 1];
+        }
+      }
+
+      return item;
     }
   }
 });
@@ -13943,7 +16447,7 @@ var openLocation = {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/label/index.vue?vue&type=template&id=5e5e35f0&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/label/index.vue?vue&type=template&id=5e5e35f0&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-label',_vm._g({class:{'uni-label-pointer':_vm.pointer},on:{"click":_vm._onClick}},_vm.$listeners),[_vm._t("default")],2)}
 var staticRenderFns = []
 
@@ -14790,7 +17294,7 @@ function loadMap(callback) {
         case 'getScale':
           this.mapReady(function () {
             callback({
-              scale: Number(_this9.scale)
+              scale: _this9._map.getZoom()
             });
           });
           break;
@@ -14803,11 +17307,12 @@ function loadMap(callback) {
       var map = this._map = new maps.Map(this.$refs.map, {
         center: center,
         zoom: Number(this.scale),
-        scrollwheel: false,
+        // scrollwheel: false,
         disableDoubleClickZoom: true,
         mapTypeControl: false,
         zoomControl: false,
         scaleControl: false,
+        panControl: false,
         minZoom: 5,
         maxZoom: 18,
         draggable: true
@@ -14824,16 +17329,35 @@ function loadMap(callback) {
       });
       maps.event.addListener(map, 'dragstart', function () {
         _this10.$trigger('regionchange', {}, {
-          type: 'begin'
+          type: 'begin',
+          causedBy: 'gesture'
         });
       });
+
+      function getMapInfo() {
+        var center = map.getCenter();
+        return {
+          scale: map.getZoom(),
+          centerLocation: {
+            latitude: center.getLat(),
+            longitude: center.getLng()
+          }
+        };
+      }
+
       maps.event.addListener(map, 'dragend', function () {
-        _this10.$trigger('regionchange', {}, {
-          type: 'end'
-        });
+        _this10.$trigger('regionchange', {}, Object.assign({
+          type: 'end',
+          causedBy: 'drag'
+        }, getMapInfo()));
       });
       maps.event.addListener(map, 'zoom_changed', function () {
         _this10.$emit('update:scale', map.getZoom());
+
+        _this10.$trigger('regionchange', {}, Object.assign({
+          type: 'end',
+          causedBy: 'scale'
+        }, getMapInfo()));
       });
       maps.event.addListener(map, 'center_changed', function () {
         var latitude;
@@ -14925,7 +17449,7 @@ function loadMap(callback) {
             }
           }
 
-          Object(uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* hasOwn */ "h"])(option, 'id') && _this12.$trigger('markertap', {}, {
+          Object(uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* hasOwn */ "i"])(option, 'id') && _this12.$trigger('markertap', {}, {
             markerId: option.id
           });
         });
@@ -15029,7 +17553,7 @@ function loadMap(callback) {
             callout = marker.callout = new maps.Callout(calloutStyle);
 
             callout.div.onclick = function ($event) {
-              Object(uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* hasOwn */ "h"])(option, 'id') && self.$trigger('callouttap', $event, {
+              Object(uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* hasOwn */ "i"])(option, 'id') && self.$trigger('callouttap', $event, {
                 markerId: option.id
               });
               $event.stopPropagation();
@@ -15221,9 +17745,12 @@ function loadMap(callback) {
           });
           _this14._location = location;
           refreshLocation();
-          uni.onCompassChange(function (res) {
+
+          _this14.__onCompassChange = function (res) {
             location.setRotation(res.direction);
-          });
+          };
+
+          uni.onCompassChange(_this14.__onCompassChange);
         },
         fail: function fail(e) {
           console.error(e);
@@ -15250,7 +17777,7 @@ function loadMap(callback) {
               refreshLocation();
             }
           });
-        }, 1000);
+        }, 30000);
       }
     },
     removeLocation: function removeLocation() {
@@ -15260,7 +17787,7 @@ function loadMap(callback) {
         location.setMap(null);
         this._location = null;
         this._locationPosition = null;
-        uni.stopCompass();
+        uni.offCompassChange(this.__onCompassChange);
       }
     },
     fitBounds: function fitBounds(points, cb) {
@@ -15310,6 +17837,8 @@ function loadMap(callback) {
           return element;
         }
       }
+
+      throw new Error('translateMarker: fail cannot find marker with id ' + id);
     }
   }
 });
@@ -15337,7 +17866,7 @@ function loadMap(callback) {
 
 
 
-var passiveOptions = uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* supportsPassive */ "o"] ? {
+var passiveOptions = uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* supportsPassive */ "p"] ? {
   passive: false
 } : false;
 
@@ -15346,12 +17875,12 @@ function updateCssVar(vm) {
     var pageVm = vm.$parent.$parent;
     var navigationBarType = pageVm.navigationBar.type;
     var windowTopValue = navigationBarType === 'default' || navigationBarType === 'float' ? uni_helpers_constants__WEBPACK_IMPORTED_MODULE_2__[/* NAVBAR_HEIGHT */ "a"] : 0;
-    var windowBottomValue = getApp().$children[0].showTabBar ? uni_helpers_constants__WEBPACK_IMPORTED_MODULE_2__[/* TABBAR_HEIGHT */ "b"] : 0;
+    var windowBottomValue = getApp().$children[0].showTabBar ? uni_helpers_constants__WEBPACK_IMPORTED_MODULE_2__[/* TABBAR_HEIGHT */ "c"] : 0;
     var envMethod = uni.canIUse('css.env') ? 'env' : uni.canIUse('css.constant') ? 'constant' : '';
     var windowTop = windowTopValue && envMethod ? "calc(".concat(windowTopValue, "px + ").concat(envMethod, "(safe-area-inset-top))") : "".concat(windowTopValue, "px");
     var windowBottom = windowBottomValue && envMethod ? "calc(".concat(windowBottomValue, "px + ").concat(envMethod, "(safe-area-inset-bottom))") : "".concat(windowBottomValue, "px");
     var style = document.documentElement.style;
-    style.setProperty('--window-top', windowTop);
+    style.setProperty('--window-top', "calc(var(--top-window-height) + ".concat(windowTop, ")"));
     style.setProperty('--window-bottom', windowBottom);
     console.debug("".concat(vm.$page.route, "[").concat(vm.$page.id, "]\uFF1A--window-top=").concat(windowTop));
     console.debug("".concat(vm.$page.route, "[").concat(vm.$page.id, "]\uFF1A--window-bottom=").concat(windowBottom));
@@ -15382,10 +17911,10 @@ function initSubscribe(subscribe) {
       document.addEventListener('touchmove', disableScrollListener, passiveOptions);
     }
 
-    var enablePageScroll = Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_1__[/* hasLifecycleHook */ "a"])(vm.$options, 'onPageScroll');
-    var enablePageReachBottom = Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_1__[/* hasLifecycleHook */ "a"])(vm.$options, 'onReachBottom');
+    var enablePageScroll = Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_1__[/* hasLifecycleHook */ "c"])(vm.$options, 'onPageScroll');
+    var enablePageReachBottom = Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_1__[/* hasLifecycleHook */ "c"])(vm.$options, 'onReachBottom');
     var onReachBottomDistance = pageVm.onReachBottomDistance;
-    var enableTransparentTitleNView = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(pageVm.titleNView) && pageVm.titleNView.type === 'transparent' || Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(pageVm.navigationBar) && pageVm.navigationBar.type === 'transparent';
+    var enableTransparentTitleNView = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(pageVm.titleNView) && pageVm.titleNView.type === 'transparent' || Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(pageVm.navigationBar) && pageVm.navigationBar.type === 'transparent';
 
     if (scrollListener) {
       document.removeEventListener('scroll', scrollListener);
@@ -15422,7 +17951,9 @@ function initSubscribe(subscribe) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function(UniServiceJSBridge, console) {/* harmony default export */ __webpack_exports__["default"] = ({
+/* WEBPACK VAR INJECTION */(function(UniServiceJSBridge, console) {/* harmony import */ var uni_core_helpers_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("a6b0");
+
+/* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
       showToast: {
@@ -15457,9 +17988,9 @@ __webpack_require__.r(__webpack_exports__);
         var warnMsg = '';
 
         if (type === 'onHideToast' && showType !== 'onShowToast') {
-          warnMsg = '请注意 showToast 与 hideToast 必须配对使用';
+          warnMsg = Object(uni_core_helpers_i18n__WEBPACK_IMPORTED_MODULE_0__[/* t */ "c"])('uni.showToast.unpaired');
         } else if (type === 'onHideLoading' && showType !== 'onShowLoading') {
-          warnMsg = '请注意 showLoading 与 hideLoading 必须配对使用';
+          warnMsg = Object(uni_core_helpers_i18n__WEBPACK_IMPORTED_MODULE_0__[/* t */ "c"])('uni.showLoading.unpaired');
         }
 
         if (warnMsg) {
@@ -15483,25 +18014,384 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "78a1":
+/***/ "78b5":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "onKeyboardHeightChange", function() { return onKeyboardHeightChange; });
-/* harmony import */ var uni_core_service_bridge__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("a118");
-/* harmony import */ var _platform__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("db70");
+/* WEBPACK VAR INJECTION */(function(console) {/* unused harmony export I18n */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return initVueI18n; });
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-var callback;
-Object(_platform__WEBPACK_IMPORTED_MODULE_1__[/* onMethod */ "d"])('onKeyboardHeightChange', function (res) {
-  if (callback) {
-    Object(uni_core_service_bridge__WEBPACK_IMPORTED_MODULE_0__[/* invoke */ "a"])(callback, res);
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+var isObject = function isObject(val) {
+  return val !== null && _typeof(val) === 'object';
+};
+
+var BaseFormatter = /*#__PURE__*/function () {
+  function BaseFormatter() {
+    _classCallCheck(this, BaseFormatter);
+
+    this._caches = Object.create(null);
   }
-});
-function onKeyboardHeightChange(callbackId) {
-  callback = callbackId;
+
+  _createClass(BaseFormatter, [{
+    key: "interpolate",
+    value: function interpolate(message, values) {
+      if (!values) {
+        return [message];
+      }
+
+      var tokens = this._caches[message];
+
+      if (!tokens) {
+        tokens = parse(message);
+        this._caches[message] = tokens;
+      }
+
+      return compile(tokens, values);
+    }
+  }]);
+
+  return BaseFormatter;
+}();
+
+var RE_TOKEN_LIST_VALUE = /^(?:\d)+/;
+var RE_TOKEN_NAMED_VALUE = /^(?:\w)+/;
+
+function parse(format) {
+  var tokens = [];
+  var position = 0;
+  var text = '';
+
+  while (position < format.length) {
+    var _char = format[position++];
+
+    if (_char === '{') {
+      if (text) {
+        tokens.push({
+          type: 'text',
+          value: text
+        });
+      }
+
+      text = '';
+      var sub = '';
+      _char = format[position++];
+
+      while (_char !== undefined && _char !== '}') {
+        sub += _char;
+        _char = format[position++];
+      }
+
+      var isClosed = _char === '}';
+      var type = RE_TOKEN_LIST_VALUE.test(sub) ? 'list' : isClosed && RE_TOKEN_NAMED_VALUE.test(sub) ? 'named' : 'unknown';
+      tokens.push({
+        value: sub,
+        type: type
+      });
+    } else if (_char === '%') {
+      // when found rails i18n syntax, skip text capture
+      if (format[position] !== '{') {
+        text += _char;
+      }
+    } else {
+      text += _char;
+    }
+  }
+
+  text && tokens.push({
+    type: 'text',
+    value: text
+  });
+  return tokens;
 }
+
+function compile(tokens, values) {
+  var compiled = [];
+  var index = 0;
+  var mode = Array.isArray(values) ? 'list' : isObject(values) ? 'named' : 'unknown';
+
+  if (mode === 'unknown') {
+    return compiled;
+  }
+
+  while (index < tokens.length) {
+    var token = tokens[index];
+
+    switch (token.type) {
+      case 'text':
+        compiled.push(token.value);
+        break;
+
+      case 'list':
+        compiled.push(values[parseInt(token.value, 10)]);
+        break;
+
+      case 'named':
+        if (mode === 'named') {
+          compiled.push(values[token.value]);
+        } else {
+          if (false) {}
+        }
+
+        break;
+
+      case 'unknown':
+        if (false) {}
+
+        break;
+    }
+
+    index++;
+  }
+
+  return compiled;
+}
+
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+
+var hasOwn = function hasOwn(val, key) {
+  return hasOwnProperty.call(val, key);
+};
+
+var defaultFormatter = new BaseFormatter();
+
+function include(str, parts) {
+  return !!parts.find(function (part) {
+    return str.indexOf(part) !== -1;
+  });
+}
+
+function startsWith(str, parts) {
+  return parts.find(function (part) {
+    return str.indexOf(part) === 0;
+  });
+}
+
+function normalizeLocale(locale, messages) {
+  if (!locale) {
+    return;
+  }
+
+  locale = locale.trim().replace(/_/g, '-');
+
+  if (messages[locale]) {
+    return locale;
+  }
+
+  locale = locale.toLowerCase();
+
+  if (locale.indexOf('zh') === 0) {
+    if (locale.indexOf('-hans') !== -1) {
+      return 'zh-Hans';
+    }
+
+    if (locale.indexOf('-hant') !== -1) {
+      return 'zh-Hant';
+    }
+
+    if (include(locale, ['-tw', '-hk', '-mo', '-cht'])) {
+      return 'zh-Hant';
+    }
+
+    return 'zh-Hans';
+  }
+
+  var lang = startsWith(locale, ['en', 'fr', 'es']);
+
+  if (lang) {
+    return lang;
+  }
+}
+
+var I18n = /*#__PURE__*/function () {
+  function I18n(_ref) {
+    var locale = _ref.locale,
+        fallbackLocale = _ref.fallbackLocale,
+        messages = _ref.messages,
+        watcher = _ref.watcher,
+        formater = _ref.formater;
+
+    _classCallCheck(this, I18n);
+
+    this.locale = 'en';
+    this.fallbackLocale = 'en';
+    this.message = {};
+    this.messages = {};
+    this.watchers = [];
+
+    if (fallbackLocale) {
+      this.fallbackLocale = fallbackLocale;
+    }
+
+    this.formater = formater || defaultFormatter;
+    this.messages = messages;
+    this.setLocale(locale);
+
+    if (watcher) {
+      this.watchLocale(watcher);
+    }
+  }
+
+  _createClass(I18n, [{
+    key: "setLocale",
+    value: function setLocale(locale) {
+      var _this = this;
+
+      var oldLocale = this.locale;
+      this.locale = normalizeLocale(locale, this.messages) || this.fallbackLocale;
+      this.message = this.messages[this.locale];
+      this.watchers.forEach(function (watcher) {
+        watcher(_this.locale, oldLocale);
+      });
+    }
+  }, {
+    key: "getLocale",
+    value: function getLocale() {
+      return this.locale;
+    }
+  }, {
+    key: "watchLocale",
+    value: function watchLocale(fn) {
+      var _this2 = this;
+
+      var index = this.watchers.push(fn) - 1;
+      return function () {
+        _this2.watchers.splice(index, 1);
+      };
+    }
+  }, {
+    key: "t",
+    value: function t(key, locale, values) {
+      var message = this.message;
+
+      if (typeof locale === 'string') {
+        locale = normalizeLocale(locale, this.messages);
+        locale && (message = this.messages[locale]);
+      } else {
+        values = locale;
+      }
+
+      if (!hasOwn(message, key)) {
+        console.warn("Cannot translate the value of keypath ".concat(key, ". Use the value of keypath as default."));
+        return key;
+      }
+
+      return this.formater.interpolate(message[key], values).join('');
+    }
+  }]);
+
+  return I18n;
+}();
+
+function initLocaleWatcher(appVm, i18n) {
+  appVm.$i18n && appVm.$i18n.vm.$watch('locale', function (newLocale) {
+    i18n.setLocale(newLocale);
+  }, {
+    immediate: true
+  });
+}
+
+function getDefaultLocale() {
+  if (typeof navigator !== 'undefined') {
+    return navigator.userLanguage || navigator.language;
+  }
+
+  if (typeof plus !== 'undefined') {
+    // TODO 待调整为最新的获取语言代码
+    return plus.os.language;
+  }
+
+  return uni.getSystemInfoSync().language;
+}
+
+function initVueI18n(messages) {
+  var fallbackLocale = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'en';
+  var locale = arguments.length > 2 ? arguments[2] : undefined;
+  var i18n = new I18n({
+    locale: locale || fallbackLocale,
+    fallbackLocale: fallbackLocale,
+    messages: messages
+  });
+
+  var _t = function t(key, values) {
+    if (typeof getApp !== 'function') {
+      // app-plus view
+
+      /* eslint-disable no-func-assign */
+      _t = function t(key, values) {
+        return i18n.t(key, values);
+      };
+    } else {
+      var appVm = getApp().$vm;
+
+      if (!appVm.$t || !appVm.$i18n) {
+        if (!locale) {
+          i18n.setLocale(getDefaultLocale());
+        }
+        /* eslint-disable no-func-assign */
+
+
+        _t = function t(key, values) {
+          return i18n.t(key, values);
+        };
+      } else {
+        initLocaleWatcher(appVm, i18n);
+        /* eslint-disable no-func-assign */
+
+        _t = function t(key, values) {
+          var $i18n = appVm.$i18n;
+          var silentTranslationWarn = $i18n.silentTranslationWarn;
+          $i18n.silentTranslationWarn = true;
+          var msg = appVm.$t(key, values);
+          $i18n.silentTranslationWarn = silentTranslationWarn;
+
+          if (msg !== key) {
+            return msg;
+          }
+
+          return i18n.t(key, $i18n.locale, values);
+        };
+      }
+    }
+
+    return _t(key, values);
+  };
+
+  return {
+    t: function t(key, values) {
+      return _t(key, values);
+    },
+    setLocale: function setLocale(newLocale) {
+      return i18n.setLocale(newLocale);
+    },
+    mixin: {
+      beforeCreate: function beforeCreate() {
+        var _this3 = this;
+
+        var unwatch = i18n.watchLocale(function () {
+          _this3.$forceUpdate();
+        });
+        this.$once('hook:beforeDestroy', function () {
+          unwatch();
+        });
+      },
+      methods: {
+        $$t: function $$t(key, values) {
+          return _t(key, values);
+        }
+      }
+    }
+  };
+}
+
+
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("3ad9")["default"]))
 
 /***/ }),
 
@@ -15509,12 +18399,39 @@ function onKeyboardHeightChange(callbackId) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+// ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSystemInfoSync", function() { return getSystemInfoSync; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSystemInfo", function() { return getSystemInfo; });
-/* harmony import */ var uni_platform_helpers_get_window_offset__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("a470");
-/* harmony import */ var safe_area_insets__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("d8c8");
-/* harmony import */ var safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(safe_area_insets__WEBPACK_IMPORTED_MODULE_1__);
+
+// EXPORTS
+__webpack_require__.d(__webpack_exports__, "getSystemInfoSync", function() { return /* binding */ getSystemInfoSync; });
+__webpack_require__.d(__webpack_exports__, "getSystemInfo", function() { return /* binding */ getSystemInfo; });
+
+// EXTERNAL MODULE: ./src/platforms/h5/helpers/get-window-offset.js
+var get_window_offset = __webpack_require__("a470");
+
+// CONCATENATED MODULE: ./src/platforms/h5/helpers/uuid.js
+var UUID_KEY = '__DC_STAT_UUID';
+var storage = window.localStorage || window.sessionStorage || {};
+var deviceId;
+/* harmony default export */ var uuid = (function () {
+  deviceId = deviceId || storage[UUID_KEY];
+
+  if (!deviceId) {
+    deviceId = Date.now() + '' + Math.floor(Math.random() * 1e7);
+
+    try {
+      storage[UUID_KEY] = deviceId;
+    } catch (error) {}
+  }
+
+  return deviceId;
+});
+// EXTERNAL MODULE: ./node_modules/safe-area-insets/out/index.js
+var out = __webpack_require__("d8c8");
+var out_default = /*#__PURE__*/__webpack_require__.n(out);
+
+// CONCATENATED MODULE: ./src/platforms/h5/service/api/device/get-system-info.js
+
 
 
 var ua = navigator.userAgent;
@@ -15536,13 +18453,14 @@ function getSystemInfoSync() {
   var screen = window.screen;
   var pixelRatio = window.devicePixelRatio; // 横屏时 iOS 获取的屏幕宽高颠倒，进行纠正
 
-  var landscape = Math.abs(window.orientation) === 90;
-  var screenWidth = typeof window.orientation === 'number' ? Math[landscape ? 'max' : 'min'](screen.width, screen.height) : screen.width;
-  var screenHeight = typeof window.orientation === 'number' ? Math[landscape ? 'min' : 'max'](screen.height, screen.width) : screen.height;
-  var windowWidth = Math.min(window.innerWidth, document.documentElement.clientWidth, screenWidth);
+  var screenFix = /^Apple/.test(navigator.vendor) && typeof window.orientation === 'number';
+  var landscape = screenFix && Math.abs(window.orientation) === 90;
+  var screenWidth = screenFix ? Math[landscape ? 'max' : 'min'](screen.width, screen.height) : screen.width;
+  var screenHeight = screenFix ? Math[landscape ? 'min' : 'max'](screen.height, screen.width) : screen.height;
+  var windowWidth = Math.min(window.innerWidth, document.documentElement.clientWidth, screenWidth) || screenWidth;
   var windowHeight = window.innerHeight;
   var language = navigator.language;
-  var statusBarHeight = safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.top;
+  var statusBarHeight = out_default.a.top;
   var osname;
   var osversion;
   var model;
@@ -15604,15 +18522,15 @@ function getSystemInfoSync() {
   var system = "".concat(osname, " ").concat(osversion);
   var platform = osname.toLocaleLowerCase();
   var safeArea = {
-    left: safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.left,
-    right: windowWidth - safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.right,
-    top: safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.top,
-    bottom: windowHeight - safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.bottom,
-    width: windowWidth - safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.left - safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.right,
-    height: windowHeight - safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.top - safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.bottom
+    left: out_default.a.left,
+    right: windowWidth - out_default.a.right,
+    top: out_default.a.top,
+    bottom: windowHeight - out_default.a.bottom,
+    width: windowWidth - out_default.a.left - out_default.a.right,
+    height: windowHeight - out_default.a.top - out_default.a.bottom
   };
 
-  var _getWindowOffset = Object(uni_platform_helpers_get_window_offset__WEBPACK_IMPORTED_MODULE_0__[/* default */ "a"])(),
+  var _getWindowOffset = Object(get_window_offset["a" /* default */])(),
       windowTop = _getWindowOffset.top,
       windowBottom = _getWindowOffset.bottom;
 
@@ -15633,11 +18551,12 @@ function getSystemInfoSync() {
     model: model,
     safeArea: safeArea,
     safeAreaInsets: {
-      top: safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.top,
-      right: safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.right,
-      bottom: safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.bottom,
-      left: safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.left
-    }
+      top: out_default.a.top,
+      right: out_default.a.right,
+      bottom: out_default.a.bottom,
+      left: out_default.a.left
+    },
+    deviceId: uuid()
   };
 }
 /**
@@ -15650,6 +18569,38 @@ function getSystemInfo() {
 
 /***/ }),
 
+/***/ "79d5":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getPageHolder", function() { return getPageHolder; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isCurrentPage", function() { return isCurrentPage; });
+function getPageHolder(__page__) {
+  if (__page__) {
+    return __page__.$holder;
+  }
+
+  var pages = getCurrentPages();
+  var len = pages.length;
+
+  if (len) {
+    return pages[len - 1].$holder;
+  }
+}
+function isCurrentPage(pageHolder) {
+  var pages = getCurrentPages();
+  var len = pages.length;
+
+  if (len) {
+    return pages[len - 1].$holder === pageHolder;
+  }
+
+  return false;
+}
+
+/***/ }),
+
 /***/ "7bb3":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -15657,14 +18608,14 @@ function getSystemInfo() {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/checkbox/index.vue?vue&type=template&id=866e53ba&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/checkbox/index.vue?vue&type=template&id=866e53ba&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-checkbox',_vm._g({attrs:{"disabled":_vm.disabled},on:{"click":_vm._onClick}},_vm.$listeners),[_c('div',{staticClass:"uni-checkbox-wrapper"},[_c('div',{staticClass:"uni-checkbox-input",class:[_vm.checkboxChecked ? 'uni-checkbox-input-checked' : ''],style:({color:_vm.color})}),_vm._t("default")],2)])}
 var staticRenderFns = []
 
 
 // CONCATENATED MODULE: ./src/core/view/components/checkbox/index.vue?vue&type=template&id=866e53ba&
 
-// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 3 modules
+// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 1 modules
 var mixins = __webpack_require__("8af1");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/checkbox/index.vue?vue&type=script&lang=js&
@@ -15687,7 +18638,7 @@ var mixins = __webpack_require__("8af1");
 
 /* harmony default export */ var checkboxvue_type_script_lang_js_ = ({
   name: 'Checkbox',
-  mixins: [mixins["b" /* emitter */], mixins["f" /* listeners */]],
+  mixins: [mixins["a" /* emitter */], mixins["f" /* listeners */]],
   props: {
     checked: {
       type: [Boolean, String],
@@ -15805,60 +18756,6 @@ var component = Object(componentNormalizer["a" /* default */])(
 
 /***/ }),
 
-/***/ "7d13":
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "onAccelerometerChange", function() { return onAccelerometerChange; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "startAccelerometer", function() { return startAccelerometer; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "stopAccelerometer", function() { return stopAccelerometer; });
-/* harmony import */ var uni_core_service_bridge__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("a118");
-/* harmony import */ var _platform__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("db70");
-
-
-var callbacks = [];
-Object(_platform__WEBPACK_IMPORTED_MODULE_1__[/* onMethod */ "d"])('onAccelerometerChange', function (res) {
-  callbacks.forEach(function (callbackId) {
-    Object(uni_core_service_bridge__WEBPACK_IMPORTED_MODULE_0__[/* invoke */ "a"])(callbackId, res);
-  });
-});
-var isEnable = false;
-/**
- * 监听加速度
- * @param {*} callbackId
- */
-
-function onAccelerometerChange(callbackId) {
-  // TODO 当没有 start 时，添加 on 需要主动 start?
-  callbacks.push(callbackId);
-
-  if (!isEnable) {
-    startAccelerometer();
-  }
-}
-function startAccelerometer() {
-  var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-      interval = _ref.interval;
-
-  if (isEnable) {
-    return;
-  }
-
-  isEnable = true;
-  return Object(_platform__WEBPACK_IMPORTED_MODULE_1__[/* invokeMethod */ "c"])('enableAccelerometer', {
-    enable: true
-  });
-}
-function stopAccelerometer() {
-  isEnable = false;
-  return Object(_platform__WEBPACK_IMPORTED_MODULE_1__[/* invokeMethod */ "c"])('enableAccelerometer', {
-    enable: false
-  });
-}
-
-/***/ }),
-
 /***/ "7d18":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -15950,8 +18847,9 @@ function uploadFile(_ref, callbackId) {
       name = _ref.name,
       files = _ref.files,
       header = _ref.header,
-      formData = _ref.formData;
-  var timeout = __uniConfig.networkTimeout && __uniConfig.networkTimeout.uploadFile || 60 * 1000;
+      formData = _ref.formData,
+      _ref$timeout = _ref.timeout,
+      timeout = _ref$timeout === void 0 ? __uniConfig.networkTimeout && __uniConfig.networkTimeout.uploadFile || 60 * 1000 : _ref$timeout;
   var _UniServiceJSBridge = UniServiceJSBridge,
       invoke = _UniServiceJSBridge.invokeCallbackHandler;
   var uploadTask = new UploadTask(null, callbackId);
@@ -16038,7 +18936,7 @@ function uploadFile(_ref, callbackId) {
   Promise.all(files.map(function (_ref3) {
     var file = _ref3.file,
         uri = _ref3.uri;
-    return file instanceof File ? Promise.resolve(file) : Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* urlToFile */ "c"])(uri);
+    return file instanceof Blob ? Promise.resolve(Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* blobToFile */ "a"])(file)) : Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* urlToFile */ "f"])(uri);
   })).then(upload).catch(function () {
     setTimeout(function () {
       invoke(callbackId, {
@@ -16083,6 +18981,13 @@ function makePhoneCall(_ref) {
     errMsg: 'makePhoneCall:ok'
   };
 }
+
+/***/ }),
+
+/***/ "80e5":
+/***/ (function(module) {
+
+module.exports = JSON.parse("{\"uni.app.quit\":\"Pulse otra vez para salir\",\"uni.async.error\":\"Se agotó el tiempo de conexión, haga clic en la pantalla para volver a intentarlo.\",\"uni.showActionSheet.cancel\":\"Cancelar\",\"uni.showToast.unpaired\":\"Tenga en cuenta que showToast debe estar emparejado con hideToast\",\"uni.showLoading.unpaired\":\"Tenga en cuenta que showLoading debe estar emparejado con hideLoading\",\"uni.showModal.cancel\":\"Cancelar\",\"uni.showModal.confirm\":\"OK\",\"uni.chooseImage.cancel\":\"Cancelar\",\"uni.chooseImage.sourceType.album\":\"Álbum\",\"uni.chooseImage.sourceType.camera\":\"Cámara\",\"uni.chooseVideo.cancel\":\"Cancelar\",\"uni.chooseVideo.sourceType.album\":\"Álbum\",\"uni.chooseVideo.sourceType.camera\":\"Cámara\",\"uni.previewImage.cancel\":\"Cancelar\",\"uni.previewImage.button.save\":\"Guardar imagen\",\"uni.previewImage.save.success\":\"Guardado exitosamente\",\"uni.previewImage.save.fail\":\"Error al guardar\",\"uni.setClipboardData.success\":\"Contenido copiado\",\"uni.scanCode.title\":\"Código de escaneo\",\"uni.scanCode.album\":\"Álbum\",\"uni.scanCode.fail\":\"Échec de la reconnaissance\",\"uni.scanCode.flash.on\":\"Toque para encender la luz\",\"uni.scanCode.flash.off\":\"Toque para apagar la luz\",\"uni.startSoterAuthentication.authContent\":\"Reconocimiento de huellas dactilares\",\"uni.picker.done\":\"OK\",\"uni.picker.cancel\":\"Cancelar\",\"uni.video.danmu\":\"Danmu\",\"uni.video.volume\":\"Volumen\",\"uni.button.feedback.title\":\"realimentación\",\"uni.button.feedback.send\":\"enviar\"}");
 
 /***/ }),
 
@@ -16314,12 +19219,20 @@ function onSocketClose(callbackId) {
 
 "use strict";
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/tabBar.vue?vue&type=template&id=32851350&
-var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-tabbar',[_c('div',{staticClass:"uni-tabbar",style:({backgroundColor:_vm.backgroundColor})},[_c('div',{staticClass:"uni-tabbar-border",style:({backgroundColor:_vm.borderColor})}),_vm._l((_vm.list),function(item,index){return _c('div',{key:item.pagePath,staticClass:"uni-tabbar__item",on:{"click":function($event){return _vm._switchTab(item,index)}}},[_c('div',{staticClass:"uni-tabbar__bd"},[(item.iconPath)?_c('div',{staticClass:"uni-tabbar__icon",class:{'uni-tabbar__icon__diff':!item.text}},[_c('img',{attrs:{"src":_vm._getRealPath(_vm.$route.meta.pagePath===item.pagePath?item.selectedIconPath:item.iconPath)}}),(item.redDot)?_c('div',{staticClass:"uni-tabbar__reddot",class:{'uni-tabbar__badge':!!item.badge}},[_vm._v(" "+_vm._s(item.badge)+" ")]):_vm._e()]):_vm._e(),(item.text)?_c('div',{staticClass:"uni-tabbar__label",style:({color:_vm.$route.meta.pagePath===item.pagePath?_vm.selectedColor:_vm.color,fontSize:item.iconPath?'10px':'14px'})},[_vm._v(" "+_vm._s(item.text)+" "),(item.redDot&&!item.iconPath)?_c('div',{staticClass:"uni-tabbar__reddot",class:{'uni-tabbar__badge':!!item.badge}},[_vm._v(" "+_vm._s(item.badge)+" ")]):_vm._e()]):_vm._e()])])})],2),_c('div',{staticClass:"uni-placeholder"})])}
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/tabBar.vue?vue&type=template&id=2d94507f&
+var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-tabbar',{class:['uni-tabbar-'+_vm.position]},[_c('div',{staticClass:"uni-tabbar",style:({
+      backgroundColor:_vm.tabbarBackgroundColor,
+      'backdrop-filter':_vm.blurEffect !== 'none' ? 'blur(10px)' : _vm.blurEffect
+    })},[_c('div',{staticClass:"uni-tabbar-border",style:({backgroundColor:_vm.borderColor})}),_vm._l((_vm.list),function(item,index){return _c('div',{key:item.isMidButton ? index : item.pagePath,staticClass:"uni-tabbar__item",style:(item.isMidButton ? {flex:'0 0 ' + item.width,position:'relative'} : {}),on:{"click":function($event){return _vm._switchTab(item,index)}}},[(item.isMidButton)?_c('div',{staticClass:"uni-tabbar__mid",style:(_vm._uniTabbarBdStyle(item))},[(item.iconPath)?_c('img',{style:({width: item.iconWidth,height:item.iconWidth}),attrs:{"src":_vm._getRealPath(item.iconPath)}}):_vm._e()]):_vm._e(),_c('div',{staticClass:"uni-tabbar__bd",style:({height:_vm.height})},[(item.iconPath || item.isMidButton)?_c('div',{staticClass:"uni-tabbar__icon",class:{'uni-tabbar__icon__diff':!item.text},style:({width: _vm.iconWidth,height:_vm.iconWidth})},[(!item.isMidButton)?_c('img',{attrs:{"src":_vm._getRealPath(_vm.selectedIndex===index?item.selectedIconPath:item.iconPath)}}):_vm._e(),(item.redDot)?_c('div',{staticClass:"uni-tabbar__reddot",class:{'uni-tabbar__badge':!!item.badge}},[_vm._v(" "+_vm._s(item.badge)+" ")]):_vm._e()]):_vm._e(),(item.text)?_c('div',{staticClass:"uni-tabbar__label",style:({
+            color:_vm.selectedIndex === index ? _vm.selectedColor : _vm.color,
+            fontSize: _vm.fontSize,
+            lineHeight: !item.iconPath ? 1.8 : 'normal',
+            marginTop: !item.iconPath ? 'inherit' : _vm.spacing
+          })},[_vm._v(" "+_vm._s(item.text)+" "),(item.redDot&&!item.iconPath)?_c('div',{staticClass:"uni-tabbar__reddot",class:{'uni-tabbar__badge':!!item.badge}},[_vm._v(" "+_vm._s(item.badge)+" ")]):_vm._e()]):_vm._e()])])})],2),_c('div',{staticClass:"uni-placeholder",style:({height:_vm.height})})])}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/platforms/h5/components/app/tabBar.vue?vue&type=template&id=32851350&
+// CONCATENATED MODULE: ./src/platforms/h5/components/app/tabBar.vue?vue&type=template&id=2d94507f&
 
 // EXTERNAL MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/tabBar.vue?vue&type=script&lang=js&
 var tabBarvue_type_script_lang_js_ = __webpack_require__("bbc6");
@@ -16353,12 +19266,48 @@ var component = Object(componentNormalizer["a" /* default */])(
 )
 
 /* harmony default export */ var tabBar = (component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/popup/toast.vue?vue&type=template&id=19ef1a5e&
-var toastvue_type_template_id_19ef1a5e_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('transition',{attrs:{"name":"uni-fade"}},[(_vm.visible)?_c('uni-toast',{attrs:{"data-duration":_vm.duration}},[(_vm.mask)?_c('div',{staticClass:"uni-mask",staticStyle:{"background":"transparent"},on:{"touchmove":function($event){$event.preventDefault();}}}):_vm._e(),(!_vm.image&&!_vm.iconClass)?_c('div',{staticClass:"uni-sample-toast"},[_c('p',{staticClass:"uni-simple-toast__text"},[_vm._v(" "+_vm._s(_vm.title)+" ")])]):_c('div',{staticClass:"uni-toast"},[(_vm.image)?_c('img',{staticClass:"uni-toast__icon",attrs:{"src":_vm.image}}):_c('i',{staticClass:"uni-icon_toast",class:_vm.iconClass}),_c('p',{staticClass:"uni-toast__content"},[_vm._v(" "+_vm._s(_vm.title)+" ")])])]):_vm._e()],1)}
-var toastvue_type_template_id_19ef1a5e_staticRenderFns = []
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/layout.vue?vue&type=template&id=1ee8d8ec&
+var layoutvue_type_template_id_1ee8d8ec_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return (_vm.responsive)?_c('uni-layout',{class:{'uni-app--showlayout':_vm.showLayout,'uni-app--showtopwindow':_vm.showTopWindow,'uni-app--showleftwindow':_vm.showLeftWindow,'uni-app--showrightwindow':_vm.showRightWindow}},[(_vm.topWindow)?_c('uni-top-window',{directives:[{name:"show",rawName:"v-show",value:(_vm.showTopWindow || _vm.apiShowTopWindow),expression:"showTopWindow || apiShowTopWindow"}]},[_c('div',{ref:"topWindow",staticClass:"uni-top-window",style:(_vm.topWindowStyle)},[_c('v-uni-top-window',_vm._b({ref:"top",attrs:{"navigation-bar-title-text":_vm.navigationBarTitleText},on:{"hook:mounted":_vm.onTopWindowInit}},'v-uni-top-window',_vm.bindWindow,false))],1),_c('div',{staticClass:"uni-top-window--placeholder",style:({height:_vm.topWindowHeight})})]):_vm._e(),_c('uni-content',[_c('uni-main',[_c('keep-alive',{attrs:{"include":_vm.keepAliveInclude}},[_c('router-view',{key:_vm.routerKey})],1)],1),(_vm.leftWindow)?_c('uni-left-window',{directives:[{name:"show",rawName:"v-show",value:(_vm.showLeftWindow || _vm.apiShowLeftWindow),expression:"showLeftWindow || apiShowLeftWindow"}],ref:"leftWindow",style:(_vm.leftWindowStyle),attrs:{"data-show":_vm.apiShowLeftWindow}},[(_vm.apiShowLeftWindow)?_c('div',{staticClass:"uni-mask",on:{"click":function($event){_vm.apiShowLeftWindow = false}}}):_vm._e(),_c('div',{staticClass:"uni-left-window"},[_c('v-uni-left-window',_vm._b({ref:"left",on:{"hook:mounted":_vm.onLeftWindowInit}},'v-uni-left-window',_vm.bindWindow,false))],1)]):_vm._e(),(_vm.rightWindow)?_c('uni-right-window',{directives:[{name:"show",rawName:"v-show",value:(_vm.showRightWindow || _vm.apiShowRightWindow),expression:"showRightWindow || apiShowRightWindow"}],ref:"rightWindow",style:(_vm.rightWindowStyle),attrs:{"data-show":_vm.apiShowRightWindow}},[(_vm.apiShowRightWindow)?_c('div',{staticClass:"uni-mask",on:{"click":function($event){_vm.apiShowRightWindow = false}}}):_vm._e(),_c('div',{staticClass:"uni-right-window"},[_c('v-uni-right-window',_vm._b({ref:"right",on:{"hook:mounted":_vm.onRightWindowInit}},'v-uni-right-window',_vm.bindWindow,false))],1)]):_vm._e()],1)],1):_c('keep-alive',{attrs:{"include":_vm.keepAliveInclude}},[_c('router-view',{key:_vm.routerKey})],1)}
+var layoutvue_type_template_id_1ee8d8ec_staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/platforms/h5/components/app/popup/toast.vue?vue&type=template&id=19ef1a5e&
+// CONCATENATED MODULE: ./src/platforms/h5/components/app/layout.vue?vue&type=template&id=1ee8d8ec&
+
+// EXTERNAL MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/layout.vue?vue&type=script&lang=js&
+var layoutvue_type_script_lang_js_ = __webpack_require__("ff70");
+
+// CONCATENATED MODULE: ./src/platforms/h5/components/app/layout.vue?vue&type=script&lang=js&
+ /* harmony default export */ var app_layoutvue_type_script_lang_js_ = (layoutvue_type_script_lang_js_["a" /* default */]); 
+// EXTERNAL MODULE: ./src/platforms/h5/components/app/layout.vue?vue&type=style&index=0&lang=css&
+var layoutvue_type_style_index_0_lang_css_ = __webpack_require__("639e");
+
+// CONCATENATED MODULE: ./src/platforms/h5/components/app/layout.vue
+
+
+
+
+
+
+/* normalize component */
+
+var layout_component = Object(componentNormalizer["a" /* default */])(
+  app_layoutvue_type_script_lang_js_,
+  layoutvue_type_template_id_1ee8d8ec_render,
+  layoutvue_type_template_id_1ee8d8ec_staticRenderFns,
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* harmony default export */ var layout = (layout_component.exports);
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/popup/toast.vue?vue&type=template&id=0352dc18&
+var toastvue_type_template_id_0352dc18_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('transition',{attrs:{"name":"uni-fade"}},[(_vm.visible)?_c('uni-toast',{attrs:{"data-duration":_vm.duration}},[(_vm.mask)?_c('div',{staticClass:"uni-mask",staticStyle:{"background":"transparent"},on:{"touchmove":function($event){$event.preventDefault();}}}):_vm._e(),(!_vm.image&&!_vm.iconClass)?_c('div',{staticClass:"uni-sample-toast"},[_c('p',{staticClass:"uni-simple-toast__text"},[_vm._v(" "+_vm._s(_vm.title)+" ")])]):_c('div',{staticClass:"uni-toast"},[(_vm.image)?_c('img',{staticClass:"uni-toast__icon",attrs:{"src":_vm.image}}):_c('i',{staticClass:"uni-icon_toast",class:_vm.iconClass}),_c('p',{staticClass:"uni-toast__content"},[_vm._v(" "+_vm._s(_vm.title)+" ")])])]):_vm._e()],1)}
+var toastvue_type_template_id_0352dc18_staticRenderFns = []
+
+
+// CONCATENATED MODULE: ./src/platforms/h5/components/app/popup/toast.vue?vue&type=template&id=0352dc18&
 
 // EXTERNAL MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/popup/toast.vue?vue&type=script&lang=js&
 var toastvue_type_script_lang_js_ = __webpack_require__("ea86");
@@ -16379,8 +19328,8 @@ var toastvue_type_style_index_0_lang_css_ = __webpack_require__("ff28");
 
 var toast_component = Object(componentNormalizer["a" /* default */])(
   popup_toastvue_type_script_lang_js_,
-  toastvue_type_template_id_19ef1a5e_render,
-  toastvue_type_template_id_19ef1a5e_staticRenderFns,
+  toastvue_type_template_id_0352dc18_render,
+  toastvue_type_template_id_0352dc18_staticRenderFns,
   false,
   null,
   null,
@@ -16389,15 +19338,18 @@ var toast_component = Object(componentNormalizer["a" /* default */])(
 )
 
 /* harmony default export */ var toast = (toast_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/popup/modal.vue?vue&type=template&id=156312e6&
-var modalvue_type_template_id_156312e6_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('transition',{attrs:{"name":"uni-fade"}},[_c('uni-modal',{directives:[{name:"show",rawName:"v-show",value:(_vm.visible),expression:"visible"}],on:{"touchmove":function($event){$event.preventDefault();}}},[_c('div',{staticClass:"uni-mask"}),_c('div',{staticClass:"uni-modal"},[(_vm.title)?_c('div',{staticClass:"uni-modal__hd"},[_c('strong',{staticClass:"uni-modal__title",domProps:{"textContent":_vm._s(_vm.title)}})]):_vm._e(),_c('div',{staticClass:"uni-modal__bd",domProps:{"textContent":_vm._s(_vm.content)},on:{"touchmove":function($event){$event.stopPropagation();}}}),_c('div',{staticClass:"uni-modal__ft"},[(_vm.showCancel)?_c('div',{staticClass:"uni-modal__btn uni-modal__btn_default",style:({color:_vm.cancelColor}),on:{"click":function($event){return _vm._close('cancel')}}},[_vm._v(" "+_vm._s(_vm.cancelText)+" ")]):_vm._e(),_c('div',{staticClass:"uni-modal__btn uni-modal__btn_primary",style:({color:_vm.confirmColor}),on:{"click":function($event){return _vm._close('confirm')}}},[_vm._v(" "+_vm._s(_vm.confirmText)+" ")])])])])],1)}
-var modalvue_type_template_id_156312e6_staticRenderFns = []
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/popup/modal.vue?vue&type=template&id=368ca9b2&
+var modalvue_type_template_id_368ca9b2_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('transition',{attrs:{"name":"uni-fade"}},[_c('uni-modal',{directives:[{name:"show",rawName:"v-show",value:(_vm.visible),expression:"visible"}],on:{"touchmove":function($event){$event.preventDefault();}}},[_c('div',{staticClass:"uni-mask"}),_c('div',{staticClass:"uni-modal"},[(_vm.title)?_c('div',{staticClass:"uni-modal__hd"},[_c('strong',{staticClass:"uni-modal__title",domProps:{"textContent":_vm._s(_vm.title)}})]):_vm._e(),_c('div',{staticClass:"uni-modal__bd",domProps:{"textContent":_vm._s(_vm.content)},on:{"touchmove":function($event){$event.stopPropagation();}}}),_c('div',{staticClass:"uni-modal__ft"},[(_vm.showCancel)?_c('div',{staticClass:"uni-modal__btn uni-modal__btn_default",style:({color:_vm.cancelColor}),on:{"click":function($event){return _vm._close('cancel')}}},[_vm._v(" "+_vm._s(_vm.cancelText)+" ")]):_vm._e(),_c('div',{staticClass:"uni-modal__btn uni-modal__btn_primary",style:({color:_vm.confirmColor}),on:{"click":function($event){return _vm._close('confirm')}}},[_vm._v(" "+_vm._s(_vm.confirmText)+" ")])])]),_c('keypress',{attrs:{"disable":!_vm.visible},on:{"esc":function($event){return _vm._close('cancel')},"enter":function($event){return _vm._close('confirm')}}})],1)],1)}
+var modalvue_type_template_id_368ca9b2_staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/platforms/h5/components/app/popup/modal.vue?vue&type=template&id=156312e6&
+// CONCATENATED MODULE: ./src/platforms/h5/components/app/popup/modal.vue?vue&type=template&id=368ca9b2&
 
 // EXTERNAL MODULE: ./src/platforms/h5/components/app/popup/mixins/transition.js
 var transition = __webpack_require__("5a56");
+
+// EXTERNAL MODULE: ./src/platforms/h5/helpers/keypress.js
+var keypress = __webpack_require__("da71");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/popup/modal.vue?vue&type=script&lang=js&
 //
@@ -16443,9 +19395,18 @@ var transition = __webpack_require__("5a56");
 //
 //
 //
+//
+//
+//
+//
+//
+
 
 /* harmony default export */ var modalvue_type_script_lang_js_ = ({
   name: 'Modal',
+  components: {
+    keypress: keypress["a" /* default */]
+  },
   mixins: [transition["default"]],
   props: {
     title: {
@@ -16462,7 +19423,7 @@ var transition = __webpack_require__("5a56");
     },
     cancelText: {
       type: String,
-      default: '取消'
+      default: 'Cancel'
     },
     cancelColor: {
       type: String,
@@ -16470,7 +19431,7 @@ var transition = __webpack_require__("5a56");
     },
     confirmText: {
       type: String,
-      default: '确定'
+      default: 'OK'
     },
     confirmColor: {
       type: String,
@@ -16503,8 +19464,8 @@ var modalvue_type_style_index_0_lang_css_ = __webpack_require__("2765");
 
 var modal_component = Object(componentNormalizer["a" /* default */])(
   popup_modalvue_type_script_lang_js_,
-  modalvue_type_template_id_156312e6_render,
-  modalvue_type_template_id_156312e6_staticRenderFns,
+  modalvue_type_template_id_368ca9b2_render,
+  modalvue_type_template_id_368ca9b2_staticRenderFns,
   false,
   null,
   null,
@@ -16513,12 +19474,33 @@ var modal_component = Object(componentNormalizer["a" /* default */])(
 )
 
 /* harmony default export */ var modal = (modal_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/popup/actionSheet.vue?vue&type=template&id=51307bfa&
-var actionSheetvue_type_template_id_51307bfa_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-actionsheet',{on:{"touchmove":function($event){$event.preventDefault();}}},[_c('transition',{attrs:{"name":"uni-fade"}},[_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.visible),expression:"visible"}],staticClass:"uni-mask",on:{"click":function($event){return _vm._close(-1)}}})]),_c('div',{staticClass:"uni-actionsheet",class:{'uni-actionsheet_toggle':_vm.visible}},[_c('div',{staticClass:"uni-actionsheet__menu"},[(_vm.title)?_c('div',{staticClass:"uni-actionsheet__title"},[_vm._v(" "+_vm._s(_vm.title)+" ")]):_vm._e(),_vm._l((_vm.itemList),function(itemTitle,index){return _c('div',{key:index,staticClass:"uni-actionsheet__cell",style:({color:_vm.itemColor}),on:{"click":function($event){return _vm._close(index)}}},[_vm._v(" "+_vm._s(itemTitle)+" ")])})],2),_c('div',{staticClass:"uni-actionsheet__action"},[_c('div',{staticClass:"uni-actionsheet__cell",style:({color:_vm.itemColor}),on:{"click":function($event){return _vm._close(-1)}}},[_vm._v(" 取消 ")])])])],1)}
-var actionSheetvue_type_template_id_51307bfa_staticRenderFns = []
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/popup/actionSheet.vue?vue&type=template&id=2085df29&
+var actionSheetvue_type_template_id_2085df29_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-actionsheet',{on:{"touchmove":function($event){$event.preventDefault();}}},[_c('transition',{attrs:{"name":"uni-fade"}},[_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.visible),expression:"visible"}],staticClass:"uni-mask uni-actionsheet__mask",on:{"click":function($event){return _vm._close(-1)}}})]),_c('div',{staticClass:"uni-actionsheet",class:{ 'uni-actionsheet_toggle': _vm.visible },style:(_vm.popupStyle.content)},[_c('div',{ref:"main",staticClass:"uni-actionsheet__menu",on:{"wheel":_vm._handleWheel}},[(_vm.title)?_c('div',{staticClass:"uni-actionsheet__cell",style:({height:(_vm.titleHeight + "px")})}):_vm._e(),(_vm.title)?_c('div',{staticClass:"uni-actionsheet__title"},[_vm._v(" "+_vm._s(_vm.title)+" ")]):_vm._e(),_c('div',{style:({maxHeight:(_vm.HEIGHT + "px"),overflow:'hidden'})},[_c('div',{ref:"content"},_vm._l((_vm.itemList),function(itemTitle,index){return _c('div',{key:index,staticClass:"uni-actionsheet__cell",style:({ color: _vm.itemColor }),on:{"click":function($event){return _vm._close(index)}}},[_vm._v(" "+_vm._s(itemTitle)+" ")])}),0)])]),_c('div',{staticClass:"uni-actionsheet__action"},[_c('div',{staticClass:"uni-actionsheet__cell",style:({ color: _vm.itemColor }),on:{"click":function($event){return _vm._close(-1)}}},[_vm._v(" "+_vm._s(_vm.$$t('uni.showActionSheet.cancel'))+" ")])]),_c('div',{style:(_vm.popupStyle.triangle)})]),_c('keypress',{attrs:{"disable":!_vm.visible},on:{"esc":function($event){return _vm._close(-1)}}})],1)}
+var actionSheetvue_type_template_id_2085df29_staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/platforms/h5/components/app/popup/actionSheet.vue?vue&type=template&id=51307bfa&
+// CONCATENATED MODULE: ./src/platforms/h5/components/app/popup/actionSheet.vue?vue&type=template&id=2085df29&
+
+// EXTERNAL MODULE: ./src/platforms/h5/components/app/popup/mixins/popup.js
+var popup = __webpack_require__("4ccd");
+
+// EXTERNAL MODULE: ./src/core/helpers/i18n/index.js
+var i18n = __webpack_require__("a6b0");
+
+// EXTERNAL MODULE: ./src/core/view/mixins/touchtrack.js
+var touchtrack = __webpack_require__("ba15");
+
+// EXTERNAL MODULE: ./src/core/view/mixins/scroller/index.js + 2 modules
+var scroller = __webpack_require__("8aec");
+
+// EXTERNAL MODULE: ./src/core/view/mixins/scroller/Friction.js
+var Friction = __webpack_require__("5363");
+
+// EXTERNAL MODULE: ./src/core/view/mixins/scroller/Spring.js
+var Spring = __webpack_require__("72b3");
+
+// EXTERNAL MODULE: ./src/platforms/h5/helpers/scroll.js
+var helpers_scroll = __webpack_require__("d4cd");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/popup/actionSheet.vue?vue&type=script&lang=js&
 //
@@ -16563,8 +19545,68 @@ var actionSheetvue_type_template_id_51307bfa_staticRenderFns = []
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+
+
+
+
+ // 由于模拟滚动阻止了点击，使用自定义事件来触发点击事件
+
+function initClick(dom) {
+  var MAX_MOVE = 20;
+  var x = 0;
+  var y = 0;
+  dom.addEventListener('touchstart', function (event) {
+    var info = event.changedTouches[0];
+    x = info.clientX;
+    y = info.clientY;
+  });
+  dom.addEventListener('touchend', function (event) {
+    var info = event.changedTouches[0];
+
+    if (Math.abs(info.clientX - x) < MAX_MOVE && Math.abs(info.clientY - y) < MAX_MOVE) {
+      var customEvent = new CustomEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        target: event.target,
+        currentTarget: event.currentTarget
+      });
+      ['screenX', 'screenY', 'clientX', 'clientY', 'pageX', 'pageY'].forEach(function (key) {
+        customEvent[key] = info[key];
+      });
+      event.target.dispatchEvent(customEvent);
+    }
+  });
+}
+
 /* harmony default export */ var actionSheetvue_type_script_lang_js_ = ({
   name: 'ActionSheet',
+  components: {
+    keypress: keypress["a" /* default */]
+  },
+  mixins: [i18n["b" /* i18nMixin */], popup["default"], touchtrack["a" /* default */], scroller["a" /* default */]],
   props: {
     title: {
       type: String,
@@ -16580,14 +19622,108 @@ var actionSheetvue_type_template_id_51307bfa_staticRenderFns = []
       type: String,
       default: '#000000'
     },
+    popover: {
+      type: Object,
+      default: null
+    },
     visible: {
       type: Boolean,
       default: false
     }
   },
+  data: function data() {
+    return {
+      HEIGHT: 260,
+      contentHeight: 0,
+      titleHeight: 0,
+      deltaY: 0,
+      scrollTop: 0
+    };
+  },
+  watch: {
+    visible: function visible(newValue) {
+      var _this = this;
+
+      if (newValue) {
+        this.$nextTick(function () {
+          // title 占位
+          if (_this.title) {
+            _this.titleHeight = document.querySelector('.uni-actionsheet__title').offsetHeight;
+          } // 滚动条更新
+
+
+          _this._scroller.update(); // 获取contentHeight 滚动时使用
+
+
+          _this.contentHeight = _this.$refs.content.clientHeight - _this.HEIGHT; // 给每一个项添加点击事件
+
+          document.querySelectorAll('.uni-actionsheet__cell').forEach(function (item) {
+            initClick(item);
+          });
+        });
+      }
+    }
+  },
+  mounted: function mounted() {
+    var _this2 = this;
+
+    // 模拟滚动使用
+    this.touchtrack(this.$refs.content, '_handleTrack', true);
+    this.$nextTick(function () {
+      _this2.initScroller(_this2.$refs.content, {
+        enableY: true,
+        friction: new Friction["a" /* Friction */](0.0001),
+        spring: new Spring["a" /* Spring */](2, 90, 20),
+        onScroll: function onScroll(e) {
+          _this2.scrollTop = e.target.scrollTop;
+        }
+      });
+    });
+    Object(helpers_scroll["b" /* initScrollBounce */])();
+  },
   methods: {
     _close: function _close(tapIndex) {
       this.$emit('close', tapIndex);
+    },
+    _handleTrack: function _handleTrack(e) {
+      if (this._scroller) {
+        switch (e.detail.state) {
+          case 'start':
+            this._handleTouchStart(e);
+
+            Object(helpers_scroll["a" /* disableScrollBounce */])({
+              disable: true
+            });
+            break;
+
+          case 'move':
+            this._handleTouchMove(e);
+
+            break;
+
+          case 'end':
+          case 'cancel':
+            this._handleTouchEnd(e);
+
+            Object(helpers_scroll["a" /* disableScrollBounce */])({
+              disable: false
+            });
+        }
+      }
+    },
+    _handleWheel: function _handleWheel($event) {
+      var deltaY = this.deltaY + $event.deltaY;
+
+      if (Math.abs(deltaY) > 10) {
+        this.scrollTop += deltaY / 3;
+        this.scrollTop = this.scrollTop >= this.contentHeight ? this.contentHeight : this.scrollTop <= 0 ? 0 : this.scrollTop;
+
+        this._scroller.scrollTo(this.scrollTop);
+      } else {
+        this.deltaY = deltaY;
+      }
+
+      $event.preventDefault();
     }
   }
 });
@@ -16607,8 +19743,8 @@ var actionSheetvue_type_style_index_0_lang_css_ = __webpack_require__("4fef");
 
 var actionSheet_component = Object(componentNormalizer["a" /* default */])(
   popup_actionSheetvue_type_script_lang_js_,
-  actionSheetvue_type_template_id_51307bfa_render,
-  actionSheetvue_type_template_id_51307bfa_staticRenderFns,
+  actionSheetvue_type_template_id_2085df29_render,
+  actionSheetvue_type_template_id_2085df29_staticRenderFns,
   false,
   null,
   null,
@@ -16621,7 +19757,7 @@ var actionSheet_component = Object(componentNormalizer["a" /* default */])(
 
 
 
-/* harmony default export */ var popup = ({
+/* harmony default export */ var app_popup = ({
   Toast: toast,
   Modal: modal,
   ActionSheet: actionSheet
@@ -16635,9 +19771,11 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 
+
 /* harmony default export */ var components = __webpack_exports__["a"] = (_objectSpread({
-  TabBar: tabBar
-}, popup));
+  TabBar: tabBar,
+  Layout: layout
+}, app_popup));
 
 /***/ }),
 
@@ -16747,7 +19885,7 @@ var canvasToTempFilePath = {
   },
   canvasId: {
     type: String,
-    require: true
+    required: true
   },
   fileType: {
     type: String,
@@ -16767,11 +19905,11 @@ var canvasToTempFilePath = {
 var drawCanvas = {
   canvasId: {
     type: String,
-    require: true
+    required: true
   },
   actions: {
     type: Array,
-    require: true
+    required: true
   },
   reserve: {
     type: Boolean,
@@ -16808,7 +19946,7 @@ function formatResponse(res, args) {
 
   res.statusCode = parseInt(res.statusCode, 10);
 
-  if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(res.header)) {
+  if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(res.header)) {
     res.header = Object.keys(res.header).reduce(function (ret, key) {
       var value = res.header[key];
 
@@ -16837,7 +19975,8 @@ Object(_platform__WEBPACK_IMPORTED_MODULE_2__[/* onMethod */ "d"])('onRequestTas
       data = _ref.data,
       statusCode = _ref.statusCode,
       header = _ref.header,
-      errMsg = _ref.errMsg;
+      errMsg = _ref.errMsg,
+      cookies = _ref.cookies;
 
   var _ref2 = requestTasks[requestTaskId] || {},
       args = _ref2.args,
@@ -16855,7 +19994,8 @@ Object(_platform__WEBPACK_IMPORTED_MODULE_2__[/* onMethod */ "d"])('onRequestTas
         data: data,
         statusCode: statusCode,
         header: header,
-        errMsg: 'request:ok'
+        errMsg: 'request:ok',
+        cookies: cookies
       }, args));
       break;
 
@@ -16903,7 +20043,7 @@ function request(args, callbackId) {
     }
   }
 
-  if (args.method !== 'GET' && contentType.indexOf('application/json') === 0 && Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(args.data)) {
+  if (args.method !== 'GET' && contentType.indexOf('application/json') === 0 && Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(args.data)) {
     args.data = JSON.stringify(args.data);
   }
 
@@ -17154,7 +20294,7 @@ function removeHook(hooks, hook) {
 
 function mergeInterceptorHook(interceptor, option) {
   Object.keys(option).forEach(function (hook) {
-    if (HOOKS.indexOf(hook) !== -1 && Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(option[hook])) {
+    if (HOOKS.indexOf(hook) !== -1 && Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(option[hook])) {
       interceptor[hook] = mergeHook(interceptor[hook], option[hook]);
     }
   });
@@ -17166,27 +20306,27 @@ function removeInterceptorHook(interceptor, option) {
   }
 
   Object.keys(option).forEach(function (hook) {
-    if (HOOKS.indexOf(hook) !== -1 && Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(option[hook])) {
+    if (HOOKS.indexOf(hook) !== -1 && Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(option[hook])) {
       removeHook(interceptor[hook], option[hook]);
     }
   });
 }
 
 function addInterceptor(method, option) {
-  if (typeof method === 'string' && Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(option)) {
+  if (typeof method === 'string' && Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(option)) {
     mergeInterceptorHook(scopedInterceptors[method] || (scopedInterceptors[method] = {}), option);
-  } else if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(method)) {
+  } else if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(method)) {
     mergeInterceptorHook(globalInterceptors, method);
   }
 }
 function removeInterceptor(method, option) {
   if (typeof method === 'string') {
-    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(option)) {
+    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(option)) {
       removeInterceptorHook(scopedInterceptors[method], option);
     } else {
       delete scopedInterceptors[method];
     }
-  } else if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(method)) {
+  } else if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(method)) {
     removeInterceptorHook(globalInterceptors, method);
   }
 }
@@ -17209,7 +20349,7 @@ function queue(hooks, data) {
     var hook = hooks[i];
 
     if (promise) {
-      promise = Promise.then(wrapperHook(hook));
+      promise = Promise.resolve(wrapperHook(hook));
     } else {
       var res = hook(data);
 
@@ -17241,7 +20381,7 @@ function wrapperOptions(interceptor) {
       options[name] = function callbackInterceptor(res) {
         queue(interceptor[name], res).then(function (res) {
           /* eslint-disable no-mixed-operators */
-          return Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(oldCallback) && oldCallback(res) || res;
+          return Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(oldCallback) && oldCallback(res) || res;
         });
       };
     }
@@ -17358,21 +20498,17 @@ var promiseInterceptor = {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return isPage; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return hasLifecycleHook; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return normalizeDataset; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return upx2px; });
-// 系统异步加载  系统异步错误
-var components = ['SystemAsyncLoading', 'SystemAsyncError'];
-/**
- * 是否是页面
- * @param {*} vm 组件
- */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return isPage; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return hasLifecycleHook; });
+/* unused harmony export normalizeDataset */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return getTargetDataset; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "e", function() { return upx2px; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return findExistsPageIndex; });
+/* harmony import */ var uni_shared__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("f2b3");
 
+var components = ['SystemAsyncLoading', 'SystemAsyncError'];
 function isPage(vm) {
-  // 组件有父组件 并且 父组件的名称为PageBody
   if (vm.$parent && vm.$parent.$options.name === 'PageBody') {
-    // 组件的名称在components数组中
     if (components.indexOf(vm.$options.name) !== -1) {
       return false;
     }
@@ -17382,73 +20518,95 @@ function isPage(vm) {
 
   return false;
 }
-/**
- * 是否存在当前的钩子函数
- * @param {object} vueOptions 组件的配置对象
- * @param {string} hook 钩子函数
- */
-
 function hasLifecycleHook() {
   var vueOptions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   var hook = arguments.length > 1 ? arguments[1] : undefined;
-  // 此钩子函数是否存在任务列表 长度不能为0
   return Array.isArray(vueOptions[hook]) && vueOptions[hook].length;
 }
-/**
- * 序列化dataSet = {}
- * @param {*} dataset
- */
-
 function normalizeDataset() {
   var dataset = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   // ios8.x,9.x Object.assign({},dataset) 始终返回 {}
   // http://ask.dcloud.net.cn/question/70246
-  // 对对象进行深拷贝
-  var result = JSON.parse(JSON.stringify(dataset)); // h5平台
+  var result = JSON.parse(JSON.stringify(dataset));
 
   if (true) {
-    // 获取对象的键数组
-    var keys = Object.keys(result); // 获取对象的长度
-
+    var keys = Object.keys(result);
     var len = keys.length;
 
     if (len) {
       // remove data-v-
-      // 遍历键数组
       for (var i = 0; i < len; i++) {
-        // 获取键
-        var key = keys[i]; // 键的字符长度
-
-        var _len = key.length; // 获取第一个字串=== 'v' 并且长度为9 或者 10
+        var key = keys[i];
+        var _len = key.length;
 
         if (key.substr(0, 1) === 'v' && (_len === 9 || _len === 10)) {
-          // 删除这个属性
           delete result[key];
-          break;
         }
       }
     }
-  } // 返回修改过的对象
-
+  }
 
   return result;
 }
-/**
- * 将upx 转换到px
- * @param {} str
- */
+function getTargetDataset(target) {
+  var dataset = {};
+  var vm = target.__vue__;
 
+  function updateDataset(vm, force) {
+    var $attrs = vm.$attrs;
+
+    for (var key in $attrs) {
+      if (key.startsWith('data-')) {
+        var newKey = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* camelize */ "b"])(key.substr(5));
+        var value = $attrs[key];
+        dataset[newKey] = force ? value : dataset[newKey] || value;
+      }
+    }
+  }
+
+  if (vm) {
+    var $child = vm;
+
+    while ($child && $child.$el === target) {
+      updateDataset($child);
+      $child = $child.$children[0];
+    }
+
+    var $parent = vm.$parent;
+
+    while ($parent && $parent.$el === target) {
+      updateDataset($parent, true);
+      $parent = $parent.$parent;
+    }
+  } else {
+    dataset = target.dataset || {};
+  }
+
+  return normalizeDataset(dataset);
+}
 function upx2px(str) {
-  str = str + ''; // 字符串中找到upx
+  str = str + '';
 
   if (str.indexOf('upx') !== -1) {
     // upx转换
-    // 转换为整型，只转换从开始位置找到的数值
     return uni.upx2px(parseInt(str) || 0);
-  } // 没有带着upx后缀，将字符串直接进行转换
-
+  }
 
   return parseInt(str) || 0;
+}
+function findExistsPageIndex(url) {
+  var pages = getCurrentPages();
+  var len = pages.length;
+
+  while (len--) {
+    var page = pages[len];
+
+    if (page.$page && page.$page.fullPath === url) {
+      return len;
+    }
+  }
+
+  return -1;
 }
 
 /***/ }),
@@ -17460,6 +20618,7 @@ var map = {
 	"./action-sheet.js": "626d",
 	"./index.js": "f1ea",
 	"./modal.js": "ee4f",
+	"./popup.js": "4ccd",
 	"./toast.js": "77e0",
 	"./transition.js": "5a56"
 };
@@ -17493,12 +20652,12 @@ webpackContext.id = "8793";
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/movable-view/index.vue?vue&type=template&id=4aa1da1f&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/movable-view/index.vue?vue&type=template&id=bd5be2ae&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-movable-view',_vm._g({},_vm.$listeners),[_c('v-uni-resize-sensor',{on:{"resize":_vm.setParent}}),_vm._t("default")],2)}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/core/view/components/movable-view/index.vue?vue&type=template&id=4aa1da1f&
+// CONCATENATED MODULE: ./src/core/view/components/movable-view/index.vue?vue&type=template&id=bd5be2ae&
 
 // EXTERNAL MODULE: ./src/core/view/mixins/touchtrack.js
 var touchtrack = __webpack_require__("ba15");
@@ -17865,8 +21024,8 @@ STD.prototype.reconfigure = function (e, t, n) {
 
   this._springScale.reconfigure(e, t, n);
 };
-// EXTERNAL MODULE: ./src/shared/index.js + 7 modules
-var shared = __webpack_require__("f2b3");
+// EXTERNAL MODULE: ./src/platforms/h5/helpers/scroll.js
+var helpers_scroll = __webpack_require__("d4cd");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/movable-view/index.vue?vue&type=script&lang=js&
 //
@@ -18104,6 +21263,7 @@ function g(e, t, n) {
     this._STD.reconfigure(1, 9 * Math.pow(this.dampingNumber, 2) / 40, this.dampingNumber);
 
     this.$el.style.transformOrigin = 'center';
+    Object(helpers_scroll["b" /* initScrollBounce */])();
   },
   methods: {
     _getPx: function _getPx(val) {
@@ -18168,7 +21328,7 @@ function g(e, t, n) {
     __handleTouchStart: function __handleTouchStart() {
       if (!this._isScaling) {
         if (!this.disabled) {
-          Object(shared["e" /* disableScrollBounce */])({
+          Object(helpers_scroll["a" /* disableScrollBounce */])({
             disable: true
           });
 
@@ -18286,7 +21446,7 @@ function g(e, t, n) {
       var self = this;
 
       if (!this._isScaling && !this.disabled && this._isTouching) {
-        Object(shared["e" /* disableScrollBounce */])({
+        Object(helpers_scroll["a" /* disableScrollBounce */])({
           disable: false
         });
         this.$el.style.willChange = 'auto';
@@ -18456,7 +21616,6 @@ function g(e, t, n) {
     },
     _setScale: function _setScale(scale) {
       if (this.scale) {
-        scale = this._adjustScale(scale);
         scale = this._oldScale * scale;
 
         this._beginScale();
@@ -19085,7 +22244,7 @@ function previewImage() {
 
       var listeners = this.$options.listeners;
 
-      if (!Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(listeners)) {
+      if (!Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(listeners)) {
         return;
       }
 
@@ -19124,7 +22283,7 @@ function previewImage() {
 
       var listeners = this.$options.listeners;
 
-      if (!Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(listeners)) {
+      if (!Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(listeners)) {
         return;
       }
 
@@ -19641,7 +22800,7 @@ Scroller.prototype.isScrolling = function () {
           n.onTouchStart();
         }
 
-        event.preventDefault();
+        e.preventDefault();
       }
     },
     _handleTouchMove: function _handleTouchMove(event) {
@@ -19718,88 +22877,17 @@ Scroller.prototype.isScrolling = function () {
 "use strict";
 
 // EXPORTS
-__webpack_require__.d(__webpack_exports__, "b", function() { return /* reexport */ emitter; });
+__webpack_require__.d(__webpack_exports__, "a", function() { return /* reexport */ emitter["a" /* default */]; });
 __webpack_require__.d(__webpack_exports__, "f", function() { return /* reexport */ listeners["a" /* default */]; });
 __webpack_require__.d(__webpack_exports__, "c", function() { return /* reexport */ hover["a" /* default */]; });
 __webpack_require__.d(__webpack_exports__, "g", function() { return /* reexport */ subscriber["a" /* default */]; });
 __webpack_require__.d(__webpack_exports__, "e", function() { return /* reexport */ keyboard["a" /* default */]; });
-__webpack_require__.d(__webpack_exports__, "a", function() { return /* reexport */ base_input; });
+__webpack_require__.d(__webpack_exports__, "b", function() { return /* reexport */ field["a" /* default */]; });
 __webpack_require__.d(__webpack_exports__, "d", function() { return /* reexport */ interact; });
 
-// CONCATENATED MODULE: ./src/core/view/mixins/emitter.js
-// 暂不提供通知所有
-// function broadcast (componentName, eventName, ...params) {
-//   this.$children.forEach(child => {
-//     const name = child.$options.name && child.$options.name.substr(1)
-//     if (~componentName.indexOf(name)) {
-//       child.$emit.apply(child, [eventName].concat(params))
-//     } else {
-//       broadcast.apply(child, [componentName, eventName].concat([params]))
-//     }
-//   })
-// }
-function broadcast(componentName, eventName) {
-  var children = this.$children;
-  var len = children.length;
+// EXTERNAL MODULE: ./src/core/view/mixins/emitter.js
+var emitter = __webpack_require__("5cf8");
 
-  for (var _len = arguments.length, params = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-    params[_key - 2] = arguments[_key];
-  }
-
-  for (var i = 0; i < len; i++) {
-    var child = children[i];
-    var name = child.$options.name && child.$options.name.substr(4);
-
-    if (~componentName.indexOf(name)) {
-      child.$emit.apply(child, [eventName].concat(params));
-      return false;
-    } else {
-      if (broadcast.apply(child, [componentName, eventName].concat([params])) === false) {
-        return false;
-      }
-    }
-  }
-}
-
-/* harmony default export */ var emitter = ({
-  methods: {
-    $dispatch: function $dispatch(componentName, eventName) {
-      if (typeof componentName === 'string') {
-        componentName = [componentName];
-      }
-
-      var parent = this.$parent || this.$root;
-      var name = parent.$options.name && parent.$options.name.substr(4);
-
-      while (parent && (!name || !~componentName.indexOf(name))) {
-        parent = parent.$parent;
-
-        if (parent) {
-          name = parent.$options.name && parent.$options.name.substr(4);
-        }
-      }
-
-      if (parent) {
-        for (var _len2 = arguments.length, params = new Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
-          params[_key2 - 2] = arguments[_key2];
-        }
-
-        parent.$emit.apply(parent, [eventName].concat(params));
-      }
-    },
-    $broadcast: function $broadcast(componentName, eventName) {
-      if (typeof componentName === 'string') {
-        componentName = [componentName];
-      }
-
-      for (var _len3 = arguments.length, params = new Array(_len3 > 2 ? _len3 - 2 : 0), _key3 = 2; _key3 < _len3; _key3++) {
-        params[_key3 - 2] = arguments[_key3];
-      }
-
-      broadcast.apply(this, [componentName, eventName].concat(params));
-    }
-  }
-});
 // EXTERNAL MODULE: ./src/core/view/mixins/listeners.js
 var listeners = __webpack_require__("8a36");
 
@@ -19812,64 +22900,15 @@ var subscriber = __webpack_require__("1b6f");
 // EXTERNAL MODULE: ./src/core/view/mixins/keyboard.js
 var keyboard = __webpack_require__("5a23");
 
-// EXTERNAL MODULE: ./src/shared/index.js + 7 modules
+// EXTERNAL MODULE: ./src/core/view/mixins/field.js
+var field = __webpack_require__("b282");
+
+// EXTERNAL MODULE: ./src/shared/index.js + 6 modules
 var shared = __webpack_require__("f2b3");
 
-// CONCATENATED MODULE: ./src/core/view/mixins/base-input.js
-
-
-
-/* harmony default export */ var base_input = ({
-  name: 'BaseInput',
-  mixins: [emitter, keyboard["a" /* default */]],
-  model: {
-    prop: 'value',
-    event: 'update:value'
-  },
-  props: {
-    value: {
-      type: [String, Number],
-      default: ''
-    }
-  },
-  data: function data() {
-    return {
-      valueSync: this._getValueString(this.value)
-    };
-  },
-  created: function created() {
-    var _this = this;
-
-    var valueChange = this.__valueChange = Object(shared["b" /* debounce */])(function (val) {
-      _this.valueSync = _this._getValueString(val);
-    }, 100);
-    this.$watch('value', valueChange);
-    this.__triggerInput = Object(shared["p" /* throttle */])(function ($event, detail) {
-      _this.$emit('update:value', detail.value);
-
-      _this.$trigger('input', $event, detail);
-    }, 100);
-
-    this.$triggerInput = function ($event, detail) {
-      _this.__valueChange.cancel();
-
-      _this.__triggerInput($event, detail);
-    };
-  },
-  beforeDestroy: function beforeDestroy() {
-    this.__valueChange.cancel();
-
-    this.__triggerInput.cancel();
-  },
-  methods: {
-    _getValueString: function _getValueString(value) {
-      return value === null ? '' : String(value);
-    }
-  }
-});
 // CONCATENATED MODULE: ./src/core/view/mixins/interact.js
 
-var passiveOptions = shared["o" /* supportsPassive */] ? {
+var passiveOptions = shared["p" /* supportsPassive */] ? {
   passive: true,
   capture: true
 } : true;
@@ -19895,6 +22934,7 @@ function addInteractListener(vm) {
         });
       }, passiveOptions);
     });
+    inited = true;
   }
 
   vms.push(vm);
@@ -19948,6 +22988,7 @@ function removeInteractListener(vm) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "onNetworkStatusChange", function() { return onNetworkStatusChange; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "offNetworkStatusChange", function() { return offNetworkStatusChange; });
 /* harmony import */ var uni_core_service_bridge__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("a118");
 /* harmony import */ var _platform__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("db70");
 
@@ -19961,6 +23002,16 @@ Object(_platform__WEBPACK_IMPORTED_MODULE_1__[/* onMethod */ "d"])('onNetworkSta
 function onNetworkStatusChange(callbackId) {
   callbacks.push(callbackId);
 }
+function offNetworkStatusChange(callbackId) {
+  // 暂不支持移除所有监听
+  if (callbackId) {
+    var index = callbacks.indexOf(callbackId);
+
+    if (index >= 0) {
+      callbacks.splice(index, 1);
+    }
+  }
+}
 
 /***/ }),
 
@@ -19968,6 +23019,16 @@ function onNetworkStatusChange(callbackId) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // extracted by mini-css-extract-plugin
+
+/***/ }),
+
+/***/ "8b67":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TEMP_PATH", function() { return TEMP_PATH; });
+var TEMP_PATH = '';
 
 /***/ }),
 
@@ -20051,8 +23112,17 @@ function pageMounted() {
 
         var instance = currentTarget && currentTarget.__vue__ && currentTarget.__vue__.$getComponentDescriptor(currentTarget.__vue__, false);
 
-        $event = _events__WEBPACK_IMPORTED_MODULE_1__[/* processEvent */ "b"].call(this, $event.type, $event, {}, findUniTarget($event, this.$el) || $event.target, $event.currentTarget);
+        var $origEvent = $event;
+        $event = _events__WEBPACK_IMPORTED_MODULE_1__[/* processEvent */ "b"].call(this, $origEvent.type, $origEvent, {}, findUniTarget($origEvent, this.$el) || $origEvent.target, $origEvent.currentTarget);
         $event.instance = instance;
+
+        $event.preventDefault = function () {
+          return $origEvent.preventDefault();
+        };
+
+        $event.stopPropagation = function () {
+          return $origEvent.stopPropagation();
+        };
       }
 
       return $event;
@@ -20075,7 +23145,7 @@ function pageMounted() {
           Object(_behaviors__WEBPACK_IMPORTED_MODULE_2__[/* default */ "a"])(options, this);
         }
 
-        if ( true && Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_0__[/* isPage */ "b"])(this)) {
+        if ( true && Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_0__[/* isPage */ "d"])(this)) {
           options.mounted = options.mounted ? [].concat(pageMounted, options.mounted) : [pageMounted];
         }
       }
@@ -20093,44 +23163,25 @@ function pageMounted() {
 __webpack_require__.r(__webpack_exports__);
 /* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "chooseVideo", function() { return chooseVideo; });
 /* harmony import */ var uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("e2e2");
-/* harmony import */ var uni_shared__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("f2b3");
+/* harmony import */ var _create_input__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("3563");
 
 
 var _UniServiceJSBridge = UniServiceJSBridge,
     invoke = _UniServiceJSBridge.invokeCallbackHandler;
 var videoInput = null;
-
-var _createInput = function _createInput(options) {
-  var inputEl = document.createElement('input');
-  inputEl.type = 'file';
-  Object(uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* updateElementStyle */ "r"])(inputEl, {
-    position: 'absolute',
-    visibility: 'hidden',
-    'z-index': -999,
-    width: 0,
-    height: 0,
-    top: 0,
-    left: 0
-  });
-  inputEl.accept = 'video/*'; // 经过测试，仅能限制只通过相机拍摄，不能限制只允许从相册选择。
-
-  if (options.sourceType.length === 1 && options.sourceType[0] === 'camera') {
-    inputEl.capture = 'camera';
-  }
-
-  return inputEl;
-};
-
 function chooseVideo(_ref, callbackId) {
-  var sourceType = _ref.sourceType;
+  var sourceType = _ref.sourceType,
+      extension = _ref.extension;
 
   if (videoInput) {
     document.body.removeChild(videoInput);
     videoInput = null;
   }
 
-  videoInput = _createInput({
-    sourceType: sourceType
+  videoInput = Object(_create_input__WEBPACK_IMPORTED_MODULE_1__["default"])({
+    sourceType: sourceType,
+    extension: extension,
+    type: 'video'
   });
   document.body.appendChild(videoInput);
   videoInput.addEventListener('change', function (event) {
@@ -20147,18 +23198,18 @@ function chooseVideo(_ref, callbackId) {
     var filePath;
     Object.defineProperty(callbackResult, 'tempFilePath', {
       get: function get() {
-        filePath = filePath || Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* fileToUrl */ "a"])(this.tempFile);
+        filePath = filePath || Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* fileToUrl */ "b"])(this.tempFile);
         return filePath;
       }
     });
     var video = document.createElement('video');
 
     if (video.onloadedmetadata !== undefined) {
-      var _filePath = Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* fileToUrl */ "a"])(file); // 尝试获取视频的宽高信息
+      var _filePath = Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* fileToUrl */ "b"])(file); // 尝试获取视频的宽高信息
 
 
       video.onloadedmetadata = function () {
-        Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* revokeObjectURL */ "b"])(_filePath);
+        Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* revokeObjectURL */ "e"])(_filePath);
         invoke(callbackId, Object.assign(callbackResult, {
           duration: video.duration || 0,
           width: video.videoWidth || 0,
@@ -20169,7 +23220,7 @@ function chooseVideo(_ref, callbackId) {
 
       setTimeout(function () {
         video.onloadedmetadata = null;
-        Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* revokeObjectURL */ "b"])(_filePath);
+        Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* revokeObjectURL */ "e"])(_filePath);
         invoke(callbackId, callbackResult);
       }, 300);
       video.src = _filePath;
@@ -20195,6 +23246,13 @@ function chooseVideo(_ref, callbackId) {
 
 /***/ }),
 
+/***/ "8e72":
+/***/ (function(module, exports, __webpack_require__) {
+
+// extracted by mini-css-extract-plugin
+
+/***/ }),
+
 /***/ "8f7e":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -20206,12 +23264,12 @@ __webpack_require__.r(__webpack_exports__);
 var external_commonjs_vue_commonjs2_vue_root_Vue_ = __webpack_require__("8bbf");
 var external_commonjs_vue_commonjs2_vue_root_Vue_default = /*#__PURE__*/__webpack_require__.n(external_commonjs_vue_commonjs2_vue_root_Vue_);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/index.vue?vue&type=template&id=dd503c5e&
-var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-app',{class:{'uni-app--showtabbar':_vm.showTabBar}},[_c('keep-alive',{attrs:{"include":_vm.keepAliveInclude}},[_c('router-view',{key:_vm.key})],1),(_vm.hasTabBar)?_c('tab-bar',_vm._b({directives:[{name:"show",rawName:"v-show",value:(_vm.showTabBar),expression:"showTabBar"}]},'tab-bar',_vm.tabBar,false)):_vm._e(),(_vm.$options.components.Toast)?_c('toast',_vm._b({},'toast',_vm.showToast,false)):_vm._e(),(_vm.$options.components.ActionSheet)?_c('action-sheet',_vm._b({on:{"close":_vm._onActionSheetClose}},'action-sheet',_vm.showActionSheet,false)):_vm._e(),(_vm.$options.components.Modal)?_c('modal',_vm._b({on:{"close":_vm._onModalClose}},'modal',_vm.showModal,false)):_vm._e(),(_vm.sysComponents&&_vm.sysComponents.length)?_vm._l((_vm.sysComponents),function(item,index){return _c(item,{key:index,tag:"component"})}):_vm._e()],2)}
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/index.vue?vue&type=template&id=57158b66&
+var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-app',{class:{'uni-app--showtabbar':_vm.showTabBar,'uni-app--maxwidth':_vm.showMaxWidth}},[_c('layout',{ref:"layout",attrs:{"router-key":_vm.key,"keep-alive-include":_vm.keepAliveInclude},on:{"maxWidth":_vm.onMaxWidth,"layout":_vm.onLayout}}),(_vm.hasTabBar)?_c('tab-bar',_vm._b({directives:[{name:"show",rawName:"v-show",value:(_vm.showTabBar),expression:"showTabBar"}],ref:"tabBar"},'tab-bar',_vm.tabBarOptions,false)):_vm._e(),(_vm.$options.components.Toast)?_c('toast',_vm._b({},'toast',_vm.showToast,false)):_vm._e(),(_vm.$options.components.ActionSheet)?_c('action-sheet',_vm._b({on:{"close":_vm._onActionSheetClose}},'action-sheet',_vm.showActionSheet,false)):_vm._e(),(_vm.$options.components.Modal)?_c('modal',_vm._b({on:{"close":_vm._onModalClose}},'modal',_vm.showModal,false)):_vm._e(),(_vm.sysComponents&&_vm.sysComponents.length)?_vm._l((_vm.sysComponents),function(item,index){return _c(item,{key:index,tag:"component"})}):_vm._e()],2)}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/platforms/h5/components/app/index.vue?vue&type=template&id=dd503c5e&
+// CONCATENATED MODULE: ./src/platforms/h5/components/app/index.vue?vue&type=template&id=57158b66&
 
 // EXTERNAL MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/index.vue?vue&type=script&lang=js&
 var appvue_type_script_lang_js_ = __webpack_require__("e42a");
@@ -20245,12 +23303,12 @@ var component = Object(componentNormalizer["a" /* default */])(
 )
 
 /* harmony default export */ var app = (component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/page/index.vue?vue&type=template&id=712e3d43&
-var pagevue_type_template_id_712e3d43_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-page',{attrs:{"data-page":_vm.$route.meta.pagePath}},[(_vm.navigationBar.type!=='none')?_c('page-head',_vm._b({},'page-head',_vm.navigationBar,false)):_vm._e(),(_vm.enablePullDownRefresh)?_c('page-refresh',{ref:"refresh",attrs:{"color":_vm.refreshOptions.color,"offset":_vm.refreshOptions.offset}}):_vm._e(),(_vm.enablePullDownRefresh)?_c('page-body',{nativeOn:{"touchstart":function($event){return _vm._touchstart($event)},"touchmove":function($event){return _vm._touchmove($event)},"touchend":function($event){return _vm._touchend($event)},"touchcancel":function($event){return _vm._touchend($event)}}},[_vm._t("page")],2):_c('page-body',[_vm._t("page")],2)],1)}
-var pagevue_type_template_id_712e3d43_staticRenderFns = []
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/page/index.vue?vue&type=template&id=7cadd151&
+var pagevue_type_template_id_7cadd151_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-page',{attrs:{"data-page":_vm.$route.meta.pagePath}},[(_vm.navigationBar.type!=='none')?_c('page-head',_vm._b({},'page-head',_vm.navigationBar,false)):_vm._e(),(_vm.enablePullDownRefresh)?_c('page-refresh',{ref:"refresh",attrs:{"color":_vm.refreshOptions.color,"offset":_vm.refreshOptions.offset}}):_vm._e(),(_vm.enablePullDownRefresh)?_c('page-body',{nativeOn:{"touchstart":function($event){return _vm._touchstart($event)},"touchmove":function($event){return _vm._touchmove($event)},"touchend":function($event){return _vm._touchend($event)},"touchcancel":function($event){return _vm._touchend($event)}}},[_vm._t("page")],2):_c('page-body',[_vm._t("page")],2)],1)}
+var pagevue_type_template_id_7cadd151_staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/platforms/h5/components/page/index.vue?vue&type=template&id=712e3d43&
+// CONCATENATED MODULE: ./src/platforms/h5/components/page/index.vue?vue&type=template&id=7cadd151&
 
 // EXTERNAL MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/page/index.vue?vue&type=script&lang=js&
 var pagevue_type_script_lang_js_ = __webpack_require__("1b31");
@@ -20271,8 +23329,8 @@ var pagevue_type_style_index_0_lang_css_ = __webpack_require__("6226");
 
 var page_component = Object(componentNormalizer["a" /* default */])(
   components_pagevue_type_script_lang_js_,
-  pagevue_type_template_id_712e3d43_render,
-  pagevue_type_template_id_712e3d43_staticRenderFns,
+  pagevue_type_template_id_7cadd151_render,
+  pagevue_type_template_id_7cadd151_staticRenderFns,
   false,
   null,
   null,
@@ -20281,12 +23339,15 @@ var page_component = Object(componentNormalizer["a" /* default */])(
 )
 
 /* harmony default export */ var page = (page_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/async-error/index.vue?vue&type=template&id=7ce821c6&
-var async_errorvue_type_template_id_7ce821c6_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"uni-async-error",on:{"click":_vm._onClick}},[_vm._v(" 连接服务器超时，点击屏幕重试 ")])}
-var async_errorvue_type_template_id_7ce821c6_staticRenderFns = []
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/async-error/index.vue?vue&type=template&id=67a54c87&
+var async_errorvue_type_template_id_67a54c87_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"uni-async-error",on:{"click":_vm._onClick}},[_vm._v(" "+_vm._s(_vm.$$t("uni.async.error"))+" ")])}
+var async_errorvue_type_template_id_67a54c87_staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/platforms/h5/components/async-error/index.vue?vue&type=template&id=7ce821c6&
+// CONCATENATED MODULE: ./src/platforms/h5/components/async-error/index.vue?vue&type=template&id=67a54c87&
+
+// EXTERNAL MODULE: ./src/core/helpers/i18n/index.js
+var i18n = __webpack_require__("a6b0");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/async-error/index.vue?vue&type=script&lang=js&
 //
@@ -20309,8 +23370,10 @@ var async_errorvue_type_template_id_7ce821c6_staticRenderFns = []
 //
 //
 //
+
 /* harmony default export */ var async_errorvue_type_script_lang_js_ = ({
   name: 'AsyncError',
+  mixins: [i18n["b" /* i18nMixin */]],
   methods: {
     _onClick: function _onClick() {
       // TODO 临时采用 reload
@@ -20334,8 +23397,8 @@ var async_errorvue_type_style_index_0_lang_css_ = __webpack_require__("b628");
 
 var async_error_component = Object(componentNormalizer["a" /* default */])(
   components_async_errorvue_type_script_lang_js_,
-  async_errorvue_type_template_id_7ce821c6_render,
-  async_errorvue_type_template_id_7ce821c6_staticRenderFns,
+  async_errorvue_type_template_id_67a54c87_render,
+  async_errorvue_type_template_id_67a54c87_staticRenderFns,
   false,
   null,
   null,
@@ -20344,7 +23407,7 @@ var async_error_component = Object(componentNormalizer["a" /* default */])(
 )
 
 /* harmony default export */ var async_error = (async_error_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/async-loading/index.vue?vue&type=template&id=0f738c76&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/async-loading/index.vue?vue&type=template&id=0f738c76&
 var async_loadingvue_type_template_id_0f738c76_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _vm._m(0)}
 var async_loadingvue_type_template_id_0f738c76_staticRenderFns = [function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"uni-async-loading"},[_c('i',{staticClass:"uni-loading"})])}]
 
@@ -20399,12 +23462,47 @@ var async_loading_component = Object(componentNormalizer["a" /* default */])(
 )
 
 /* harmony default export */ var async_loading = (async_loading_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/system-routes/choose-location/index.vue?vue&type=template&id=37650882&
-var choose_locationvue_type_template_id_37650882_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"uni-system-choose-location"},[_c('system-header',{attrs:{"confirm":!!_vm.data},on:{"back":_vm._back,"confirm":_vm._choose}},[_vm._v(" 选择位置 ")]),_c('div',{staticClass:"map-content"},[_c('iframe',{attrs:{"src":_vm.src,"allow":"geolocation","seamless":"","sandbox":"allow-scripts allow-same-origin allow-forms","frameborder":"0"}})])],1)}
-var choose_locationvue_type_template_id_37650882_staticRenderFns = []
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/customTabBar.vue?vue&type=template&id=1909f3f5&
+var customTabBarvue_type_template_id_1909f3f5_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return (_vm.hasTabBar)?_c('uni-tabbar',{directives:[{name:"show",rawName:"v-show",value:(_vm.showTabBar),expression:"showTabBar"}]},[_c('div',{staticClass:"uni-tabbar",style:({'flex-direction':_vm.direction==='vertical'?'column':'row',backgroundColor:_vm.tabBarOptions.backgroundColor})},_vm._l((_vm.tabBarOptions.list),function(item,index){return _c('div',{key:item.pagePath,staticClass:"uni-tabbar__item",on:{"click":function($event){return _vm._switchTab(item,index)}}},[_c('div',{staticClass:"uni-tabbar__bd"},[(_vm.showIcon && item.iconPath)?_c('div',{staticClass:"uni-tabbar__icon",class:{'uni-tabbar__icon__diff':!item.text}},[_c('img',{attrs:{"src":_vm._getRealPath(_vm.selectedIndex===index?item.selectedIconPath:item.iconPath)}}),(item.redDot)?_c('div',{staticClass:"uni-tabbar__reddot",class:{'uni-tabbar__badge':!!item.badge}},[_vm._v(" "+_vm._s(item.badge)+" ")]):_vm._e()]):_vm._e(),(item.text)?_c('div',{staticClass:"uni-tabbar__label",style:({color:_vm.selectedIndex===index?_vm.tabBarOptions.selectedColor:_vm.tabBarOptions.color,fontSize:_vm.showIcon&&item.iconPath?'10px':'14px'})},[_vm._v(" "+_vm._s(item.text)+" "),(item.redDot&&(!_vm.showIcon || !item.iconPath))?_c('div',{staticClass:"uni-tabbar__reddot",class:{'uni-tabbar__badge':!!item.badge}},[_vm._v(" "+_vm._s(item.badge)+" ")]):_vm._e()]):_vm._e()])])}),0)]):_vm._e()}
+var customTabBarvue_type_template_id_1909f3f5_staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/platforms/h5/components/system-routes/choose-location/index.vue?vue&type=template&id=37650882&
+// CONCATENATED MODULE: ./src/platforms/h5/components/app/customTabBar.vue?vue&type=template&id=1909f3f5&
+
+// EXTERNAL MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/app/customTabBar.vue?vue&type=script&lang=js&
+var customTabBarvue_type_script_lang_js_ = __webpack_require__("a710");
+
+// CONCATENATED MODULE: ./src/platforms/h5/components/app/customTabBar.vue?vue&type=script&lang=js&
+ /* harmony default export */ var app_customTabBarvue_type_script_lang_js_ = (customTabBarvue_type_script_lang_js_["a" /* default */]); 
+// CONCATENATED MODULE: ./src/platforms/h5/components/app/customTabBar.vue
+
+
+
+
+
+/* normalize component */
+
+var customTabBar_component = Object(componentNormalizer["a" /* default */])(
+  app_customTabBarvue_type_script_lang_js_,
+  customTabBarvue_type_template_id_1909f3f5_render,
+  customTabBarvue_type_template_id_1909f3f5_staticRenderFns,
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* harmony default export */ var customTabBar = (customTabBar_component.exports);
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/system-routes/choose-location/index.vue?vue&type=template&id=db02974a&
+var choose_locationvue_type_template_id_db02974a_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"uni-system-choose-location"},[(_vm.latitude)?_c('v-uni-map',{staticClass:"map",attrs:{"latitude":_vm.latitude,"longitude":_vm.longitude,"show-location":""},on:{"regionchange":_vm._regionchange}},[_c('div',{staticClass:"map-location"}),_c('div',{staticClass:"map-move",on:{"click":_vm._moveToLocation}},[_c('i',[_vm._v("")])])]):_vm._e(),_c('div',{staticClass:"nav"},[_c('div',{staticClass:"nav-btn back",on:{"click":_vm._back}},[_c('i',{staticClass:"uni-btn-icon"},[_vm._v("")])]),_c('div',{staticClass:"nav-btn confirm",class:{ disable: !_vm.selected },on:{"click":_vm._choose}},[_c('i',{staticClass:"uni-btn-icon"},[_vm._v("")])])]),_c('div',{staticClass:"menu"},[_c('div',{staticClass:"search"},[_c('v-uni-input',{staticClass:"search-input",attrs:{"placeholder":"搜索地点"},on:{"focus":function($event){_vm.searching = true},"input":_vm._input},model:{value:(_vm.keyword),callback:function ($$v) {_vm.keyword=$$v},expression:"keyword"}}),(_vm.searching)?_c('div',{staticClass:"search-btn",on:{"click":function($event){_vm.searching = false;
+          _vm.keyword = '';}}},[_vm._v(" 取消 ")]):_vm._e()],1),_c('v-uni-scroll-view',{staticClass:"list",attrs:{"scroll-y":""},on:{"scrolltolower":_vm._scrolltolower}},[(_vm.loading)?_c('div',{staticClass:"list-loading"},[_c('i',{staticClass:"uni-loading"})]):_vm._e(),_vm._l((_vm.list),function(item,index){return _c('div',{key:index,staticClass:"list-item",class:{ selected: _vm.selectedIndex === index },on:{"click":function($event){_vm.selectedIndex = index;
+          _vm.latitude = item.latitude;
+          _vm.longitude = item.longitude;}}},[_c('div',{staticClass:"list-item-title"},[_vm._v(" "+_vm._s(item.name)+" ")]),_c('div',{staticClass:"list-item-detail"},[_vm._v(" "+_vm._s(item.distance ? item.distance + "米 | " : "")+_vm._s(item.address)+" ")])])})],2)],1)],1)}
+var choose_locationvue_type_template_id_db02974a_staticRenderFns = []
+
+
+// CONCATENATED MODULE: ./src/platforms/h5/components/system-routes/choose-location/index.vue?vue&type=template&id=db02974a&
 
 // EXTERNAL MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/system-routes/choose-location/index.vue?vue&type=script&lang=js&
 var choose_locationvue_type_script_lang_js_ = __webpack_require__("120f");
@@ -20425,8 +23523,8 @@ var choose_locationvue_type_style_index_0_lang_css_ = __webpack_require__("9470"
 
 var choose_location_component = Object(componentNormalizer["a" /* default */])(
   system_routes_choose_locationvue_type_script_lang_js_,
-  choose_locationvue_type_template_id_37650882_render,
-  choose_locationvue_type_template_id_37650882_staticRenderFns,
+  choose_locationvue_type_template_id_db02974a_render,
+  choose_locationvue_type_template_id_db02974a_staticRenderFns,
   false,
   null,
   null,
@@ -20435,15 +23533,12 @@ var choose_location_component = Object(componentNormalizer["a" /* default */])(
 )
 
 /* harmony default export */ var choose_location = (choose_location_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/system-routes/open-location/index.vue?vue&type=template&id=88746934&
-var open_locationvue_type_template_id_88746934_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"uni-system-open-location"},[_c('system-header',{on:{"back":_vm._back}},[_vm._v(" 位置 ")]),_c('div',{staticClass:"map-content"},[_c('iframe',{ref:"map",attrs:{"src":_vm.src,"allow":"geolocation","sandbox":"allow-scripts allow-same-origin allow-forms allow-top-navigation allow-modals allow-popups","frameborder":"0"},on:{"load":_vm._load}}),(_vm.isPoimarkerSrc)?_c('div',{staticClass:"actTonav",on:{"click":_vm._nav}}):_vm._e()])],1)}
-var open_locationvue_type_template_id_88746934_staticRenderFns = []
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/system-routes/open-location/index.vue?vue&type=template&id=ee3e10f8&
+var open_locationvue_type_template_id_ee3e10f8_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"uni-system-open-location"},[_c('div',{staticClass:"map-content",class:{ 'fix-position': _vm.isPoimarkerSrc }},[_c('iframe',{ref:"map",attrs:{"src":_vm.src,"allow":"geolocation","sandbox":"allow-scripts allow-same-origin allow-forms allow-top-navigation allow-modals allow-popups","frameborder":"0"},on:{"load":_vm._check}}),(_vm.isPoimarkerSrc)?_c('div',{staticClass:"actTonav",on:{"click":_vm._nav}}):_vm._e()]),_c('div',{staticClass:"nav-btn-back",on:{"click":_vm._back}},[_c('i',{staticClass:"uni-btn-icon"},[_vm._v("")])])])}
+var open_locationvue_type_template_id_ee3e10f8_staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/platforms/h5/components/system-routes/open-location/index.vue?vue&type=template&id=88746934&
-
-// EXTERNAL MODULE: ./src/platforms/h5/components/system-routes/system-header.vue + 3 modules
-var system_header = __webpack_require__("bab8");
+// CONCATENATED MODULE: ./src/platforms/h5/components/system-routes/open-location/index.vue?vue&type=template&id=ee3e10f8&
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/system-routes/open-location/index.vue?vue&type=script&lang=js&
 //
@@ -20469,15 +23564,17 @@ var system_header = __webpack_require__("bab8");
 //
 //
 //
-
+//
+//
+//
+//
+//
+//
 var key = __uniConfig.qqMapKey;
 var referer = 'uniapp';
 var poimarkerSrc = 'https://apis.map.qq.com/tools/poimarker';
 /* harmony default export */ var open_locationvue_type_script_lang_js_ = ({
   name: 'SystemOpenLocation',
-  components: {
-    SystemHeader: system_header["a" /* default */]
-  },
   data: function data() {
     var _this$$route$query = this.$route.query,
         latitude = _this$$route$query.latitude,
@@ -20495,7 +23592,7 @@ var poimarkerSrc = 'https://apis.map.qq.com/tools/poimarker';
       name: name,
       address: address,
       src: latitude && longitude ? "".concat(poimarkerSrc, "?type=0&marker=coord:").concat(latitude, ",").concat(longitude, ";title:").concat(name, ";addr:").concat(address, ";&key=").concat(key, "&referer=").concat(referer) : '',
-      isPoimarkerSrc: false
+      isPoimarkerSrc: true
     };
   },
   methods: {
@@ -20505,8 +23602,10 @@ var poimarkerSrc = 'https://apis.map.qq.com/tools/poimarker';
       } else {
         getApp().$router.back();
       }
+
+      this._check();
     },
-    _load: function _load() {
+    _check: function _check() {
       if (this.$refs.map.src.indexOf(poimarkerSrc) === 0) {
         this.isPoimarkerSrc = true;
       } else {
@@ -20535,8 +23634,8 @@ var open_locationvue_type_style_index_0_lang_css_ = __webpack_require__("3da9");
 
 var open_location_component = Object(componentNormalizer["a" /* default */])(
   system_routes_open_locationvue_type_script_lang_js_,
-  open_locationvue_type_template_id_88746934_render,
-  open_locationvue_type_template_id_88746934_staticRenderFns,
+  open_locationvue_type_template_id_ee3e10f8_render,
+  open_locationvue_type_template_id_ee3e10f8_staticRenderFns,
   false,
   null,
   null,
@@ -20545,13 +23644,137 @@ var open_location_component = Object(componentNormalizer["a" /* default */])(
 )
 
 /* harmony default export */ var open_location = (open_location_component.exports);
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/system-routes/preview-image/index.vue?vue&type=template&id=d053001e&
-var preview_imagevue_type_template_id_d053001e_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"uni-system-preview-image",on:{"click":_vm._click}},[_c('v-uni-swiper',{staticClass:"uni-swiper",attrs:{"current":_vm.index,"indicator-dots":false,"autoplay":false},on:{"update:current":function($event){_vm.index=$event}}},_vm._l((_vm.urls),function(src,key){return _c('v-uni-swiper-item',{key:key},[_c('img',{staticClass:"uni-preview-image",attrs:{"src":src}})])}),1)],1)}
-var preview_imagevue_type_template_id_d053001e_staticRenderFns = []
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/system-routes/preview-image/index.vue?vue&type=template&id=5fbfdee6&
+var preview_imagevue_type_template_id_5fbfdee6_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"uni-system-preview-image",on:{"click":_vm._click}},[_c('v-uni-swiper',{staticClass:"uni-system-preview-image-swiper",attrs:{"current":_vm.index,"indicator-dots":false,"autoplay":false},on:{"update:current":function($event){_vm.index=$event}}},_vm._l((_vm.urls),function(src,key){return _c('v-uni-swiper-item',{key:key},[_c('image-view',{attrs:{"src":src}})],1)}),1)],1)}
+var preview_imagevue_type_template_id_5fbfdee6_staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/platforms/h5/components/system-routes/preview-image/index.vue?vue&type=template&id=d053001e&
+// CONCATENATED MODULE: ./src/platforms/h5/components/system-routes/preview-image/index.vue?vue&type=template&id=5fbfdee6&
 
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/system-routes/preview-image/image-view.vue?vue&type=template&id=5236e255&
+var image_viewvue_type_template_id_5236e255_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('v-uni-movable-area',{staticClass:"image-view-area",nativeOn:{"touchstart":function($event){return _vm.onTouchStart($event)},"touchmove":function($event){return _vm.checkDirection($event)},"touchend":function($event){return _vm.onTouchEnd($event)}}},[_c('v-uni-movable-view',{staticClass:"image-view-view",attrs:{"direction":_vm.direction,"inertia":"","scale":"","scale-min":"1","scale-max":"4"},on:{"scale":_vm.onScale}},[_c('img',{staticClass:"image-view-img",attrs:{"src":_vm.src},on:{"load":_vm.onImgLoad}})])],1)}
+var image_viewvue_type_template_id_5236e255_staticRenderFns = []
+
+
+// CONCATENATED MODULE: ./src/platforms/h5/components/system-routes/preview-image/image-view.vue?vue&type=template&id=5236e255&
+
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/system-routes/preview-image/image-view.vue?vue&type=script&lang=js&
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+/* harmony default export */ var image_viewvue_type_script_lang_js_ = ({
+  name: 'ImageView',
+  props: {
+    src: {
+      type: String,
+      default: ''
+    }
+  },
+  data: function data() {
+    return {
+      direction: 'none'
+    };
+  },
+  created: function created() {
+    this.scale = 1;
+    this.imgWidth = 0;
+    this.imgHeight = 0;
+    this.width = 0;
+    this.height = 0;
+  },
+  methods: {
+    onScale: function onScale(_ref) {
+      var scale = _ref.detail.scale;
+      this.scale = scale;
+    },
+    onImgLoad: function onImgLoad(event) {
+      var target = event.target;
+      var rect = target.getBoundingClientRect();
+      this.imgWidth = rect.width;
+      this.imgHeight = rect.height;
+    },
+    onTouchStart: function onTouchStart(event) {
+      var $el = this.$el;
+      var rect = $el.getBoundingClientRect();
+      this.width = rect.width;
+      this.height = rect.height;
+      this.checkDirection(event);
+    },
+    onTouchEnd: function onTouchEnd(event) {
+      var scale = this.scale;
+      var horizontal = scale * this.imgWidth > this.width;
+      var vertical = scale * this.imgHeight > this.height;
+
+      if (horizontal && vertical) {
+        this.direction = 'all';
+      } else if (horizontal) {
+        this.direction = 'horizontal';
+      } else if (vertical) {
+        this.direction = 'vertical';
+      } else {
+        this.direction = 'none';
+      }
+
+      this.checkDirection(event);
+    },
+    checkDirection: function checkDirection(event) {
+      // 避免水平滑动和 swiper 冲突
+      var direction = this.direction;
+
+      if (direction === 'all' || direction === 'horizontal') {
+        event.stopPropagation();
+      }
+    }
+  }
+});
+// CONCATENATED MODULE: ./src/platforms/h5/components/system-routes/preview-image/image-view.vue?vue&type=script&lang=js&
+ /* harmony default export */ var preview_image_image_viewvue_type_script_lang_js_ = (image_viewvue_type_script_lang_js_); 
+// EXTERNAL MODULE: ./src/platforms/h5/components/system-routes/preview-image/image-view.vue?vue&type=style&index=0&lang=css&
+var image_viewvue_type_style_index_0_lang_css_ = __webpack_require__("5378");
+
+// CONCATENATED MODULE: ./src/platforms/h5/components/system-routes/preview-image/image-view.vue
+
+
+
+
+
+
+/* normalize component */
+
+var image_view_component = Object(componentNormalizer["a" /* default */])(
+  preview_image_image_viewvue_type_script_lang_js_,
+  image_viewvue_type_template_id_5236e255_render,
+  image_viewvue_type_template_id_5236e255_staticRenderFns,
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* harmony default export */ var image_view = (image_view_component.exports);
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/system-routes/preview-image/index.vue?vue&type=script&lang=js&
 //
 //
@@ -20574,11 +23797,12 @@ var preview_imagevue_type_template_id_d053001e_staticRenderFns = []
 //
 //
 //
-//
-//
-//
+
 /* harmony default export */ var preview_imagevue_type_script_lang_js_ = ({
   name: 'SystemPreviewImage',
+  components: {
+    imageView: image_view
+  },
   data: function data() {
     var _this$$route$params = this.$route.params,
         urls = _this$$route$params.urls,
@@ -20634,8 +23858,8 @@ var preview_imagevue_type_style_index_0_lang_css_ = __webpack_require__("f10e");
 
 var preview_image_component = Object(componentNormalizer["a" /* default */])(
   system_routes_preview_imagevue_type_script_lang_js_,
-  preview_imagevue_type_template_id_d053001e_render,
-  preview_imagevue_type_template_id_d053001e_staticRenderFns,
+  preview_imagevue_type_template_id_5fbfdee6_render,
+  preview_imagevue_type_template_id_5fbfdee6_staticRenderFns,
   false,
   null,
   null,
@@ -20660,21 +23884,16 @@ var preview_image_component = Object(componentNormalizer["a" /* default */])(
 
 
 
+
 external_commonjs_vue_commonjs2_vue_root_Vue_default.a.component(app.name, app);
 external_commonjs_vue_commonjs2_vue_root_Vue_default.a.component(page.name, page);
 external_commonjs_vue_commonjs2_vue_root_Vue_default.a.component(async_error.name, async_error);
 external_commonjs_vue_commonjs2_vue_root_Vue_default.a.component(async_loading.name, async_loading);
+external_commonjs_vue_commonjs2_vue_root_Vue_default.a.component(customTabBar.name, customTabBar);
 Object.keys(system_routes).forEach(function (name) {
   var Component = system_routes[name];
   external_commonjs_vue_commonjs2_vue_root_Vue_default.a.component(Component.name, Component);
 });
-
-/***/ }),
-
-/***/ "8fa5":
-/***/ (function(module, exports, __webpack_require__) {
-
-// extracted by mini-css-extract-plugin
 
 /***/ }),
 
@@ -20683,7 +23902,7 @@ Object.keys(system_routes).forEach(function (name) {
 
 "use strict";
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/page/pageRefresh.vue?vue&type=template&id=102bfc92&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/page/pageRefresh.vue?vue&type=template&id=102bfc92&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-page-refresh',[_c('div',{staticClass:"uni-page-refresh",style:({'margin-top':_vm.offset+'px'})},[_c('div',{staticClass:"uni-page-refresh-inner"},[_c('svg',{staticClass:"uni-page-refresh__icon",attrs:{"fill":_vm.color,"width":"24","height":"24","viewBox":"0 0 24 24"}},[_c('path',{attrs:{"d":"M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"}}),_c('path',{attrs:{"d":"M0 0h24v24H0z","fill":"none"}})]),_c('svg',{staticClass:"uni-page-refresh__spinner",attrs:{"width":"24","height":"24","viewBox":"25 25 50 50"}},[_c('circle',{staticClass:"uni-page-refresh__path",attrs:{"stroke":_vm.color,"cx":"50","cy":"50","r":"20","fill":"none","stroke-width":"4","stroke-miterlimit":"10"}})])])])])}
 var staticRenderFns = []
 
@@ -20872,7 +24091,7 @@ var component = Object(componentNormalizer["a" /* default */])(
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/swiper-item/index.vue?vue&type=template&id=dd6eeb44&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/swiper-item/index.vue?vue&type=template&id=dd6eeb44&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-swiper-item',_vm._g({},_vm.$listeners),[_vm._t("default")],2)}
 var staticRenderFns = []
 
@@ -20939,85 +24158,6 @@ var component = Object(componentNormalizer["a" /* default */])(
 
 /***/ }),
 
-/***/ "924c":
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createAudioContext", function() { return createAudioContext; });
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function operateAudioPlayer(audioId, pageId, type, data) {
-  UniServiceJSBridge.publishHandler(pageId + '-audio-' + audioId, {
-    audioId: audioId,
-    type: type,
-    data: data
-  }, pageId);
-}
-
-var AudioContext = /*#__PURE__*/function () {
-  function AudioContext(id, pageId) {
-    _classCallCheck(this, AudioContext);
-
-    this.id = id;
-    this.pageId = pageId;
-  }
-
-  _createClass(AudioContext, [{
-    key: "setSrc",
-    value: function setSrc(src) {
-      operateAudioPlayer(this.id, this.pageId, 'setSrc', {
-        src: src
-      });
-    }
-  }, {
-    key: "play",
-    value: function play() {
-      operateAudioPlayer(this.id, this.pageId, 'play');
-    }
-  }, {
-    key: "pause",
-    value: function pause() {
-      operateAudioPlayer(this.id, this.pageId, 'pause');
-    }
-  }, {
-    key: "stop",
-    value: function stop() {
-      operateAudioPlayer(this.id, this.pageId, 'stop');
-    }
-  }, {
-    key: "seek",
-    value: function seek(position) {
-      operateAudioPlayer(this.id, this.pageId, 'seek', {
-        position: position
-      });
-    }
-  }]);
-
-  return AudioContext;
-}();
-
-function createAudioContext(id, context) {
-  if (context) {
-    return new AudioContext(id, context.$page.id);
-  }
-
-  var app = getApp();
-
-  if (app.$route && app.$route.params.__id__) {
-    return new AudioContext(id, app.$route.params.__id__);
-  } else {
-    UniServiceJSBridge.emit('onError', 'createAudioContext:fail');
-  }
-}
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("0dd1")))
-
-/***/ }),
-
 /***/ "9250":
 /***/ (function(module, exports) {
 
@@ -21026,15 +24166,15 @@ var network = ['request', 'uploadFile', 'downloadFile', 'connectSocket', 'onSock
 var route = ['navigateTo', 'redirectTo', 'reLaunch', 'switchTab', 'navigateBack'];
 var storage = ['setStorage', 'setStorageSync', 'getStorage', 'getStorageSync', 'getStorageInfo', 'getStorageInfoSync', 'removeStorage', 'removeStorageSync', 'clearStorage', 'clearStorageSync'];
 var location = ['getLocation', 'chooseLocation', 'openLocation', 'createMapContext'];
-var media = ['chooseImage', 'previewImage', 'getImageInfo', 'saveImageToPhotosAlbum', 'compressImage', 'getRecorderManager', 'getBackgroundAudioManager', 'createInnerAudioContext', 'chooseVideo', 'saveVideoToPhotosAlbum', 'createVideoContext', 'createCameraContext', 'createLivePlayerContext', 'createLivePusherContext'];
-var device = ['getSystemInfo', 'getSystemInfoSync', 'canIUse', 'onMemoryWarning', 'getNetworkType', 'onNetworkStatusChange', 'onAccelerometerChange', 'startAccelerometer', 'stopAccelerometer', 'onCompassChange', 'startCompass', 'stopCompass', 'onGyroscopeChange', 'startGyroscope', 'stopGyroscope', 'makePhoneCall', 'scanCode', 'setClipboardData', 'getClipboardData', 'setScreenBrightness', 'getScreenBrightness', 'setKeepScreenOn', 'onUserCaptureScreen', 'vibrateLong', 'vibrateShort', 'addPhoneContact', 'openBluetoothAdapter', 'startBluetoothDevicesDiscovery', 'onBluetoothDeviceFound', 'stopBluetoothDevicesDiscovery', 'onBluetoothAdapterStateChange', 'getConnectedBluetoothDevices', 'getBluetoothDevices', 'getBluetoothAdapterState', 'closeBluetoothAdapter', 'writeBLECharacteristicValue', 'readBLECharacteristicValue', 'onBLEConnectionStateChange', 'onBLECharacteristicValueChange', 'notifyBLECharacteristicValueChange', 'getBLEDeviceServices', 'getBLEDeviceCharacteristics', 'createBLEConnection', 'closeBLEConnection', 'onBeaconServiceChange', 'onBeaconUpdate', 'getBeacons', 'startBeaconDiscovery', 'stopBeaconDiscovery', 'checkIsSupportSoterAuthentication', 'checkIsSoterEnrolledInDevice', 'startSoterAuthentication', 'onUIStyleChange'];
-var keyboard = ['hideKeyboard', 'onKeyboardHeightChange'];
-var ui = ['showToast', 'hideToast', 'showLoading', 'hideLoading', 'showModal', 'showActionSheet', 'setNavigationBarTitle', 'setNavigationBarColor', 'showNavigationBarLoading', 'hideNavigationBarLoading', 'setTabBarItem', 'setTabBarStyle', 'hideTabBar', 'showTabBar', 'setTabBarBadge', 'removeTabBarBadge', 'showTabBarRedDot', 'hideTabBarRedDot', 'onTabBarMidButtonTap', 'setBackgroundColor', 'setBackgroundTextStyle', 'createAnimation', 'pageScrollTo', 'onWindowResize', 'offWindowResize', 'loadFontFace', 'startPullDownRefresh', 'stopPullDownRefresh', 'createSelectorQuery', 'createIntersectionObserver', 'getMenuButtonBoundingClientRect'];
+var media = ['chooseImage', 'chooseFile', 'previewImage', 'getImageInfo', 'saveImageToPhotosAlbum', 'compressImage', 'getRecorderManager', 'getBackgroundAudioManager', 'createAudioContext', 'createInnerAudioContext', 'chooseVideo', 'saveVideoToPhotosAlbum', 'createVideoContext', 'createCameraContext', 'createLivePlayerContext', 'createLivePusherContext'];
+var device = ['getSystemInfo', 'getSystemInfoSync', 'canIUse', 'onMemoryWarning', 'getNetworkType', 'onNetworkStatusChange', 'offNetworkStatusChange', 'onAccelerometerChange', 'offAccelerometerChange', 'startAccelerometer', 'stopAccelerometer', 'onCompassChange', 'offCompassChange', 'startCompass', 'stopCompass', 'onGyroscopeChange', 'startGyroscope', 'stopGyroscope', 'makePhoneCall', 'scanCode', 'setClipboardData', 'getClipboardData', 'setScreenBrightness', 'getScreenBrightness', 'setKeepScreenOn', 'onUserCaptureScreen', 'vibrateLong', 'vibrateShort', 'addPhoneContact', 'openBluetoothAdapter', 'startBluetoothDevicesDiscovery', 'onBluetoothDeviceFound', 'stopBluetoothDevicesDiscovery', 'onBluetoothAdapterStateChange', 'getConnectedBluetoothDevices', 'getBluetoothDevices', 'getBluetoothAdapterState', 'closeBluetoothAdapter', 'writeBLECharacteristicValue', 'readBLECharacteristicValue', 'onBLEConnectionStateChange', 'onBLECharacteristicValueChange', 'notifyBLECharacteristicValueChange', 'getBLEDeviceServices', 'getBLEDeviceCharacteristics', 'createBLEConnection', 'closeBLEConnection', 'setBLEMTU', 'getBLEDeviceRSSI', 'onBeaconServiceChange', 'onBeaconUpdate', 'getBeacons', 'startBeaconDiscovery', 'stopBeaconDiscovery', 'checkIsSupportSoterAuthentication', 'checkIsSoterEnrolledInDevice', 'startSoterAuthentication', 'onThemeChange', 'onUIStyleChange'];
+var keyboard = ['hideKeyboard', 'onKeyboardHeightChange', 'offKeyboardHeightChange', 'getSelectedTextRange'];
+var ui = ['showToast', 'hideToast', 'showLoading', 'hideLoading', 'showModal', 'showActionSheet', 'setNavigationBarTitle', 'setNavigationBarColor', 'showNavigationBarLoading', 'hideNavigationBarLoading', 'setTabBarItem', 'setTabBarStyle', 'hideTabBar', 'showTabBar', 'setTabBarBadge', 'removeTabBarBadge', 'showTabBarRedDot', 'hideTabBarRedDot', 'onTabBarMidButtonTap', 'setBackgroundColor', 'setBackgroundTextStyle', 'createAnimation', 'pageScrollTo', 'onWindowResize', 'offWindowResize', 'loadFontFace', 'startPullDownRefresh', 'stopPullDownRefresh', 'createSelectorQuery', 'createIntersectionObserver', 'createMediaQueryObserver', 'getMenuButtonBoundingClientRect', 'showTopWindow', 'showLeftWindow', 'showRightWindow', 'hideTopWindow', 'hideLeftWindow', 'hideRightWindow', 'getTopWindowStyle', 'getLeftWindowStyle', 'getRightWindowStyle', 'setTopWindowStyle', 'setLeftWindowStyle', 'setRightWindowStyle'];
 var event = ['$emit', '$on', '$once', '$off'];
 var file = ['saveFile', 'getSavedFileList', 'getSavedFileInfo', 'removeSavedFile', 'getFileInfo', 'openDocument', 'getFileSystemManager'];
 var canvas = ['createOffscreenCanvas', 'createCanvasContext', 'canvasToTempFilePath', 'canvasPutImageData', 'canvasGetImageData'];
-var third = ['getProvider', 'login', 'checkSession', 'getUserInfo', 'share', 'shareWithSystem', 'showShareMenu', 'hideShareMenu', 'requestPayment', 'subscribePush', 'unsubscribePush', 'onPush', 'offPush', 'requireNativePlugin', 'upx2px', 'restoreGlobal', 'getSubNVueById', 'getCurrentSubNVue', 'setPageMeta', 'onNativeEventReceive', 'sendNativeEvent', 'preloadPage', 'unPreloadPage', 'loadSubPackage'];
-var ad = ['createRewardedVideoAd'];
+var third = ['getProvider', 'login', 'checkSession', 'getUserInfo', 'preLogin', 'closeAuthView', 'share', 'shareWithSystem', 'showShareMenu', 'hideShareMenu', 'requestPayment', 'subscribePush', 'unsubscribePush', 'onPush', 'offPush', 'requireNativePlugin', 'upx2px', 'restoreGlobal', 'getSubNVueById', 'getCurrentSubNVue', 'setPageMeta', 'onNativeEventReceive', 'sendNativeEvent', 'preloadPage', 'unPreloadPage', 'loadSubPackage'];
+var ad = ['createRewardedVideoAd', 'createFullScreenVideoAd'];
 var apis = [].concat(base, network, route, storage, location, media, device, keyboard, ui, event, file, canvas, third, ad);
 module.exports = apis;
 
@@ -21051,7 +24191,7 @@ module.exports = apis;
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./audio/index.vue": "e0b6",
+	"./ad/index.vue": "10a3",
 	"./cover-image/index.vue": "d677",
 	"./cover-view/index.vue": "c41f",
 	"./map/index.vue": "594d",
@@ -21079,6 +24219,41 @@ webpackContext.keys = function webpackContextKeys() {
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
 webpackContext.id = "93a5";
+
+/***/ }),
+
+/***/ "93ab":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return loadScript; });
+var scripts = {};
+function loadScript(globalName, src, callback) {
+  var globalObject = typeof globalName === 'string' ? window[globalName] : globalName;
+
+  if (globalObject) {
+    callback();
+    return;
+  }
+
+  var callbacks = scripts[src];
+
+  if (!callbacks) {
+    callbacks = scripts[src] = [];
+    var script = document.createElement('script');
+    script.src = src;
+    document.body.appendChild(script);
+
+    script.onload = function () {
+      callbacks.forEach(function (callback) {
+        return callback();
+      });
+      delete scripts[src];
+    };
+  }
+
+  callbacks.push(callback);
+}
 
 /***/ }),
 
@@ -21112,39 +24287,6 @@ webpackContext.id = "93a5";
 /* harmony import */ var _node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__);
 /* unused harmony reexport * */
  /* unused harmony default export */ var _unused_webpack_default_export = (_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default.a); 
-
-/***/ }),
-
-/***/ "9481":
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "onBluetoothDeviceFound", function() { return onBluetoothDeviceFound; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "onBluetoothAdapterStateChange", function() { return onBluetoothAdapterStateChange; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "onBLEConnectionStateChange", function() { return onBLEConnectionStateChange; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "onBLECharacteristicValueChange", function() { return onBLECharacteristicValueChange; });
-/* harmony import */ var uni_core_service_bridge__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("a118");
-/* harmony import */ var _platform__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("db70");
-
-
-
-function on(method) {
-  var callbacks = [];
-  Object(_platform__WEBPACK_IMPORTED_MODULE_1__[/* onMethod */ "d"])(method, function (data) {
-    callbacks.forEach(function (callbackId) {
-      Object(uni_core_service_bridge__WEBPACK_IMPORTED_MODULE_0__[/* invoke */ "a"])(callbackId, data);
-    });
-  });
-  return function (callbackId) {
-    callbacks.push(callbackId);
-  };
-}
-
-var onBluetoothDeviceFound = on('onBluetoothDeviceFound');
-var onBluetoothAdapterStateChange = on('onBluetoothAdapterStateChange');
-var onBLEConnectionStateChange = on('onBLEConnectionStateChange');
-var onBLECharacteristicValueChange = on('onBLECharacteristicValueChange');
 
 /***/ }),
 
@@ -21207,73 +24349,11 @@ var uni = Object.create(null); // api promise 化 name:api名称
 apis_default.a.forEach(function (name) {
   // 是否存在
   if (platform_api[name]) {
-    uni[name] = Object(promise["d" /* promisify */])(name, Object(api["b" /* wrapper */])(name, platform_api[name]));
+    uni[name] = Object(promise["d" /* promisify */])(name, Object(api["c" /* wrapper */])(name, platform_api[name]));
   } else {
-    uni[name] = Object(api["c" /* wrapperUnimplemented */])(name);
+    uni[name] = Object(api["d" /* wrapperUnimplemented */])(name);
   }
 });
-
-/***/ }),
-
-/***/ "98e3":
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-/* harmony default export */ __webpack_exports__["a"] = ({
-  name: 'SystemHeader',
-  props: {
-    confirm: {
-      type: Boolean,
-      default: false
-    }
-  },
-  created: function created() {
-    document.title = this.$slots.default[0].text;
-    UniServiceJSBridge.emit('onNavigationBarChange', {
-      titleText: document.title,
-      textColor: '#fff',
-      backgroundColor: '#000'
-    });
-  },
-  methods: {
-    _back: function _back() {
-      this.$emit('back');
-    },
-    _confirm: function _confirm() {
-      this.$emit('confirm');
-    }
-  }
-});
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("0dd1")))
 
 /***/ }),
 
@@ -21284,12 +24364,12 @@ apis_default.a.forEach(function (name) {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/web-view/index.vue?vue&type=template&id=81dd22c4&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/web-view/index.vue?vue&type=template&id=4faebefa&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-web-view',_vm._g({},_vm.$listeners),[_c('v-uni-resize-sensor',{ref:"sensor",on:{"resize":_vm._resize}})],1)}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/platforms/h5/view/components/web-view/index.vue?vue&type=template&id=81dd22c4&
+// CONCATENATED MODULE: ./src/platforms/h5/view/components/web-view/index.vue?vue&type=template&id=4faebefa&
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/web-view/index.vue?vue&type=script&lang=js&
 //
@@ -21338,7 +24418,7 @@ var staticRenderFns = []
     _resize: function _resize() {
       var _this$$el$getBounding = this.$el.getBoundingClientRect(),
           top = _this$$el$getBounding.top,
-          bottom = _this$$el$getBounding.bottom,
+          left = _this$$el$getBounding.left,
           width = _this$$el$getBounding.width,
           height = _this$$el$getBounding.height;
 
@@ -21346,7 +24426,7 @@ var staticRenderFns = []
       this.iframe.style.display = 'block';
       this.iframe.style.border = 0;
       this.iframe.style.top = top + 'px';
-      this.iframe.style.bottom = bottom + 'px';
+      this.iframe.style.left = left + 'px';
       this.iframe.style.width = width + 'px';
       this.iframe.style.height = height + 'px';
     }
@@ -21435,7 +24515,7 @@ var uploadFile = {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/icon/index.vue?vue&type=template&id=13b4a7b8&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/icon/index.vue?vue&type=template&id=13b4a7b8&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-icon',_vm._g({},_vm.$listeners),[_c('i',{class:("uni-icon-" + _vm.type),style:({'font-size': _vm._converPx(_vm.size),'color': _vm.color}),attrs:{"role":"img"}})])}
 var staticRenderFns = []
 
@@ -21537,8 +24617,6 @@ function onWindowResize(callbackId) {
   callbacks.push(callbackId);
 }
 function offWindowResize(callbackId) {
-  // TODO 目前 on 和 off 即使传入同一个 function，获取到的 callbackId 也不会一致，导致不能 off 掉指定
-  // 后续修复
   // 此处和微信平台一致查询不到去掉最后一个
   callbacks.splice(callbacks.indexOf(callbackId), 1);
 }
@@ -21552,7 +24630,7 @@ function offWindowResize(callbackId) {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/progress/index.vue?vue&type=template&id=c74d4bb6&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/progress/index.vue?vue&type=template&id=c74d4bb6&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-progress',_vm._g({staticClass:"uni-progress"},_vm.$listeners),[_c('div',{staticClass:"uni-progress-bar",style:(_vm.outerBarStyle)},[_c('div',{staticClass:"uni-progress-inner-bar",style:(_vm.innerBarStyle)})]),(_vm.showInfo)?[_c('p',{staticClass:"uni-progress-info"},[_vm._v(" "+_vm._s(_vm.currentPercent)+"% ")])]:_vm._e()],2)}
 var staticRenderFns = []
 
@@ -21772,14 +24850,14 @@ function previewImage(_ref, callbackId) {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/slider/index.vue?vue&type=template&id=2cc58f83&
-var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-slider',_vm._g({ref:"uni-slider",on:{"click":_vm._onClick}},_vm.$listeners),[_c('div',{staticClass:"uni-slider-wrapper"},[_c('div',{staticClass:"uni-slider-tap-area"},[_c('div',{staticClass:"uni-slider-handle-wrapper",style:(_vm.setBgColor)},[_c('div',{ref:"uni-slider-handle",staticClass:"uni-slider-handle",style:(_vm.setBlockBg)}),_c('div',{staticClass:"uni-slider-thumb",style:(_vm.setBlockStyle)}),_c('div',{staticClass:"uni-slider-track",style:(_vm.setActiveColor)})])]),_c('span',{directives:[{name:"show",rawName:"v-show",value:(_vm.showValue),expression:"showValue"}],staticClass:"uni-slider-value"},[_vm._v(_vm._s(_vm.sliderValue))])]),_vm._t("default")],2)}
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/slider/index.vue?vue&type=template&id=24bfab35&
+var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-slider',_vm._g({ref:"uni-slider",on:{"click":_vm._onClick}},_vm.$listeners),[_c('div',{staticClass:"uni-slider-wrapper"},[_c('div',{staticClass:"uni-slider-tap-area"},[_c('div',{staticClass:"uni-slider-handle-wrapper",style:(_vm.setBgColor)},[_c('div',{ref:"uni-slider-handle",staticClass:"uni-slider-handle",style:(_vm.setBlockBg)}),_c('div',{staticClass:"uni-slider-thumb",style:(_vm.setBlockStyle)}),_c('div',{staticClass:"uni-slider-track",style:(_vm.setActiveColor)})])]),_c('span',{directives:[{name:"show",rawName:"v-show",value:(_vm.showValue),expression:"showValue"}],ref:"uni-slider-value",staticClass:"uni-slider-value"},[_vm._v(_vm._s(_vm.sliderValue))])]),_vm._t("default")],2)}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/core/view/components/slider/index.vue?vue&type=template&id=2cc58f83&
+// CONCATENATED MODULE: ./src/core/view/components/slider/index.vue?vue&type=template&id=24bfab35&
 
-// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 3 modules
+// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 1 modules
 var mixins = __webpack_require__("8af1");
 
 // EXTERNAL MODULE: ./src/core/view/mixins/touchtrack.js
@@ -21821,11 +24899,105 @@ var touchtrack = __webpack_require__("ba15");
 //
 //
 //
+//
+
+ // 处理js计算小数时的精度问题
+
+var computeController = {
+  add: function add(arg) {
+    var r1, r2, m;
+
+    try {
+      // 获得小数位数
+      r1 = this.toString().split('.')[1].length;
+    } catch (e) {
+      r1 = 0;
+    }
+
+    try {
+      // 获得小数位数
+      r2 = arg.toString().split('.')[1].length;
+    } catch (e) {
+      r2 = 0;
+    }
+
+    m = Math.pow(10, Math.max(r1, r2));
+    return (this * m + arg * m) / m;
+  },
+  sub: function sub(arg) {
+    return this.add(-arg);
+  },
+  mul: function mul(arg) {
+    var m = 0;
+    var s1 = this.toString();
+    var s2 = arg.toString();
+
+    try {
+      // 获得小数位数
+      m += s1.split('.')[1].length;
+    } catch (e) {}
+
+    try {
+      // 获得小数位数
+      m += s2.split('.')[1].length;
+    } catch (e) {} // 转为十进制计算后，要除以两个数的共同小数位数
 
 
+    return Number(s1.replace('.', '')) * Number(s2.replace('.', '')) / Math.pow(10, m);
+  },
+  div: function div(arg) {
+    var t1 = 0;
+    var t2 = 0;
+    var r1;
+    var r2;
+
+    try {
+      // 获得小数位数
+      t1 = this.toString().split('.')[1].length;
+    } catch (e) {}
+
+    try {
+      // 获得小数位数
+      t2 = arg.toString().split('.')[1].length;
+    } catch (e) {}
+
+    r1 = Number(this.toString().replace('.', ''));
+    r2 = Number(arg.toString().replace('.', '')); // 转为十进制计算后，要乘以除数与被除数小数位数的差
+
+    return r1 / r2 * Math.pow(10, t2 - t1);
+  },
+  mod: function mod(arg) {
+    var t1 = 0;
+    var t2 = 0;
+    var r1;
+    var r2;
+
+    try {
+      t1 = this.toString().split('.')[1].length;
+    } catch (e) {}
+
+    try {
+      t2 = arg.toString().split('.')[1].length;
+    } catch (e) {} // 小数位数
+
+
+    var digit = Math.pow(10, Math.abs(t1 - t2)); // eslint-disable-next-line eqeqeq
+
+    if (digit == 1) {
+      digit = Math.pow(10, t1);
+    } // 计算余数
+
+
+    r1 = (this * digit).toString().split('.')[0];
+    r2 = arg * digit; // 小数点后数字，直接拼接上即可
+
+    var decimals = (this * digit).toString().split('.')[1] ? (this * digit).toString().split('.')[1] : '';
+    return (r1 % r2 + decimals) / digit;
+  }
+};
 /* harmony default export */ var slidervue_type_script_lang_js_ = ({
   name: 'Slider',
-  mixins: [mixins["b" /* emitter */], mixins["f" /* listeners */], touchtrack["a" /* default */]],
+  mixins: [mixins["a" /* emitter */], mixins["f" /* listeners */], touchtrack["a" /* default */]],
   props: {
     name: {
       type: String,
@@ -21936,14 +25108,20 @@ var touchtrack = __webpack_require__("ba15");
   },
   methods: {
     _onUserChangedValue: function _onUserChangedValue(e) {
+      var sliderRightBox = this.$refs['uni-slider-value'];
+      var sliderRightBoxLeft = getComputedStyle(sliderRightBox, null).marginLeft;
+      var sliderRightBoxWidth = sliderRightBox.offsetWidth;
+      sliderRightBoxWidth = sliderRightBoxWidth + parseInt(sliderRightBoxLeft);
       var slider = this.$refs['uni-slider'];
-      var offsetWidth = slider.offsetWidth;
+      var offsetWidth = slider.offsetWidth - (this.showValue ? sliderRightBoxWidth : 0);
       var boxLeft = slider.getBoundingClientRect().left;
       var value = (e.x - boxLeft) * (this.max - this.min) / offsetWidth + Number(this.min);
       this.sliderValue = this._filterValue(value);
     },
     _filterValue: function _filterValue(e) {
-      return e < this.min ? this.min : e > this.max ? this.max : Math.round((e - this.min) / this.step) * this.step + Number(this.min);
+      var max = Number(this.max);
+      var min = Number(this.min);
+      return e < min ? min : e > max ? max : computeController.mul.call(Math.round((e - min) / this.step), this.step) + min;
     },
     _getValueWidth: function _getValueWidth() {
       return 100 * (this.sliderValue - this.min) / (this.max - this.min) + '%';
@@ -22030,6 +25208,7 @@ var component = Object(componentNormalizer["a" /* default */])(
 /* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {/* unused harmony export pack */
 /* unused harmony export unpack */
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return invoke; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return remove; });
 function pack(args) {
   return args;
 }
@@ -22040,6 +25219,9 @@ function invoke() {
   var _UniServiceJSBridge;
 
   return (_UniServiceJSBridge = UniServiceJSBridge).invokeCallbackHandler.apply(_UniServiceJSBridge, arguments);
+}
+function remove(args) {
+  return UniServiceJSBridge.removeCallbackHandler(args);
 }
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("0dd1")))
 
@@ -22052,7 +25234,6 @@ function invoke() {
 /* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {/* harmony import */ var uni_platform_helpers_append_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("e949");
 /* harmony import */ var uni_platform_helpers_get_real_path__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("cb0f");
 /* harmony import */ var _transparent__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("15bb");
-//
 //
 //
 //
@@ -22687,12 +25868,12 @@ function stringifyQuery(url, data) {
   });
 
   for (var key in data) {
-    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "h"])(data, key)) {
+    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "i"])(data, key)) {
       var v = data[key];
 
       if (typeof v === 'undefined' || v === null) {
         v = '';
-      } else if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(v)) {
+      } else if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(v)) {
         v = JSON.stringify(v);
       }
 
@@ -22724,7 +25905,7 @@ var request = {
     type: String,
     required: true,
     validator: function validator(value, params) {
-      if (params.method === method.GET && Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(params.data) && Object.keys(params.data).length) {
+      if (params.method === method.GET && Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(params.data) && Object.keys(params.data).length) {
         // 将 method,data 校验提前,保证 url 校验时,method,data 已被格式化
         params.url = stringifyQuery(value, params.data);
       }
@@ -22759,6 +25940,9 @@ var request = {
   },
   withCredentials: {
     type: Boolean
+  },
+  timeout: {
+    type: Number
   }
 };
 
@@ -22782,7 +25966,7 @@ var pixelRatio = function () {
 
 var forEach = function forEach(obj, func) {
   for (var key in obj) {
-    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "h"])(obj, key)) {
+    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "i"])(obj, key)) {
       func(obj[key], key);
     }
   }
@@ -22874,8 +26058,9 @@ if (pixelRatio !== 1) {
 
       var args = Array.prototype.slice.call(arguments);
       args[1] *= pixelRatio;
-      args[2] *= pixelRatio;
-      var font = this.font;
+      args[2] *= pixelRatio; // Safari 重新设置部分属性会导致其他值恢复默认，需获取原始值
+
+      var font = this.__font__ || this.font;
       this.font = font.replace(/(\d+\.?\d*)(px|em|rem|pt)/g, function (w, m, u) {
         return m * pixelRatio + u;
       });
@@ -22896,8 +26081,9 @@ if (pixelRatio !== 1) {
       args[1] *= pixelRatio; // x
 
       args[2] *= pixelRatio; // y
+      // Safari 重新设置部分属性会导致其他值恢复默认，需获取原始值
 
-      var font = this.font;
+      var font = this.__font__ || this.font;
       this.font = font.replace(/(\d+\.?\d*)(px|em|rem|pt)/g, function (w, m, u) {
         return m * pixelRatio + u;
       });
@@ -22927,7 +26113,10 @@ function wrapper(canvas) {
   // canvas元素的宽，高 * 分辨率
   canvas.width = canvas.offsetWidth * pixelRatio;
   canvas.height = canvas.offsetHeight * pixelRatio;
-  canvas.getContext('2d').__hidpi__ = true;
+  canvas.__hidpi__ = true; // 避免低版本安卓上 context 实例被回收
+
+  canvas.__context2d__ = canvas.getContext('2d');
+  canvas.__context2d__.__hidpi__ = true;
 }
 
 /***/ }),
@@ -22948,12 +26137,18 @@ function wrapper(canvas) {
 
 "use strict";
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/page/pageBody.vue?vue&type=template&id=b2dd4192&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/page/pageBody.vue?vue&type=template&id=e69ed29c&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-page-wrapper',[_c('uni-page-body',[_vm._t("default")],2)],1)}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/platforms/h5/components/page/pageBody.vue?vue&type=template&id=b2dd4192&
+// CONCATENATED MODULE: ./src/platforms/h5/components/page/pageBody.vue?vue&type=template&id=e69ed29c&
+
+// EXTERNAL MODULE: ./src/platforms/h5/helpers/append-css.js
+var append_css = __webpack_require__("e949");
+
+// EXTERNAL MODULE: ./src/platforms/h5/components/app/observable.js
+var observable = __webpack_require__("bdbe");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/page/pageBody.vue?vue&type=script&lang=js&
 //
@@ -22982,30 +26177,19 @@ var staticRenderFns = []
 //
 //
 //
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
+
+
 /* harmony default export */ var pageBodyvue_type_script_lang_js_ = ({
-  name: 'PageBody'
+  name: 'PageBody',
+  mounted: function mounted() {
+    var HEIGTH = observable["a" /* tabBar */].height || '50px';
+    var cssText = ".uni-app--showtabbar uni-page-wrapper {\n                    display: block;\n                    height: calc(100% - ".concat(HEIGTH, ");\n                    height: calc(100% - ").concat(HEIGTH, " - constant(safe-area-inset-bottom));\n                    height: calc(100% - ").concat(HEIGTH, " - env(safe-area-inset-bottom));\n                  }");
+    cssText += '\n';
+    cssText += ".uni-app--showtabbar uni-page-wrapper::after {\n                  content: \"\";\n                  display: block;\n                  width: 100%;\n                  height: ".concat(HEIGTH, ";\n                  height: calc(").concat(HEIGTH, " + constant(safe-area-inset-bottom));\n                  height: calc(").concat(HEIGTH, " + env(safe-area-inset-bottom));\n                }");
+    cssText += '\n';
+    cssText += ".uni-app--showtabbar uni-page-head[uni-page-head-type=\"default\"] ~ uni-page-wrapper {\n                  height: calc(100% - 44px - ".concat(HEIGTH, ");\n                  height: calc(100% - 44px - constant(safe-area-inset-top) - ").concat(HEIGTH, " - constant(safe-area-inset-bottom));\n                  height: calc(100% - 44px - env(safe-area-inset-top) - ").concat(HEIGTH, " - env(safe-area-inset-bottom));\n                }");
+    Object(append_css["a" /* default */])(cssText);
+  }
 });
 // CONCATENATED MODULE: ./src/platforms/h5/components/page/pageBody.vue?vue&type=script&lang=js&
  /* harmony default export */ var page_pageBodyvue_type_script_lang_js_ = (pageBodyvue_type_script_lang_js_); 
@@ -23057,9 +26241,14 @@ function getWindowOffset() {
 
     var _bottom = parseInt((style.getPropertyValue('--window-bottom').match(/\d+/) || ['0'])[0]);
 
+    var left = parseInt((style.getPropertyValue('--window-left').match(/\d+/) || ['0'])[0]);
+    var right = parseInt((style.getPropertyValue('--window-right').match(/\d+/) || ['0'])[0]);
+    var topWindowHeight = parseInt((style.getPropertyValue('--top-window-height').match(/\d+/) || ['0'])[0]);
     return {
-      top: _top ? _top + safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.top : 0,
-      bottom: _bottom ? _bottom + safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.bottom : 0
+      top: (_top ? _top + safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.top : 0) + (topWindowHeight || 0),
+      bottom: _bottom ? _bottom + safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.bottom : 0,
+      left: left ? left + safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.left : 0,
+      right: right ? right + safe_area_insets__WEBPACK_IMPORTED_MODULE_1___default.a.right : 0
     };
   }
 
@@ -23076,12 +26265,14 @@ function getWindowOffset() {
   var app = getApp();
 
   if (app) {
-    bottom = app.$children[0] && app.$children[0].showTabBar ? uni_helpers_constants__WEBPACK_IMPORTED_MODULE_0__[/* TABBAR_HEIGHT */ "b"] : 0;
+    bottom = app.$children[0] && app.$children[0].showTabBar ? uni_helpers_constants__WEBPACK_IMPORTED_MODULE_0__[/* TABBAR_HEIGHT */ "c"] : 0;
   }
 
   return {
     top: top,
-    bottom: bottom
+    bottom: bottom,
+    left: 0,
+    right: 0
   };
 }
 
@@ -23098,10 +26289,207 @@ function getWindowOffset() {
 
 /***/ }),
 
+/***/ "a6b0":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return t; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return i18nMixin; });
+/* unused harmony export setLocale */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return getLocale; });
+/* harmony import */ var _dcloudio_uni_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("78b5");
+/* harmony import */ var _en_json__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("39aa");
+var _en_json__WEBPACK_IMPORTED_MODULE_1___namespace = /*#__PURE__*/__webpack_require__.t("39aa", 1);
+/* harmony import */ var _es_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("80e5");
+var _es_json__WEBPACK_IMPORTED_MODULE_2___namespace = /*#__PURE__*/__webpack_require__.t("80e5", 1);
+/* harmony import */ var _fr_json__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__("b3b1");
+var _fr_json__WEBPACK_IMPORTED_MODULE_3___namespace = /*#__PURE__*/__webpack_require__.t("b3b1", 1);
+/* harmony import */ var _zh_Hans_json__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__("2209");
+var _zh_Hans_json__WEBPACK_IMPORTED_MODULE_4___namespace = /*#__PURE__*/__webpack_require__.t("2209", 1);
+/* harmony import */ var _zh_Hant_json__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__("02ed");
+var _zh_Hant_json__WEBPACK_IMPORTED_MODULE_5___namespace = /*#__PURE__*/__webpack_require__.t("02ed", 1);
+
+
+
+
+
+
+var messages = {
+  en: _en_json__WEBPACK_IMPORTED_MODULE_1__,
+  es: _es_json__WEBPACK_IMPORTED_MODULE_2__,
+  fr: _fr_json__WEBPACK_IMPORTED_MODULE_3__,
+  'zh-Hans': _zh_Hans_json__WEBPACK_IMPORTED_MODULE_4__,
+  'zh-Hant': _zh_Hant_json__WEBPACK_IMPORTED_MODULE_5__
+};
+var fallbackLocale = 'en';
+var i18n = Object(_dcloudio_uni_i18n__WEBPACK_IMPORTED_MODULE_0__[/* initVueI18n */ "a"])( true ? messages : undefined, fallbackLocale);
+var t = i18n.t;
+var i18nMixin = i18n.mixin;
+var setLocale = i18n.setLocale;
+var getLocale = i18n.getLocale;
+
+/***/ }),
+
 /***/ "a6bb":
 /***/ (function(module, exports, __webpack_require__) {
 
 // extracted by mini-css-extract-plugin
+
+/***/ }),
+
+/***/ "a710":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {/* harmony import */ var uni_platform_helpers_get_real_path__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("cb0f");
+/* harmony import */ var _observable__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("bdbe");
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["a"] = ({
+  name: 'CustomTabBar',
+  props: {
+    selected: {
+      type: Number,
+      default: 0
+    },
+    showIcon: {
+      type: Boolean,
+      default: true
+    },
+    direction: {
+      type: String,
+      default: 'horizontal'
+    }
+  },
+  data: function data() {
+    return {
+      selectedIndex: this.selected
+    };
+  },
+  computed: {
+    tabBarOptions: function tabBarOptions() {
+      return _observable__WEBPACK_IMPORTED_MODULE_1__[/* tabBar */ "a"];
+    },
+    hasTabBar: function hasTabBar() {
+      return _observable__WEBPACK_IMPORTED_MODULE_1__[/* tabBar */ "a"].list && _observable__WEBPACK_IMPORTED_MODULE_1__[/* tabBar */ "a"].list.length;
+    },
+    showTabBar: function showTabBar() {
+      var app = getApp();
+
+      if (app) {
+        return !app.$children[0].hideTabBar;
+      }
+
+      return true;
+    }
+  },
+  watch: {
+    selected: function selected(val) {
+      this.selectedIndex = val; // 同步至内置tabBar
+
+      var tabBar = getApp().$children[0].$refs.tabBar;
+
+      if (tabBar) {
+        tabBar.selectedIndex = val;
+      }
+    },
+    '$route': function $route(to, from) {
+      if (to.meta.isTabBar) {
+        var index = _observable__WEBPACK_IMPORTED_MODULE_1__[/* tabBar */ "a"].list.findIndex(function (item) {
+          return to.meta.pagePath === item.pagePath;
+        });
+
+        if (index > -1) {
+          this.selectedIndex = index;
+        }
+      }
+    }
+  },
+  methods: {
+    _getRealPath: function _getRealPath(filePath) {
+      var SCHEME_RE = /^([a-z-]+:)?\/\//i;
+      var DATA_RE = /^data:.*,.*/;
+
+      if (!(SCHEME_RE.test(filePath) || DATA_RE.test(filePath)) && filePath.indexOf('/') !== 0) {
+        filePath = '/' + filePath;
+      }
+
+      return Object(uni_platform_helpers_get_real_path__WEBPACK_IMPORTED_MODULE_0__[/* default */ "a"])(filePath);
+    },
+    _switchTab: function _switchTab(_ref, index) {
+      var text = _ref.text,
+          pagePath = _ref.pagePath;
+      this.selectedIndex = index;
+      var url = '/' + pagePath;
+
+      if (url === __uniRoutes[0].alias) {
+        url = '/';
+      }
+
+      var detail = {
+        index: index,
+        text: text,
+        pagePath: pagePath
+      };
+      this.$emit('onTabItemTap', detail);
+
+      if (this.$route.path === url) {
+        UniServiceJSBridge.emit('onTabItemTap', detail);
+      }
+    }
+  }
+});
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("0dd1")))
 
 /***/ }),
 
@@ -23209,7 +26597,7 @@ function callPageHook(vm, hook, params) {
         });
       } else {
         if (vnode.componentOptions && vnode.componentOptions.tag !== 'v-uni-text') {
-          console.warn('<text> 组件内只支持嵌套 <text>，不支持其它组件或自定义组件，否则会引发在不同平台的渲染差异。');
+          console.warn('Do not nest other components in the text component, as there may be display differences on different platforms.');
         }
 
         nodeList.push(vnode);
@@ -23262,10 +26650,10 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 
 /* @flow */
 var LIFECYCLE_HOOKS = [// App
-'onLaunch', 'onShow', 'onHide', 'onUniNViewMessage', 'onPageNotFound', 'onThemeChange', 'onError', // Page
-'onLoad', // 'onShow',
+'onLaunch', 'onShow', 'onHide', 'onUniNViewMessage', 'onPageNotFound', 'onThemeChange', 'onError', 'onUnhandledRejection', // Page
+'onInit', 'onLoad', // 'onShow',
 'onReady', // 'onHide',
-'onUnload', 'onPullDownRefresh', 'onReachBottom', 'onTabItemTap', 'onShareAppMessage', 'onResize', 'onPageScroll', 'onNavigationBarButtonTap', 'onBackPress', 'onNavigationBarSearchInputChanged', 'onNavigationBarSearchInputConfirmed', 'onNavigationBarSearchInputClicked', 'onNavigationBarSearchInputFocusChanged', // Component
+'onUnload', 'onPullDownRefresh', 'onReachBottom', 'onTabItemTap', 'onAddToFavorites', 'onShareTimeline', 'onShareAppMessage', 'onResize', 'onPageScroll', 'onNavigationBarButtonTap', 'onBackPress', 'onNavigationBarSearchInputChanged', 'onNavigationBarSearchInputConfirmed', 'onNavigationBarSearchInputClicked', 'onNavigationBarSearchInputFocusChanged', // Component
 // 'onReady', // 兼容旧版本，应该移除该事件
 'onPageShow', 'onPageHide', 'onPageResize', // 小程序的 created,attached 生命周期(需要在 service 层的 Vue 内核 mounted 时触发,因小程序 created 可以使用 selectComponent)
 'onServiceCreated', 'onServiceAttached'];
@@ -23600,11 +26988,11 @@ var SelectorQuery = /*#__PURE__*/function () {
 
           var queueCb = queueCbs[index];
 
-          if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(queueCb)) {
+          if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(queueCb)) {
             queueCb.call(_this, result);
           }
         });
-        Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(callback) && callback.call(_this, res);
+        Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(callback) && callback.call(_this, res);
       });
     }
   }, {
@@ -24098,7 +27486,7 @@ function list_getPrototypeOf(o) { list_getPrototypeOf = Object.setPrototypeOf ? 
     'formats/backgroundColor': BackgroundColorStyle
   };
 });
-// EXTERNAL MODULE: ./src/shared/index.js + 7 modules
+// EXTERNAL MODULE: ./src/shared/index.js + 6 modules
 var shared = __webpack_require__("f2b3");
 
 // CONCATENATED MODULE: ./src/core/view/components/editor/formats/box.js
@@ -24115,7 +27503,7 @@ var shared = __webpack_require__("f2b3");
   var padding = ['padding', 'paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight'];
   var result = {};
   margin.concat(padding).forEach(function (name) {
-    result["formats/".concat(name)] = new Attributor.Style(name, Object(shared["l" /* kebabCase */])(name), config);
+    result["formats/".concat(name)] = new Attributor.Style(name, Object(shared["m" /* kebabCase */])(name), config);
   });
   return result;
 });
@@ -24132,7 +27520,7 @@ var shared = __webpack_require__("f2b3");
   var font = ['font', 'fontSize', 'fontStyle', 'fontVariant', 'fontWeight', 'fontFamily'];
   var result = {};
   font.forEach(function (name) {
-    result["formats/".concat(name)] = new Attributor.Style(name, Object(shared["l" /* kebabCase */])(name), config);
+    result["formats/".concat(name)] = new Attributor.Style(name, Object(shared["m" /* kebabCase */])(name), config);
   });
   return result;
 });
@@ -24160,7 +27548,7 @@ var shared = __webpack_require__("f2b3");
   text.forEach(function (_ref) {
     var name = _ref.name,
         scope = _ref.scope;
-    result["formats/".concat(name)] = new Attributor.Style(name, Object(shared["l" /* kebabCase */])(name), {
+    result["formats/".concat(name)] = new Attributor.Style(name, Object(shared["m" /* kebabCase */])(name), {
       scope: scope
     });
   });
@@ -24232,6 +27620,157 @@ function register(Quill) {
 
 /***/ }),
 
+/***/ "b282":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(UniViewJSBridge) {/* harmony import */ var uni_shared__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("f2b3");
+/* harmony import */ var _emitter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("5cf8");
+/* harmony import */ var _keyboard__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("5a23");
+
+
+
+UniViewJSBridge.subscribe('getSelectedTextRange', function (_ref) {
+  var pageId = _ref.pageId,
+      callbackId = _ref.callbackId;
+  var activeElement = document.activeElement;
+  var tagName = activeElement.tagName.toLowerCase();
+  var tagNames = ['input', 'textarea'];
+  var data = {};
+
+  if (tagNames.includes(tagName)) {
+    data.errMsg = 'getSelectedTextRange:ok';
+    data.start = activeElement.selectionStart;
+    data.end = activeElement.selectionEnd;
+  } else {
+    data.errMsg = 'getSelectedTextRange:fail no focused';
+  }
+
+  UniViewJSBridge.publishHandler('onGetSelectedTextRange', {
+    callbackId: callbackId,
+    data: data
+  }, pageId);
+}); // App 延迟获取焦点
+
+var FOCUS_DELAY = 200;
+var startTime;
+/* harmony default export */ __webpack_exports__["a"] = ({
+  name: 'Field',
+  mixins: [_emitter__WEBPACK_IMPORTED_MODULE_1__[/* default */ "a"], _keyboard__WEBPACK_IMPORTED_MODULE_2__[/* default */ "a"]],
+  model: {
+    prop: 'value',
+    event: 'update:value'
+  },
+  props: {
+    value: {
+      type: [String, Number],
+      default: ''
+    },
+
+    /**
+     * 已废弃属性，用于历史兼容
+     */
+    autoFocus: {
+      type: [Boolean, String],
+      default: false
+    },
+    focus: {
+      type: [Boolean, String],
+      default: false
+    }
+  },
+  data: function data() {
+    return {
+      valueSync: this._getValueString(this.value)
+    };
+  },
+  watch: {
+    focus: function focus(val) {
+      if (val) {
+        this._focus();
+      } else {
+        this._blur();
+      }
+    }
+  },
+  computed: {
+    needFocus: function needFocus() {
+      return this.autoFocus || this.focus;
+    }
+  },
+  created: function created() {
+    var _this = this;
+
+    var valueChange = this.__valueChange = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* debounce */ "d"])(function (val) {
+      _this.valueSync = _this._getValueString(val);
+    }, 100);
+    this.$watch('value', valueChange);
+    this.__triggerInput = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* throttle */ "q"])(function ($event, detail) {
+      _this.$emit('update:value', detail.value);
+
+      _this.$trigger('input', $event, detail);
+    }, 100);
+
+    this.$triggerInput = function ($event, detail, force) {
+      _this.__valueChange.cancel();
+
+      _this.__triggerInput($event, detail);
+
+      if (force) {
+        _this.__triggerInput.flush();
+      }
+    };
+  },
+  beforeDestroy: function beforeDestroy() {
+    this.__valueChange.cancel();
+
+    this.__triggerInput.cancel();
+  },
+  directives: {
+    field: {
+      inserted: function inserted(el, binding, vnode) {
+        vnode.context._initField(el);
+      }
+    }
+  },
+  methods: {
+    _getValueString: function _getValueString(value) {
+      return value === null ? '' : String(value);
+    },
+    _initField: function _initField(el) {
+      this._field = el;
+      startTime = startTime || Date.now();
+
+      if (this.needFocus) {
+        this._focus();
+      }
+    },
+    _focus: function _focus() {
+      if (!this.needFocus) {
+        return;
+      }
+
+      var field = this._field;
+
+      if (!field ||  false && false) {
+        setTimeout(this._focus.bind(this), 100);
+        return;
+      }
+
+      if (true) {
+        field.focus();
+      } else { var timeout; }
+    },
+    _blur: function _blur() {
+      var field = this._field;
+      field && field.blur();
+    }
+  }
+});
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("501c")))
+
+/***/ }),
+
 /***/ "b2bb":
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -24246,14 +27785,14 @@ function register(Quill) {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/form/index.vue?vue&type=template&id=50a1e275&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/form/index.vue?vue&type=template&id=50a1e275&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-form',_vm._g({},_vm.$listeners),[_c('span',[_vm._t("default")],2)])}
 var staticRenderFns = []
 
 
 // CONCATENATED MODULE: ./src/core/view/components/form/index.vue?vue&type=template&id=50a1e275&
 
-// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 3 modules
+// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 1 modules
 var mixins = __webpack_require__("8af1");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/form/index.vue?vue&type=script&lang=js&
@@ -24334,19 +27873,35 @@ var component = Object(componentNormalizer["a" /* default */])(
 
 /***/ }),
 
+/***/ "b3b1":
+/***/ (function(module) {
+
+module.exports = JSON.parse("{\"uni.app.quit\":\"Appuyez à nouveau pour quitter l'application\",\"uni.async.error\":\"La connexion a expiré, cliquez sur l'écran pour réessayer.\",\"uni.showActionSheet.cancel\":\"Annuler\",\"uni.showToast.unpaired\":\"Veuillez noter que showToast doit être associé à hideToast\",\"uni.showLoading.unpaired\":\"Veuillez noter que showLoading doit être associé à hideLoading\",\"uni.showModal.cancel\":\"Annuler\",\"uni.showModal.confirm\":\"OK\",\"uni.chooseImage.cancel\":\"Annuler\",\"uni.chooseImage.sourceType.album\":\"Album\",\"uni.chooseImage.sourceType.camera\":\"Caméra\",\"uni.chooseVideo.cancel\":\"Annuler\",\"uni.chooseVideo.sourceType.album\":\"Album\",\"uni.chooseVideo.sourceType.camera\":\"Caméra\",\"uni.previewImage.cancel\":\"Annuler\",\"uni.previewImage.button.save\":\"Guardar imagen\",\"uni.previewImage.save.success\":\"Enregistré avec succès\",\"uni.previewImage.save.fail\":\"Échec de la sauvegarde\",\"uni.setClipboardData.success\":\"Contenu copié\",\"uni.scanCode.title\":\"Code d’analyse\",\"uni.scanCode.album\":\"Album\",\"uni.scanCode.fail\":\"Fallo de reconocimiento\",\"uni.scanCode.flash.on\":\"Appuyez pour activer l'éclairage\",\"uni.scanCode.flash.off\":\"Appuyez pour désactiver l'éclairage\",\"uni.startSoterAuthentication.authContent\":\"Reconnaissance de l'empreinte digitale\",\"uni.picker.done\":\"OK\",\"uni.picker.cancel\":\"Annuler\",\"uni.video.danmu\":\"Danmu\",\"uni.video.volume\":\"Le Volume\",\"uni.button.feedback.title\":\"retour d'information\",\"uni.button.feedback.send\":\"envoyer\"}");
+
+/***/ }),
+
 /***/ "b501":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setClipboardData", function() { return setClipboardData; });
+/* harmony import */ var uni_core_helpers_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("a6b0");
+
 var setClipboardData = {
   beforeSuccess: function beforeSuccess() {
-    uni.showToast({
-      title: '内容已复制',
-      icon: 'success',
-      mask: false
-    });
+    var title = Object(uni_core_helpers_i18n__WEBPACK_IMPORTED_MODULE_0__[/* t */ "c"])('uni.setClipboardData.success');
+
+    if (title) {
+      uni.showToast({
+        title: Object(uni_core_helpers_i18n__WEBPACK_IMPORTED_MODULE_0__[/* t */ "c"])('uni.setClipboardData.success'),
+        icon: 'success',
+        mask: false,
+        style: {
+          width: undefined
+        }
+      });
+    }
   }
 };
 
@@ -24358,6 +27913,7 @@ var setClipboardData = {
 "use strict";
 /* WEBPACK VAR INJECTION */(function(console) {/* harmony import */ var uni_mixins_scroller_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("8aec");
 /* harmony import */ var uni_shared__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("f2b3");
+/* harmony import */ var uni_platform_helpers_scroll__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("d4cd");
 //
 //
 //
@@ -24430,7 +27986,8 @@ var setClipboardData = {
 //
 
 
-var passiveOptions = uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* supportsPassive */ "o"] ? {
+
+var passiveOptions = uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* supportsPassive */ "p"] ? {
   passive: true
 } : false; // const PULLING = 'pulling'
 // const REFRESHING = 'refreshing'
@@ -24552,7 +28109,7 @@ var passiveOptions = uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* supportsPassive 
 
     this._scrollIntoViewChanged(this.scrollIntoView);
 
-    this.__handleScroll = function (e) {
+    this.__handleScroll = function (event) {
       event.preventDefault();
       event.stopPropagation();
 
@@ -24625,7 +28182,7 @@ var passiveOptions = uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* supportsPassive 
 
     this.__handleTouchStart = function (event) {
       if (event.touches.length === 1) {
-        Object(uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* disableScrollBounce */ "e"])({
+        Object(uni_platform_helpers_scroll__WEBPACK_IMPORTED_MODULE_2__[/* disableScrollBounce */ "a"])({
           disable: true
         });
         needStop = null;
@@ -24642,7 +28199,7 @@ var passiveOptions = uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* supportsPassive 
 
     this.__handleTouchEnd = function (event) {
       touchStart = null;
-      Object(uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* disableScrollBounce */ "e"])({
+      Object(uni_platform_helpers_scroll__WEBPACK_IMPORTED_MODULE_2__[/* disableScrollBounce */ "a"])({
         disable: false
       });
 
@@ -24656,10 +28213,11 @@ var passiveOptions = uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* supportsPassive 
 
     this.$refs.main.addEventListener('touchstart', this.__handleTouchStart, passiveOptions);
     this.$refs.main.addEventListener('touchmove', this.__handleTouchMove, passiveOptions);
-    this.$refs.main.addEventListener('scroll', this.__handleScroll, uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* supportsPassive */ "o"] ? {
+    this.$refs.main.addEventListener('scroll', this.__handleScroll, uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* supportsPassive */ "p"] ? {
       passive: false
     } : false);
     this.$refs.main.addEventListener('touchend', this.__handleTouchEnd, passiveOptions);
+    Object(uni_platform_helpers_scroll__WEBPACK_IMPORTED_MODULE_2__[/* initScrollBounce */ "b"])();
   },
   activated: function activated() {
     // 还原 scroll-view 滚动位置
@@ -24669,7 +28227,7 @@ var passiveOptions = uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* supportsPassive 
   beforeDestroy: function beforeDestroy() {
     this.$refs.main.removeEventListener('touchstart', this.__handleTouchStart, passiveOptions);
     this.$refs.main.removeEventListener('touchmove', this.__handleTouchMove, passiveOptions);
-    this.$refs.main.removeEventListener('scroll', this.__handleScroll, uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* supportsPassive */ "o"] ? {
+    this.$refs.main.removeEventListener('scroll', this.__handleScroll, uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* supportsPassive */ "p"] ? {
       passive: false
     } : false);
     this.$refs.main.removeEventListener('touchend', this.__handleTouchEnd, passiveOptions);
@@ -24822,9 +28380,7 @@ var passiveOptions = uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* supportsPassive 
     _scrollIntoViewChanged: function _scrollIntoViewChanged(val) {
       if (val) {
         if (!/^[_a-zA-Z][-_a-zA-Z0-9:]*$/.test(val)) {
-          console.group('scroll-into-view="' + val + '" 有误');
-          console.error('id 属性值格式错误。如不能以数字开头。');
-          console.groupEnd();
+          console.error("id error: scroll-into-view=".concat(val));
           return;
         }
 
@@ -24897,7 +28453,9 @@ var passiveOptions = uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* supportsPassive 
       var main = this.$refs.main;
       return {
         scrollLeft: main.scrollLeft,
-        scrollTop: main.scrollTop
+        scrollTop: main.scrollTop,
+        scrollHeight: main.scrollHeight,
+        scrollWidth: main.scrollWidth
       };
     }
   }
@@ -24924,7 +28482,7 @@ var passiveOptions = uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* supportsPassive 
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/rich-text/index.vue?vue&type=template&id=1603a562&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/rich-text/index.vue?vue&type=template&id=1603a562&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-rich-text',_vm._g({},_vm.$listeners),[_c('div')])}
 var staticRenderFns = []
 
@@ -24934,7 +28492,7 @@ var staticRenderFns = []
 // EXTERNAL MODULE: ./src/core/view/components/rich-text/html-parser.js
 var html_parser = __webpack_require__("b10a");
 
-// EXTERNAL MODULE: ./src/shared/index.js + 7 modules
+// EXTERNAL MODULE: ./src/shared/index.js + 6 modules
 var shared = __webpack_require__("f2b3");
 
 // CONCATENATED MODULE: ./src/core/view/components/rich-text/nodes-parser.js
@@ -24942,9 +28500,18 @@ var shared = __webpack_require__("f2b3");
 var TAGS = {
   a: '',
   abbr: '',
+  address: '',
+  article: '',
+  aside: '',
   b: '',
+  bdi: '',
+  bdo: ['dir'],
+  big: '',
   blockquote: '',
   br: '',
+  caption: '',
+  center: '',
+  cite: '',
   code: '',
   col: ['span', 'width'],
   colgroup: ['span', 'width'],
@@ -24955,12 +28522,15 @@ var TAGS = {
   dt: '',
   em: '',
   fieldset: '',
+  font: '',
+  footer: '',
   h1: '',
   h2: '',
   h3: '',
   h4: '',
   h5: '',
   h6: '',
+  header: '',
   hr: '',
   i: '',
   img: ['alt', 'src', 'height', 'width'],
@@ -24968,20 +28538,30 @@ var TAGS = {
   label: '',
   legend: '',
   li: '',
+  mark: '',
+  nav: '',
   ol: ['start', 'type'],
   p: '',
+  pre: '',
   q: '',
+  rt: '',
+  ruby: '',
+  s: '',
+  section: '',
+  small: '',
   span: '',
   strong: '',
   sub: '',
   sup: '',
   table: ['width'],
   tbody: '',
-  td: ['colspan', 'rowspan', 'height', 'width'],
+  td: ['colspan', 'height', 'rowspan', 'width'],
   tfoot: '',
-  th: ['colspan', 'rowspan', 'height', 'width'],
+  th: ['colspan', 'height', 'rowspan', 'width'],
   thead: '',
-  tr: '',
+  tr: ['colspan', 'height', 'rowspan', 'width'],
+  tt: '',
+  u: '',
   ul: ''
 };
 var CHARS = {
@@ -24995,7 +28575,7 @@ var CHARS = {
 
 function decodeEntities(htmlString) {
   return htmlString.replace(/&(([a-zA-Z]+)|(#x{0,1}[\da-zA-Z]+));/gi, function (match, stage) {
-    if (Object(shared["h" /* hasOwn */])(CHARS, stage) && CHARS[stage]) {
+    if (Object(shared["i" /* hasOwn */])(CHARS, stage) && CHARS[stage]) {
       return CHARS[stage];
     }
 
@@ -25015,18 +28595,18 @@ function decodeEntities(htmlString) {
 
 function parseNodes(nodes, parentNode) {
   nodes.forEach(function (node) {
-    if (!Object(shared["k" /* isPlainObject */])(node)) {
+    if (!Object(shared["l" /* isPlainObject */])(node)) {
       return;
     }
 
-    if (!Object(shared["h" /* hasOwn */])(node, 'type') || node.type === 'node') {
+    if (!Object(shared["i" /* hasOwn */])(node, 'type') || node.type === 'node') {
       if (!(typeof node.name === 'string' && node.name)) {
         return;
       }
 
       var tagName = node.name.toLowerCase();
 
-      if (!Object(shared["h" /* hasOwn */])(TAGS, tagName)) {
+      if (!Object(shared["i" /* hasOwn */])(TAGS, tagName)) {
         return;
       }
 
@@ -25038,7 +28618,7 @@ function parseNodes(nodes, parentNode) {
 
       var attrs = node.attrs;
 
-      if (Object(shared["k" /* isPlainObject */])(attrs)) {
+      if (Object(shared["l" /* isPlainObject */])(attrs)) {
         var tagAttrs = TAGS[tagName] || [];
         Object.keys(attrs).forEach(function (name) {
           var value = attrs[name];
@@ -25186,44 +28766,30 @@ var getImageInfo = {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/**
- * 给元素添加监听
- * @param {*} element
- * @param {*} type
- * @param {*} callback
- * @param {*} capture
- */
 var addListenerToElement = function addListenerToElement(element, type, callback, capture) {
   // 暂时忽略 capture
-  //
   element.addEventListener(type, function ($event) {
-    // 回调时函数
     if (typeof callback === 'function') {
-      // 调用函数返回false,调用阻止默认事件，和事件冒泡
       if (callback($event) === false) {
         $event.preventDefault();
         $event.stopPropagation();
       }
     }
   }, {
+    capture: capture,
     passive: false
   });
 };
 
 /* harmony default export */ __webpack_exports__["a"] = ({
   beforeDestroy: function beforeDestroy() {
-    // 卸载事件监听，movsemove
     document.removeEventListener('mousemove', this.__mouseMoveEventListener);
     document.removeEventListener('mouseup', this.__mouseUpEventListener);
   },
   methods: {
-    /**
-     * 手势追踪
-     * @param {*} element 元素
-     * @param {*} method 方法
-     * @param {*} useCancel
-     */
     touchtrack: function touchtrack(element, method, useCancel) {
+      var _this = this;
+
       var self = this;
       var x0 = 0;
       var y0 = 0;
@@ -25231,21 +28797,13 @@ var addListenerToElement = function addListenerToElement(element, type, callback
       var y1 = 0;
 
       var fn = function fn($event, state, x, y) {
-        // 元素
         if (self[method]({
-          // 事件目标
           target: $event.target,
-          // 当前事件目标
           currentTarget: $event.currentTarget,
-          // 阻止默认事件
           preventDefault: $event.preventDefault.bind($event),
-          // 阻止冒泡
           stopPropagation: $event.stopPropagation.bind($event),
-          // 事件触摸点
           touches: $event.touches,
-          // 触摸点更改
           changedTouches: $event.changedTouches,
-          //
           detail: {
             state: state,
             x0: x,
@@ -25262,23 +28820,19 @@ var addListenerToElement = function addListenerToElement(element, type, callback
       };
 
       var $eventOld = null;
+      var hasClickListenerOld;
       var hasTouchStart;
-      var hasMouseDown; // 给元素添加触摸开始事件
-
+      var hasMouseDown;
       addListenerToElement(element, 'touchstart', function ($event) {
-        hasTouchStart = true; // 触摸点数量===1 && $eventOld 不存在
+        hasTouchStart = true;
 
         if ($event.touches.length === 1 && !$eventOld) {
-          // 将事件赋值给 $eventOld
-          $eventOld = $event; // 获取触摸点的坐标
-
+          $eventOld = $event;
           x0 = x1 = $event.touches[0].pageX;
-          y0 = y1 = $event.touches[0].pageY; //
-
+          y0 = y1 = $event.touches[0].pageY;
           return fn($event, 'start', x0, y0);
         }
-      }); // 鼠标按下
-
+      });
       addListenerToElement(element, 'mousedown', function ($event) {
         hasMouseDown = true;
 
@@ -25289,59 +28843,65 @@ var addListenerToElement = function addListenerToElement(element, type, callback
           y0 = y1 = $event.pageY;
           return fn($event, 'start', x0, y0);
         }
-      }); // 手势移动
-
+      });
       addListenerToElement(element, 'touchmove', function ($event) {
-        // 只有一个手势 存在 $eventOld
         if ($event.touches.length === 1 && $eventOld) {
-          //
-          var res = fn($event, 'move', $event.touches[0].pageX, $event.touches[0].pageY); // 获取触摸点的坐标
-
+          var res = fn($event, 'move', $event.touches[0].pageX, $event.touches[0].pageY);
           x1 = $event.touches[0].pageX;
           y1 = $event.touches[0].pageY;
           return res;
         }
-      }); // 鼠标移动事件监听
+      }); // 阻止点击事件传播，处理拖拽和点击冲突，鼠标移动则添加监听，停止移动则移除监听
+
+      var clickEventListener = this.__clickEventListener = function ($event) {
+        $event.preventDefault();
+        $event.stopPropagation();
+      };
 
       var mouseMoveEventListener = this.__mouseMoveEventListener = function ($event) {
-        // 没有开始触摸事件 && 有鼠标按下 &&
         if (!hasTouchStart && hasMouseDown && $eventOld) {
-          // TODO target currentTarget touches changedTouches
-          var res = fn($event, 'move', $event.pageX, $event.pageY); // 获取事件对象的坐标点
+          // 存在鼠标移动，则在 document 上添加点击监听（好处是不用管具体使用拖拽的是什么元素）
+          if (!hasClickListenerOld && (Math.abs(x1 - x0) > 2 || Math.abs(y1 - y0) > 2)) {
+            document.addEventListener('click', clickEventListener, true);
+            hasClickListenerOld = true;
+          } // TODO target currentTarget touches changedTouches
 
+
+          var res = fn($event, 'move', $event.pageX, $event.pageY);
           x1 = $event.pageX;
           y1 = $event.pageY;
           return res;
         }
-      }; // 注册鼠标移动事件
+      };
 
-
-      document.addEventListener('mousemove', mouseMoveEventListener); // 添加touchend事件
-
+      document.addEventListener('mousemove', mouseMoveEventListener);
       addListenerToElement(element, 'touchend', function ($event) {
-        // 没有触摸点 &&
         if ($event.touches.length === 0 && $eventOld) {
-          // 清理变量
           hasTouchStart = false;
           $eventOld = null;
           return fn($event, 'end', $event.changedTouches[0].pageX, $event.changedTouches[0].pageY);
         }
-      }); // 鼠标抬起事件监听
+      });
 
       var mouseUpEventListener = this.__mouseUpEventListener = function ($event) {
-        // 鼠标按下为false
-        hasMouseDown = false; // 没有触摸开始 &&
+        hasMouseDown = false;
 
         if (!hasTouchStart && $eventOld) {
-          // TODO target currentTarget touches changedTouches
+          // 鼠标抬起，存在监听，则 mouseup 结束后移除就监听事件
+          if (hasClickListenerOld) {
+            setTimeout(function () {
+              document.removeEventListener('click', _this.__clickEventListener, true);
+              hasClickListenerOld = false;
+            }, 0);
+          } // TODO target currentTarget touches changedTouches
+
+
           $eventOld = null;
           return fn($event, 'end', $event.pageX, $event.pageY);
         }
-      }; // 注册 mouseup 事件
+      };
 
-
-      document.addEventListener('mouseup', mouseUpEventListener); // 添加touchcancel事件监听
-
+      document.addEventListener('mouseup', mouseUpEventListener);
       addListenerToElement(element, 'touchcancel', function ($event) {
         if ($eventOld) {
           hasTouchStart = false;
@@ -25356,53 +28916,6 @@ var addListenerToElement = function addListenerToElement(element, type, callback
 
 /***/ }),
 
-/***/ "bab8":
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/system-routes/system-header.vue?vue&type=template&id=05f7e948&
-var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"system-header"},[_c('div',{staticClass:"header-text"},[_vm._t("default")],2),_c('div',{staticClass:"header-btn header-back uni-btn-icon header-btn-icon",on:{"click":_vm._back}},[_vm._v("  ")]),(_vm.confirm)?_c('div',{staticClass:"header-btn header-confirm",on:{"click":_vm._confirm}},[_c('svg',{staticClass:"header-btn-img",attrs:{"width":"200px","height":"200.00px","viewBox":"0 0 1024 1024","version":"1.1","xmlns":"http://www.w3.org/2000/svg"}},[_c('path',{attrs:{"d":"M939.6960642844446 226.08613831111114c-14.635971697777777-13.725872355555557-37.719236835555556-13.070208568888889-51.445109191111115 1.6029502577777779L402.69993870222225 744.6571451733333 137.46159843555557 483.31364238222227c-14.344349013333334-14.12709944888889-37.392384-13.98030904888889-51.51948344888889 0.3640399644444444-14.12709944888889 14.30911886222222-13.945078897777778 37.392384 0.40122709333333334 51.482296319999996l291.8171704888889 287.48392106666665c0.10960327111111111 0.10960327111111111 0.2544366933333333 0.1448334222222222 0.3640399644444444 0.2544366933333333s0.1448334222222222 0.2544366933333333 0.2544366933333333 0.3640399644444444c2.293843057777778 2.1842397866666667 5.061329351111111 3.4231500799999997 7.719212373333333 4.879309937777777 1.3113264355555554 0.7652670577777777 2.43867648 1.8926159644444445 3.822419057777778 2.43867648 4.2960634311111106 1.6753664 8.846562417777779 2.548279751111111 13.361832391111111 2.548279751111111 4.769706666666666 0 9.539412195555554-0.9472864711111111 13.98030904888889-2.839903573333333 1.4933469866666664-0.6184766577777778 2.6578830222222223-1.8926159644444445 4.0416267377777775-2.6950701511111115 2.7302991644444448-1.6029502577777779 5.5702027377777785-2.9495068444444446 7.901232924444444-5.315766044444445 0.10960327111111111-0.10960327111111111 0.1448334222222222-0.2916238222222222 0.2544366933333333-0.40122709333333334 0.07241614222222222-0.10960327111111111 0.21920654222222222-0.1448334222222222 0.3268528355555555-0.2544366933333333L941.2579134577779 277.5273335466667C955.0953460622222 262.9305059555556 954.3320359822221 239.8844279466666 939.6960642844446 226.08613831111114z"}})])]):_vm._e()])}
-var staticRenderFns = []
-
-
-// CONCATENATED MODULE: ./src/platforms/h5/components/system-routes/system-header.vue?vue&type=template&id=05f7e948&
-
-// EXTERNAL MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/components/system-routes/system-header.vue?vue&type=script&lang=js&
-var system_headervue_type_script_lang_js_ = __webpack_require__("98e3");
-
-// CONCATENATED MODULE: ./src/platforms/h5/components/system-routes/system-header.vue?vue&type=script&lang=js&
- /* harmony default export */ var system_routes_system_headervue_type_script_lang_js_ = (system_headervue_type_script_lang_js_["a" /* default */]); 
-// EXTERNAL MODULE: ./src/platforms/h5/components/system-routes/system-header.vue?vue&type=style&index=0&lang=css&
-var system_headervue_type_style_index_0_lang_css_ = __webpack_require__("0a32");
-
-// EXTERNAL MODULE: ./node_modules/vue-loader/lib/runtime/componentNormalizer.js
-var componentNormalizer = __webpack_require__("2877");
-
-// CONCATENATED MODULE: ./src/platforms/h5/components/system-routes/system-header.vue
-
-
-
-
-
-
-/* normalize component */
-
-var component = Object(componentNormalizer["a" /* default */])(
-  system_routes_system_headervue_type_script_lang_js_,
-  render,
-  staticRenderFns,
-  false,
-  null,
-  null,
-  null
-  
-)
-
-/* harmony default export */ var system_header = __webpack_exports__["a"] = (component.exports);
-
-/***/ }),
-
 /***/ "bacd":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -25410,12 +28923,12 @@ var component = Object(componentNormalizer["a" /* default */])(
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/canvas/index.vue?vue&type=template&id=3e6449de&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/canvas/index.vue?vue&type=template&id=acab7742&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-canvas',_vm._g({attrs:{"canvas-id":_vm.canvasId,"disable-scroll":_vm.disableScroll}},_vm._listeners),[_c('canvas',{ref:"canvas",attrs:{"width":"300","height":"150"}}),_c('div',{staticStyle:{"position":"absolute","top":"0","left":"0","width":"100%","height":"100%","overflow":"hidden"}},[_vm._t("default")],2),_c('v-uni-resize-sensor',{ref:"sensor",on:{"resize":_vm._resize}})],1)}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/core/view/components/canvas/index.vue?vue&type=template&id=3e6449de&
+// CONCATENATED MODULE: ./src/core/view/components/canvas/index.vue?vue&type=template&id=acab7742&
 
 // EXTERNAL MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/canvas/index.vue?vue&type=script&lang=js&
 var canvasvue_type_script_lang_js_ = __webpack_require__("e1df");
@@ -25452,11 +28965,42 @@ var component = Object(componentNormalizer["a" /* default */])(
 
 /***/ }),
 
+/***/ "bb00":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "onKeyboardHeightChange", function() { return onKeyboardHeightChange; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "offKeyboardHeightChange", function() { return offKeyboardHeightChange; });
+/* harmony import */ var uni_core_service_bridge__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("a118");
+/* harmony import */ var _platform__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("db70");
+
+
+var callback;
+Object(_platform__WEBPACK_IMPORTED_MODULE_1__[/* onMethod */ "d"])('onKeyboardHeightChange', function (res) {
+  if (callback) {
+    Object(uni_core_service_bridge__WEBPACK_IMPORTED_MODULE_0__[/* invoke */ "a"])(callback, res);
+  }
+});
+function onKeyboardHeightChange(callbackId) {
+  // 与微信小程序一致仅保留最后一次监听
+  Object(uni_core_service_bridge__WEBPACK_IMPORTED_MODULE_0__[/* remove */ "b"])(callback);
+  callback = callbackId;
+}
+function offKeyboardHeightChange() {
+  // 与微信小程序一致移除最后一次监听
+  callback = null;
+}
+
+/***/ }),
+
 /***/ "bbc6":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {/* harmony import */ var uni_platform_helpers_get_real_path__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("cb0f");
+/* harmony import */ var uni_shared__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("f2b3");
+/* harmony import */ var uni_platform_service_bridge__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("b865");
 //
 //
 //
@@ -25628,6 +29172,60 @@ var component = Object(componentNormalizer["a" /* default */])(
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+
+function cssSupports(css) {
+  return window.CSS && CSS.supports && (CSS.supports(css) || CSS.supports.apply(CSS, css.split(':')));
+}
 
 /* harmony default export */ __webpack_exports__["a"] = ({
   name: 'TabBar',
@@ -25648,39 +29246,108 @@ var component = Object(componentNormalizer["a" /* default */])(
     },
     backgroundColor: {
       type: String,
-      default: '#f7f7fa'
+      default: ''
     },
     borderStyle: {
-      default: 'black',
-      validator: function validator(value) {
-        return ['black', 'white'].indexOf(value) !== -1;
-      }
+      type: String,
+      default: 'black'
     },
     list: {
       type: Array,
       default: function _default() {
         return [];
       }
+    },
+    matchMedia: {
+      type: Object,
+      default: function _default() {
+        return {};
+      }
+    },
+    blurEffect: {
+      type: String,
+      default: 'none'
+    },
+    fontSize: {
+      type: String,
+      default: '10px'
+    },
+    iconWidth: {
+      type: String,
+      default: '24px'
+    },
+    spacing: {
+      type: String,
+      default: '3px'
+    },
+    height: {
+      type: String,
+      default: '50px'
+    },
+    midButton: {
+      type: Object,
+      default: null
     }
   },
+  data: function data() {
+    return {
+      selectedIndex: 0
+    };
+  },
   computed: {
+    tabbarBackgroundColor: function tabbarBackgroundColor() {
+      // 背景色 区分 高斯模糊 分别返回
+      var DefaultBgColor = '#f7f7fa';
+      if (this.backgroundColor) return this.backgroundColor;
+
+      if (cssSupports('backdrop-filter:blur(10px)') && this.blurEffect !== 'none') {
+        if (this.blurEffect === 'dark') {
+          return 'rgb(0, 0, 0, 0.8)';
+        }
+
+        if (['light', 'extralight'].includes(this.blurEffect)) {
+          return 'rgb(250, 250, 250, 0.8)';
+        }
+      }
+
+      return DefaultBgColor;
+    },
     borderColor: function borderColor() {
-      return this.borderStyle === 'white' ? 'rgba(255, 255, 255, 0.33)' : 'rgba(0, 0, 0, 0.33)';
+      // 不再限制可配置颜色值
+      if (this.borderStyle === 'white') return 'rgba(255, 255, 255, 0.33)';
+      if (this.borderStyle === 'black') return 'rgba(0, 0, 0, 0.33)';
+      return this.borderStyle;
     }
   },
   watch: {
-    '$route': function $route(to, from) {
-      if (to.meta.isTabBar) {
-        this.__path__ = to.path;
+    $route: {
+      immediate: true,
+      handler: function handler(to) {
+        if (to.meta.isTabBar) {
+          this.__path__ = to.path;
+          var index = this.list.findIndex(function (item) {
+            return to.meta.pagePath === item.pagePath;
+          });
+
+          if (index > -1) {
+            this.selectedIndex = index;
+          }
+        }
       }
     }
+  },
+  created: function created() {
+    this._initMidButton();
   },
   beforeCreate: function beforeCreate() {
     this.__path__ = this.$route.path;
   },
   methods: {
     _getRealPath: function _getRealPath(filePath) {
-      if (filePath.indexOf('/') !== 0) {
+      var SCHEME_RE = /^([a-z-]+:)?\/\//i;
+      var DATA_RE = /^data:.*,.*/;
+
+      if (!(SCHEME_RE.test(filePath) || DATA_RE.test(filePath)) && filePath.indexOf('/') !== 0) {
         filePath = '/' + filePath;
       }
 
@@ -25688,7 +29355,16 @@ var component = Object(componentNormalizer["a" /* default */])(
     },
     _switchTab: function _switchTab(_ref, index) {
       var text = _ref.text,
-          pagePath = _ref.pagePath;
+          pagePath = _ref.pagePath,
+          _ref$isMidButton = _ref.isMidButton,
+          isMidButton = _ref$isMidButton === void 0 ? false : _ref$isMidButton;
+
+      if (isMidButton) {
+        Object(uni_platform_service_bridge__WEBPACK_IMPORTED_MODULE_2__[/* publish */ "a"])('onTabBarMidButtonTap');
+        return;
+      }
+
+      this.selectedIndex = index;
       var url = '/' + pagePath;
 
       if (url === __uniRoutes[0].alias) {
@@ -25711,6 +29387,33 @@ var component = Object(componentNormalizer["a" /* default */])(
       } else {
         UniServiceJSBridge.emit('onTabItemTap', detail);
       }
+    },
+    _initMidButton: function _initMidButton() {
+      var listLength = this.list.length; // 偶数则添加midButton
+
+      if (listLength % 2 === 0 && Object(uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* isPlainObject */ "l"])(this.midButton)) {
+        // 给midButton赋值默认值
+        var DefaultMidButton = {
+          width: '50px',
+          height: '50px',
+          iconWidth: '24px'
+        };
+
+        for (var key in DefaultMidButton) {
+          this.midButton[key] = this.midButton[key] || DefaultMidButton[key];
+        }
+
+        this.list.splice(~~(listLength / 2), 0, Object.assign({}, this.midButton, {
+          isMidButton: true
+        }));
+      }
+    },
+    _uniTabbarBdStyle: function _uniTabbarBdStyle(item) {
+      return Object.assign({}, {
+        width: item.width,
+        height: item.height,
+        backgroundImage: item.backgroundImage ? 'url(\'' + this._getRealPath(item.backgroundImage) + '\')' : ''
+      });
     }
   }
 });
@@ -25732,11 +29435,11 @@ var map = {
 	"./context/create-map-context.js": "bfa6",
 	"./context/create-video-context.js": "ee03",
 	"./context/editor.js": "60db",
-	"./device/accelerometer.js": "7d13",
-	"./device/bluetooth.js": "9481",
-	"./device/compass.js": "e4ee",
+	"./context/inner-audio.js": "57a7",
 	"./device/network.js": "8b3f",
 	"./device/theme.js": "d001",
+	"./keyboard/get-selected-text-range.js": "d502",
+	"./keyboard/keyboard.js": "bb00",
 	"./media/preview-image.js": "898f",
 	"./media/recorder.js": "3676",
 	"./network/download-file.js": "f0c3",
@@ -25746,8 +29449,8 @@ var map = {
 	"./network/upload-file.js": "1ff3",
 	"./ui/create-animation.js": "1e4d",
 	"./ui/create-intersection-observer.js": "091a",
+	"./ui/create-media-query-observer.js": "68fb",
 	"./ui/create-selector-query.js": "af33",
-	"./ui/keyboard.js": "78a1",
 	"./ui/load-font-face.js": "0001",
 	"./ui/page-scroll-to.js": "84e0",
 	"./ui/set-page-meta.js": "2ec6",
@@ -25774,6 +29477,19 @@ webpackContext.keys = function webpackContextKeys() {
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
 webpackContext.id = "bdb1";
+
+/***/ }),
+
+/***/ "bdbe":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return tabBar; });
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("8bbf");
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(vue__WEBPACK_IMPORTED_MODULE_0__);
+
+__uniConfig.tabBar = vue__WEBPACK_IMPORTED_MODULE_0___default.a.observable(__uniConfig.tabBar || {});
+var tabBar = __uniConfig.tabBar;
 
 /***/ }),
 
@@ -26101,7 +29817,7 @@ UniServiceJSBridge.subscribe('onMapMethodCallback', function (_ref) {
       data = _ref.data;
   uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* callback */ "a"].invoke(callbackId, data);
 });
-var methods = ['getCenterLocation', 'moveToLocation', 'getScale', 'getRegion', 'includePoints', 'translateMarker'];
+var methods = ['getCenterLocation', 'moveToLocation', 'getScale', 'getRegion', 'includePoints', 'translateMarker', 'addCustomLayer', 'removeCustomLayer', 'addGroundOverlay', 'removeGroundOverlay', 'updateGroundOverlay', 'initMarkerCluster', 'addMarkers', 'removeMarkers', 'moveAlong', 'openMapApp'];
 var MapContext = function MapContext(id, pageVm) {
   _classCallCheck(this, MapContext);
 
@@ -26110,7 +29826,7 @@ var MapContext = function MapContext(id, pageVm) {
 };
 
 MapContext.prototype.$getAppMap = function () {
-  return plus.maps.getMapById(this.pageVm.$page.id + '-map-' + this.id);
+  if (false) {}
 };
 
 methods.forEach(function (method) {
@@ -26350,7 +30066,7 @@ function getBackgroundAudioManager() {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/cover-view/index.vue?vue&type=template&id=a4da35e0&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/cover-view/index.vue?vue&type=template&id=a4da35e0&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-cover-view',_vm._g({attrs:{"scroll-top":_vm.scrollTop}},_vm.$listeners),[_c('div',{ref:"content",staticClass:"uni-cover-view"},[_vm._t("default")],2)])}
 var staticRenderFns = []
 
@@ -26537,7 +30253,7 @@ var ComponentDescriptor = /*#__PURE__*/function () {
         style = parseStyleText(style);
       }
 
-      if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(style)) {
+      if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(style)) {
         this.$el.__wxsStyle = style;
         this.$vm.$forceUpdate();
       }
@@ -26625,7 +30341,7 @@ var ComponentDescriptor = /*#__PURE__*/function () {
     value: function callMethod(funcName) {
       var args = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-      if (this.$vm[funcName]) {
+      if (funcName in this.$vm) {
         this.$vm[funcName](JSON.parse(JSON.stringify(args)));
       } else if (this.$vm._$id) {
         UniViewJSBridge.publishHandler('onWxsInvokeCallMethod', {
@@ -26664,14 +30380,15 @@ function createComponentDescriptor(vm) {
   if (isOwnerInstance && vm && vm.$options.name && vm.$options.name.indexOf('VUni') === 0) {
     // ownerInstance 内置组件需要使用父 vm
     vm = vm.$parent;
-  }
+  } // 改为挂载到 vm 实例，不同 vm 实例的 $el 可能重复
 
-  if (vm && vm.$el) {
-    if (!vm.$el.__wxsComponentDescriptor) {
-      vm.$el.__wxsComponentDescriptor = new ComponentDescriptor(vm);
+
+  if (vm) {
+    if (!('__wxsComponentDescriptor' in vm)) {
+      vm.__wxsComponentDescriptor = new ComponentDescriptor(vm);
     }
 
-    return vm.$el.__wxsComponentDescriptor;
+    return vm.__wxsComponentDescriptor;
   }
 }
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("501c"), __webpack_require__("c8ba")))
@@ -26685,10 +30402,14 @@ function createComponentDescriptor(vm) {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// EXTERNAL MODULE: ./src/shared/index.js + 7 modules
+// EXTERNAL MODULE: ./src/shared/index.js + 6 modules
 var shared = __webpack_require__("f2b3");
 
+// EXTERNAL MODULE: ./src/platforms/h5/helpers/scroll.js
+var helpers_scroll = __webpack_require__("d4cd");
+
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/movable-area/index.vue?vue&type=script&lang=js&
+
 
 
 function calc(e) {
@@ -26719,6 +30440,8 @@ function calc(e) {
   },
   mounted: function mounted() {
     this._resize();
+
+    Object(helpers_scroll["b" /* initScrollBounce */])();
   },
   methods: {
     _resize: function _resize() {
@@ -26751,7 +30474,7 @@ function calc(e) {
       return get(target);
     },
     _touchstart: function _touchstart(t) {
-      Object(shared["e" /* disableScrollBounce */])({
+      Object(helpers_scroll["a" /* disableScrollBounce */])({
         disable: true
       });
       var i = t.touches;
@@ -26797,7 +30520,7 @@ function calc(e) {
       }
     },
     _touchend: function _touchend(e) {
-      Object(shared["e" /* disableScrollBounce */])({
+      Object(helpers_scroll["a" /* disableScrollBounce */])({
         disable: false
       });
       var t = e.touches;
@@ -26848,7 +30571,7 @@ function calc(e) {
     var _this = this;
 
     var items = [];
-    var $slots = this.$slots.default && Object(shared["d" /* deepClone */])(this.$slots.default, createElement);
+    var $slots = this.$slots.default && Object(shared["f" /* deepClone */])(this.$slots.default, createElement);
 
     if ($slots) {
       $slots.forEach(function (vnode) {
@@ -27027,6 +30750,11 @@ function addBase(filePath) {
 }
 
 function getRealPath(filePath) {
+  // 相对路径模式对静态资源路径特殊处理
+  if (__uniConfig.router.base === './') {
+    filePath = filePath.replace(/^\.\/static\//, '/static/');
+  }
+
   if (filePath.indexOf('/') === 0) {
     if (filePath.indexOf('//') === 0) {
       filePath = 'https:' + filePath;
@@ -27084,17 +30812,38 @@ modules.keys().forEach(function (key) {
 
 /***/ }),
 
+/***/ "cf6f":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return saveImage; });
+function saveImage(base64, dirname, callback) {
+  callback(null, base64);
+}
+
+/***/ }),
+
 /***/ "d001":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* WEBPACK VAR INJECTION */(function(console) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "onThemeChange", function() { return onThemeChange; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "onUIStyleChange", function() { return onUIStyleChange; });
 /* harmony import */ var uni_core_service_bridge__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("a118");
 /* harmony import */ var _platform__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("db70");
 
 
 var callbacks = [];
+Object(_platform__WEBPACK_IMPORTED_MODULE_1__[/* onMethod */ "d"])('onThemeChange', function (res) {
+  callbacks.forEach(function (callbackId) {
+    Object(uni_core_service_bridge__WEBPACK_IMPORTED_MODULE_0__[/* invoke */ "a"])(callbackId, res);
+  });
+});
+function onThemeChange(callbackId) {
+  callbacks.push(callbackId);
+} // 旧版本 API，后期文档更新后考虑移除
+
 Object(_platform__WEBPACK_IMPORTED_MODULE_1__[/* onMethod */ "d"])('onUIStyleChange', function (res) {
   callbacks.forEach(function (callbackId) {
     Object(uni_core_service_bridge__WEBPACK_IMPORTED_MODULE_0__[/* invoke */ "a"])(callbackId, res);
@@ -27102,7 +30851,9 @@ Object(_platform__WEBPACK_IMPORTED_MODULE_1__[/* onMethod */ "d"])('onUIStyleCha
 });
 function onUIStyleChange(callbackId) {
   callbacks.push(callbackId);
+  console.warn('The "uni.onUIStyleChange" API is deprecated, please use "uni.onThemeChange". Learn more: https://uniapp.dcloud.net.cn/api/system/theme.');
 }
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("3ad9")["default"]))
 
 /***/ }),
 
@@ -27155,14 +30906,18 @@ var loadSubPackage = {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 3 modules
+// EXTERNAL MODULE: ./src/core/helpers/i18n/index.js
+var i18n = __webpack_require__("a6b0");
+
+// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 1 modules
 var mixins = __webpack_require__("8af1");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/button/index.vue?vue&type=script&lang=js&
 
+
 /* harmony default export */ var buttonvue_type_script_lang_js_ = ({
   name: 'Button',
-  mixins: [mixins["c" /* hover */], mixins["b" /* emitter */], mixins["f" /* listeners */]],
+  mixins: [mixins["c" /* hover */], mixins["a" /* emitter */], mixins["f" /* listeners */]],
   props: {
     hoverClass: {
       type: String,
@@ -27230,15 +30985,15 @@ var mixins = __webpack_require__("8af1");
         return;
       }
 
-      if (this.openType === 'feedback') {
+      if (this.openType === 'feedback' && "h5" === 'app-plus') {
         var feedback = plus.webview.create('https://service.dcloud.net.cn/uniapp/feedback.html', 'feedback', {
           titleNView: {
-            titleText: '问题反馈',
+            titleText: Object(i18n["c" /* t */])('uni.button.feedback.title'),
             autoBackButton: true,
             backgroundColor: '#F7F7F7',
             titleColor: '#007aff',
             buttons: [{
-              text: '发送',
+              text: Object(i18n["c" /* t */])('uni.button.feedback.send'),
               color: '#007aff',
               fontSize: '16px',
               fontWeight: 'bold',
@@ -27372,7 +31127,7 @@ function processTarget(target, detail) {
     id: target.id,
     offsetLeft: target.offsetLeft,
     offsetTop: target.offsetTop,
-    dataset: Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_1__[/* normalizeDataset */ "c"])(target.dataset)
+    dataset: Object(uni_helpers_index__WEBPACK_IMPORTED_MODULE_1__[/* getTargetDataset */ "b"])(target)
   };
 
   if (detail) {
@@ -27451,13 +31206,23 @@ function processEvent(name) {
     stopPropagation: function stopPropagation() {}
   });
 
+  if (name.startsWith('mouse')) {
+    var _getWindowOffset3 = Object(uni_platform_helpers_get_window_offset__WEBPACK_IMPORTED_MODULE_3__[/* default */ "a"])(),
+        _top = _getWindowOffset3.top;
+
+    ret.pageX = $event.pageX;
+    ret.pageY = $event.pageY - _top;
+    ret.clientX = $event.clientX;
+    ret.clientY = $event.clientY - _top;
+  }
+
   if (false) { var nid; }
 
   return ret;
 }
 var LONGPRESS_TIMEOUT = 350;
 var LONGPRESS_THRESHOLD = 10;
-var passiveOptions = uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* supportsPassive */ "o"] ? {
+var passiveOptions = uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* supportsPassive */ "p"] ? {
   passive: true
 } : false;
 var longPressTimer = false;
@@ -27524,6 +31289,55 @@ function initEvents() {
 
 /***/ }),
 
+/***/ "d4cd":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return initScrollBounce; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return disableScrollBounce; });
+function initScrollBounce() {}
+function disableScrollBounce(_ref) {
+  var disable = _ref.disable;
+}
+
+/***/ }),
+
+/***/ "d502":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* WEBPACK VAR INJECTION */(function(UniServiceJSBridge, console) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSelectedTextRange", function() { return getSelectedTextRange; });
+/* harmony import */ var uni_helpers_callbacks__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("62b5");
+/* harmony import */ var _platform__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("db70");
+/* harmony import */ var _bridge__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("a118");
+
+
+
+var getSelectedTextRangeEventCallbacks = Object(uni_helpers_callbacks__WEBPACK_IMPORTED_MODULE_0__[/* default */ "a"])('getSelectedTextRangeEvent');
+UniServiceJSBridge.subscribe('onGetSelectedTextRange', function (_ref) {
+  var callbackId = _ref.callbackId,
+      data = _ref.data;
+  console.log('onGetSelectedTextRange');
+  var callback = getSelectedTextRangeEventCallbacks.pop(callbackId);
+
+  if (callback) {
+    callback(data);
+  }
+});
+function getSelectedTextRange(_, callbackId) {
+  var pageId = Object(_platform__WEBPACK_IMPORTED_MODULE_1__[/* getCurrentPageId */ "a"])();
+  UniServiceJSBridge.publishHandler('getSelectedTextRange', {
+    pageId: pageId,
+    callbackId: getSelectedTextRangeEventCallbacks.push(function (res) {
+      Object(_bridge__WEBPACK_IMPORTED_MODULE_2__[/* invoke */ "a"])(callbackId, res);
+    })
+  }, pageId);
+}
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("0dd1"), __webpack_require__("3ad9")["default"]))
+
+/***/ }),
+
 /***/ "d5be":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -27531,42 +31345,16 @@ function initEvents() {
 __webpack_require__.r(__webpack_exports__);
 /* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "chooseImage", function() { return chooseImage; });
 /* harmony import */ var uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("e2e2");
-/* harmony import */ var uni_shared__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("f2b3");
+/* harmony import */ var _create_input__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("3563");
 
 
 var _UniServiceJSBridge = UniServiceJSBridge,
     invoke = _UniServiceJSBridge.invokeCallbackHandler;
 var imageInput = null;
-
-var _createInput = function _createInput(options) {
-  var inputEl = document.createElement('input');
-  inputEl.type = 'file';
-  Object(uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* updateElementStyle */ "r"])(inputEl, {
-    position: 'absolute',
-    visibility: 'hidden',
-    'z-index': -999,
-    width: 0,
-    height: 0,
-    top: 0,
-    left: 0
-  });
-  inputEl.accept = 'image/*';
-
-  if (options.count > 1) {
-    inputEl.multiple = 'multiple';
-  } // 经过测试，仅能限制只通过相机拍摄，不能限制只允许从相册选择。
-
-
-  if (options.sourceType.length === 1 && options.sourceType[0] === 'camera') {
-    inputEl.capture = 'camera';
-  }
-
-  return inputEl;
-};
-
 function chooseImage(_ref, callbackId) {
   var count = _ref.count,
-      sourceType = _ref.sourceType;
+      sourceType = _ref.sourceType,
+      extension = _ref.extension;
 
   // TODO handle sizeType 尝试通过 canvas 压缩
   if (imageInput) {
@@ -27574,9 +31362,11 @@ function chooseImage(_ref, callbackId) {
     imageInput = null;
   }
 
-  imageInput = _createInput({
+  imageInput = Object(_create_input__WEBPACK_IMPORTED_MODULE_1__["default"])({
     count: count,
-    sourceType: sourceType
+    sourceType: sourceType,
+    extension: extension,
+    type: 'image'
   });
   document.body.appendChild(imageInput);
   imageInput.addEventListener('change', function (event) {
@@ -27588,11 +31378,11 @@ function chooseImage(_ref, callbackId) {
       var filePath = void 0;
       Object.defineProperty(file, 'path', {
         get: function get() {
-          filePath = filePath || Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* fileToUrl */ "a"])(file);
+          filePath = filePath || Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_0__[/* fileToUrl */ "b"])(file);
           return filePath;
         }
       });
-      tempFiles.push(file);
+      if (i < count) tempFiles.push(file);
     };
 
     for (var i = 0; i < fileCount; i++) {
@@ -27626,14 +31416,14 @@ function chooseImage(_ref, callbackId) {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/radio-group/index.vue?vue&type=template&id=317ff5d1&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/radio-group/index.vue?vue&type=template&id=317ff5d1&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-radio-group',_vm._g({},_vm.$listeners),[_vm._t("default")],2)}
 var staticRenderFns = []
 
 
 // CONCATENATED MODULE: ./src/core/view/components/radio-group/index.vue?vue&type=template&id=317ff5d1&
 
-// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 3 modules
+// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 1 modules
 var mixins = __webpack_require__("8af1");
 
 // CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/radio-group/index.vue?vue&type=script&lang=js&
@@ -27646,7 +31436,7 @@ var mixins = __webpack_require__("8af1");
 
 /* harmony default export */ var radio_groupvue_type_script_lang_js_ = ({
   name: 'RadioGroup',
-  mixins: [mixins["b" /* emitter */], mixins["f" /* listeners */]],
+  mixins: [mixins["a" /* emitter */], mixins["f" /* listeners */]],
   props: {
     name: {
       type: String,
@@ -27768,6 +31558,53 @@ var component = Object(componentNormalizer["a" /* default */])(
 
 /***/ }),
 
+/***/ "d65e":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return initEventChannel; });
+/* unused harmony export getEventChannel */
+/* harmony import */ var _EventChannel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("28c0");
+
+var eventChannels = {};
+var eventChannelStack = [];
+var id = 0;
+function initEventChannel(events) {
+  var cache = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+  id++;
+  var eventChannel = new _EventChannel__WEBPACK_IMPORTED_MODULE_0__[/* default */ "a"](id, events);
+
+  if (cache) {
+    eventChannels[id] = eventChannel;
+    eventChannelStack.push(eventChannel);
+  }
+
+  return eventChannel;
+}
+function getEventChannel(id) {
+  if (id) {
+    var eventChannel = eventChannels[id];
+    delete eventChannels[id];
+    return eventChannel;
+  }
+
+  return eventChannelStack.shift();
+}
+/* unused harmony default export */ var _unused_webpack_default_export = ({
+  args: function args(fromArgs, toArgs) {
+    var id = initEventChannel(fromArgs.events).id;
+
+    if (fromArgs.url) {
+      fromArgs.url = fromArgs.url + (fromArgs.url.indexOf('?') === -1 ? '?' : '&') + '__id__=' + id;
+    }
+  },
+  returnValue: function returnValue(fromRes, toRes) {
+    fromRes.eventChannel = getEventChannel();
+  }
+});
+
+/***/ }),
+
 /***/ "d677":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -27775,7 +31612,7 @@ var component = Object(componentNormalizer["a" /* default */])(
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/cover-image/index.vue?vue&type=template&id=5bfd588a&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/cover-image/index.vue?vue&type=template&id=5bfd588a&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-cover-image',_vm._g({attrs:{"src":_vm.src}},_vm.$listeners),[_c('div',{staticClass:"uni-cover-image"},[(_vm.src)?_c('img',{attrs:{"src":_vm.$getRealPath(_vm.src)},on:{"load":_vm._load,"error":_vm._error}}):_vm._e()])])}
 var staticRenderFns = []
 
@@ -28049,6 +31886,64 @@ module.exports = safeAreaInsets;
 
 /***/ }),
 
+/***/ "da71":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony default export */ __webpack_exports__["a"] = ({
+  name: 'Keypress',
+  props: {
+    disable: {
+      type: Boolean,
+      default: false
+    }
+  },
+  mounted: function mounted() {
+    var _this = this;
+
+    var keyNames = {
+      esc: ['Esc', 'Escape'],
+      tab: 'Tab',
+      enter: 'Enter',
+      space: [' ', 'Spacebar'],
+      up: ['Up', 'ArrowUp'],
+      left: ['Left', 'ArrowLeft'],
+      right: ['Right', 'ArrowRight'],
+      down: ['Down', 'ArrowDown'],
+      delete: ['Backspace', 'Delete', 'Del']
+    };
+
+    var listener = function listener($event) {
+      if (_this.disable) {
+        return;
+      }
+
+      var keyName = Object.keys(keyNames).find(function (key) {
+        var keyName = $event.key;
+        var value = keyNames[key];
+        return value === keyName || Array.isArray(value) && value.includes(keyName);
+      });
+
+      if (keyName) {
+        // 避免和其他按键事件冲突
+        setTimeout(function () {
+          _this.$emit(keyName, $event);
+        }, 0);
+      }
+    };
+
+    document.addEventListener('keyup', listener);
+    this.$once('hook:beforeDestroy', function () {
+      document.removeEventListener('keyup', listener);
+    });
+  },
+  render: function render() {
+    return null;
+  }
+});
+
+/***/ }),
+
 /***/ "db18":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -28121,52 +32016,73 @@ function getCurrentPageId() {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(console) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return findElm; });
+/* WEBPACK VAR INJECTION */(function(console) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return findElm; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return elementMatchesPolyfill; });
 function findVmById(id, vm) {
-  // 组件实例的id 与传入的id 相同
   if (id === vm._$id) {
-    // 是要找的组件实例
     return vm;
-  } // 组件实例的子元素
+  }
 
-
-  var childVms = vm.$children; // 子组件的数量
-
+  var childVms = vm.$children;
   var len = childVms.length;
 
   for (var i = 0; i < len; i++) {
-    // 向下找，到子组件下找（递归查找
-    var childVm = findVmById(id, childVms[i]); // 找到就返回
+    var childVm = findVmById(id, childVms[i]);
 
     if (childVm) {
       return childVm;
     }
   }
 }
-/**
- * 找元素
- * @param {*} component
- * @param {*} pageVm
- */
-
 
 function findElm(component, pageVm) {
   if (!pageVm) {
-    // 页面没有准备好
     return console.error('page is not ready');
-  } // 没有组件
-
+  }
 
   if (!component) {
     return pageVm.$el;
-  } // app-plus平台
-
+  }
 
   if (false) { var componentVm; }
 
   return component.$el;
 }
+function elementMatchesPolyfill(Element) {
+  if (!Element.matches) {
+    Element.matches = Element.matchesSelector || Element.mozMatchesSelector || Element.msMatchesSelector || Element.oMatchesSelector || Element.webkitMatchesSelector || function (s) {
+      var matches = (this.document || this.ownerDocument).querySelectorAll(s);
+      var i = matches.length;
+
+      while (--i >= 0 && matches.item(i) !== this) {}
+
+      return i > -1;
+    };
+  }
+
+  return Element;
+}
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("3ad9")["default"]))
+
+/***/ }),
+
+/***/ "dc12":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "compressImage", function() { return compressImage; });
+/* harmony import */ var uni_platform_helpers_get_real_path__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("cb0f");
+
+var compressImage = {
+  src: {
+    type: String,
+    required: true,
+    validator: function validator(src, params) {
+      params.src = Object(uni_platform_helpers_get_real_path__WEBPACK_IMPORTED_MODULE_0__[/* default */ "a"])(src);
+    }
+  }
+};
 
 /***/ }),
 
@@ -28188,20 +32104,20 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
 function validateParam(key, paramTypes, paramsData) {
   var paramOptions = paramTypes[key];
-  var absent = !Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "h"])(paramsData, key);
+  var absent = !Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "i"])(paramsData, key);
   var value = paramsData[key];
   var booleanIndex = getTypeIndex(Boolean, paramOptions.type);
 
   if (booleanIndex > -1) {
-    if (absent && !Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "h"])(paramOptions, 'default')) {
+    if (absent && !Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "i"])(paramOptions, 'default')) {
       value = false;
     }
   }
 
   if (value === undefined) {
-    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "h"])(paramOptions, 'default')) {
+    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "i"])(paramOptions, 'default')) {
       var paramDefault = paramOptions.default;
-      value = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(paramDefault) ? paramDefault() : paramDefault;
+      value = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(paramDefault) ? paramDefault() : paramDefault;
       paramsData[key] = value; // 默认值
     }
   }
@@ -28268,12 +32184,12 @@ function assertType(value, type) {
   } else if (value.byteLength >= 0) {
     valid = true;
   } else if (expectedType === 'Object') {
-    valid = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(value);
+    valid = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(value);
   } else if (expectedType === 'Array') {
     valid = Array.isArray(value);
   } else {
     // TODO 页面传入的ArrayBuffer使用instanceof ArrayBuffer返回false，暂做此修改
-    valid = value instanceof type || Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* toRawType */ "q"])(value) === getType(type);
+    valid = value instanceof type || Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* toRawType */ "r"])(value) === getType(type);
   }
 
   return {
@@ -28308,7 +32224,7 @@ function getTypeIndex(type, expectedTypes) {
 function getInvalidTypeMessage(name, value, expectedTypes) {
   var message = "parameter `".concat(name, "`.") + " Expected ".concat(expectedTypes.join(', '));
   var expectedType = expectedTypes[0];
-  var receivedType = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* toRawType */ "q"])(value);
+  var receivedType = Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* toRawType */ "r"])(value);
   var expectedValue = styleValue(value, expectedType);
   var receivedValue = styleValue(value, receivedType);
 
@@ -28362,234 +32278,14 @@ function isBoolean() {
 
 /***/ }),
 
-/***/ "e0b6":
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-// ESM COMPAT FLAG
-__webpack_require__.r(__webpack_exports__);
-
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/audio/index.vue?vue&type=template&id=fc273da6&
-var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-audio',_vm._g({attrs:{"id":_vm.id,"controls":!!_vm.controls}},_vm.$listeners),[_c('audio',{ref:"audio",staticStyle:{"display":"none"},attrs:{"loop":_vm.loop}}),_c('div',{staticClass:"uni-audio-default"},[_c('div',{staticClass:"uni-audio-left",style:('background-image: url('+_vm.$getRealPath(_vm.poster)+');')},[_c('div',{staticClass:"uni-audio-button",class:{play:!_vm.playing,pause:_vm.playing},on:{"click":_vm.trigger}})]),_c('div',{staticClass:"uni-audio-right"},[_c('div',{staticClass:"uni-audio-time"},[_vm._v(" "+_vm._s(_vm.currentTime)+" ")]),_c('div',{staticClass:"uni-audio-info"},[_c('div',{staticClass:"uni-audio-name"},[_vm._v(" "+_vm._s(_vm.name)+" ")]),_c('div',{staticClass:"uni-audio-author"},[_vm._v(" "+_vm._s(_vm.author)+" ")])])])])])}
-var staticRenderFns = []
-
-
-// CONCATENATED MODULE: ./src/platforms/h5/view/components/audio/index.vue?vue&type=template&id=fc273da6&
-
-// EXTERNAL MODULE: ./src/core/view/mixins/index.js + 3 modules
-var mixins = __webpack_require__("8af1");
-
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/platforms/h5/view/components/audio/index.vue?vue&type=script&lang=js&
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-/* harmony default export */ var audiovue_type_script_lang_js_ = ({
-  name: 'Audio',
-  mixins: [mixins["g" /* subscriber */]],
-  props: {
-    id: {
-      type: String,
-      default: ''
-    },
-    src: {
-      type: String,
-      default: ''
-    },
-    loop: {
-      type: [Boolean, String],
-      default: false
-    },
-    controls: {
-      type: [Boolean, String],
-      default: false
-    },
-    poster: {
-      type: String,
-      default: ''
-    },
-    name: {
-      type: String,
-      default: ''
-    },
-    author: {
-      type: String,
-      default: ''
-    }
-  },
-  data: function data() {
-    return {
-      playing: false,
-      currentTime: this.getTime(0)
-    };
-  },
-  watch: {
-    src: function src(val) {
-      if (this.$refs.audio) {
-        this.$refs.audio.src = this.$getRealPath(val);
-      }
-    }
-  },
-  mounted: function mounted() {
-    var _this = this;
-
-    var audio = this.$refs.audio;
-    audio.addEventListener('error', function ($event) {
-      _this.playing = false;
-
-      _this.$trigger('error', $event, {});
-    });
-    audio.addEventListener('play', function ($event) {
-      _this.playing = true;
-
-      _this.$trigger('play', $event, {});
-    });
-    audio.addEventListener('pause', function ($event) {
-      _this.playing = false;
-
-      _this.$trigger('pause', $event, {});
-    });
-    audio.addEventListener('ended', function ($event) {
-      _this.playing = false;
-
-      _this.$trigger('ended', $event, {});
-    });
-    audio.addEventListener('timeupdate', function ($event) {
-      var currentTime = audio.currentTime;
-      _this.currentTime = _this.getTime(currentTime);
-      var duration = audio.duration;
-
-      _this.$trigger('timeupdate', $event, {
-        currentTime: currentTime,
-        duration: duration
-      });
-    });
-    audio.src = this.$getRealPath(this.src);
-  },
-  methods: {
-    _handleSubscribe: function _handleSubscribe(_ref) {
-      var type = _ref.type,
-          _ref$data = _ref.data,
-          data = _ref$data === void 0 ? {} : _ref$data;
-      var audio = this.$refs.audio;
-
-      switch (type) {
-        case 'setSrc':
-          audio.src = this.$getRealPath(data.src);
-          this.$emit('update:src', data.src);
-          break;
-
-        case 'play':
-          audio.play();
-          break;
-
-        case 'pause':
-          audio.pause();
-          break;
-
-        case 'seek':
-          audio.currentTime = data.position;
-          break;
-      }
-    },
-    trigger: function trigger() {
-      if (this.playing) {
-        this.$refs.audio.pause();
-      } else {
-        this.$refs.audio.play();
-      }
-    },
-    getTime: function getTime(time) {
-      var h = Math.floor(time / 3600);
-      var m = Math.floor(time % 3600 / 60);
-      var s = Math.floor(time % 3600 % 60);
-      h = (h < 10 ? '0' : '') + h;
-      m = (m < 10 ? '0' : '') + m;
-      s = (s < 10 ? '0' : '') + s;
-      var str = m + ':' + s;
-
-      if (h !== '00') {
-        str = h + ':' + str;
-      }
-
-      return str;
-    }
-  }
-});
-// CONCATENATED MODULE: ./src/platforms/h5/view/components/audio/index.vue?vue&type=script&lang=js&
- /* harmony default export */ var components_audiovue_type_script_lang_js_ = (audiovue_type_script_lang_js_); 
-// EXTERNAL MODULE: ./src/platforms/h5/view/components/audio/index.vue?vue&type=style&index=0&lang=css&
-var audiovue_type_style_index_0_lang_css_ = __webpack_require__("e38a");
-
-// EXTERNAL MODULE: ./node_modules/vue-loader/lib/runtime/componentNormalizer.js
-var componentNormalizer = __webpack_require__("2877");
-
-// CONCATENATED MODULE: ./src/platforms/h5/view/components/audio/index.vue
-
-
-
-
-
-
-/* normalize component */
-
-var component = Object(componentNormalizer["a" /* default */])(
-  components_audiovue_type_script_lang_js_,
-  render,
-  staticRenderFns,
-  false,
-  null,
-  null,
-  null
-  
-)
-
-/* harmony default export */ var audio = __webpack_exports__["default"] = (component.exports);
-
-/***/ }),
-
 /***/ "e1df":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(UniViewJSBridge, console) {/* harmony import */ var uni_mixins__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("8af1");
+/* WEBPACK VAR INJECTION */(function(UniViewJSBridge) {/* harmony import */ var uni_mixins__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("8af1");
 /* harmony import */ var uni_helpers_hidpi__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("a20f");
+/* harmony import */ var uni_platform_helpers_save_image__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("cf6f");
+/* harmony import */ var uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__("e2e2");
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -28622,65 +32318,49 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
-/**
- * 解析颜色
- * @param {} color 颜色
- */
+
+
 
 function resolveColor(color) {
-  // 复制颜色
-  color = color.slice(0); // 透明度计算
-
-  color[3] = color[3] / 255; // 返回颜色
-
+  color = color.slice(0);
+  color[3] = color[3] / 255;
   return 'rgba(' + color.join(',') + ')';
 }
-/**
- * 处理触摸点
- * @param {} targt 目标对象
- * @param {} touches 触摸点
-  */
-
 
 function processTouches(target, touches) {
-  // 遍历touches 类数组
   return [].map.call(touches, function (touch) {
-    // 获取目标对象的尺寸
-    var boundingClientRect = target.getBoundingClientRect(); // 返回处理后的触摸点
-
+    var boundingClientRect = target.getBoundingClientRect();
     return {
       identifier: touch.identifier,
-      // 手指与canvas左边的距离
       x: touch.clientX - boundingClientRect.left,
-      // 手指与canvas上边的距离
       y: touch.clientY - boundingClientRect.top
     };
   });
 }
 
 var tempCanvas;
-/**
- * 获取临时canvas
- *
- */
 
 function getTempCanvas() {
   var width = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
   var height = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
 
-  // 临时canvas不存在
   if (!tempCanvas) {
-    // 创建一个canvas
     tempCanvas = document.createElement('canvas');
-  } // 设置宽度
+  }
 
-
-  tempCanvas.width = width; // 设置高度
-
-  tempCanvas.height = height; // 返回canvas dom 对象
-
+  tempCanvas.width = width;
+  tempCanvas.height = height;
   return tempCanvas;
 }
 
@@ -28709,32 +32389,24 @@ function getTempCanvas() {
     _listeners: function _listeners() {
       var _this = this;
 
-      // 创建一个 合并 this.$listeners 对象的新对象
-      var $listeners = Object.assign({}, this.$listeners); // 监听的事件
-
-      var events = ['touchstart', 'touchmove', 'touchend']; // 遍历事件
-
+      var $listeners = Object.assign({}, this.$listeners);
+      var events = ['touchstart', 'touchmove', 'touchend'];
       events.forEach(function (event) {
-        // 获取当前事件的处理函数
         var existing = $listeners[event];
-        var eventHandler = []; // 现存函数
+        var eventHandler = [];
 
         if (existing) {
-          // 添加处理函数
           eventHandler.push(function ($event) {
             _this.$trigger(event, Object.assign({}, $event, {
               touches: processTouches($event.currentTarget, $event.touches),
               changedTouches: processTouches($event.currentTarget, $event.changedTouches)
             }));
           });
-        } // 不能滚动 && 是touchmove事件
-
+        }
 
         if (_this.disableScroll && event === 'touchmove') {
-          //
           eventHandler.push(_this._touchmove);
-        } // 给事件添加处理函数
-
+        }
 
         $listeners[event] = eventHandler;
       });
@@ -28746,10 +32418,7 @@ function getTempCanvas() {
     this._images = {};
   },
   mounted: function mounted() {
-    this._resize({
-      width: this.$refs.sensor.$el.offsetWidth,
-      height: this.$refs.sensor.$el.offsetHeight
-    });
+    this._resize();
   },
   beforeDestroy: function beforeDestroy() {
     var canvas = this.$refs.canvas;
@@ -28767,34 +32436,20 @@ function getTempCanvas() {
       }
     },
     _resize: function _resize() {
-      // 获取 canvas dom
-      var canvas = this.$refs.canvas; // 宽 高都大于 0
+      var canvas = this.$refs.canvas;
 
       if (canvas.width > 0 && canvas.height > 0) {
-        // 创建2d 上下文
-        var context = canvas.getContext('2d'); // 获取图片数据（指定区域的像素）
-
+        var context = canvas.getContext('2d');
         var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-        Object(uni_helpers_hidpi__WEBPACK_IMPORTED_MODULE_1__[/* wrapper */ "b"])(this.$refs.canvas); // 将像素重新放回canvas
-
+        Object(uni_helpers_hidpi__WEBPACK_IMPORTED_MODULE_1__[/* wrapper */ "b"])(canvas);
         context.putImageData(imageData, 0, 0);
       } else {
-        Object(uni_helpers_hidpi__WEBPACK_IMPORTED_MODULE_1__[/* wrapper */ "b"])(this.$refs.canvas);
+        Object(uni_helpers_hidpi__WEBPACK_IMPORTED_MODULE_1__[/* wrapper */ "b"])(canvas);
       }
     },
-
-    /**
-     * 触摸移动
-     * @param {} event
-     */
     _touchmove: function _touchmove(event) {
-      // 阻止默认事件
       event.preventDefault();
     },
-
-    /**
-     * 新为改变
-     */
     actionsChanged: function actionsChanged(_ref2) {
       var _this2 = this;
 
@@ -28811,11 +32466,9 @@ function getTempCanvas() {
         this._actionsDefer.push([actions, reserve, callbackId]);
 
         return;
-      } // 获取canvas节点
+      }
 
-
-      var canvas = this.$refs.canvas; // 获取2d的上下文
-
+      var canvas = this.$refs.canvas;
       var c2d = canvas.getContext('2d');
 
       if (!reserve) {
@@ -28887,25 +32540,22 @@ function getTempCanvas() {
             data.forEach(function (color_, method_) {
               c2d[_[method_]] = _[method_] === 'shadowColor' ? resolveColor(color_) : color_;
             });
-          } else {
-            if (method1 === 'fontSize') {
-              c2d.font = c2d.font.replace(/\d+\.?\d*px/, data[0] + 'px');
-            } else {
-              if (method1 === 'lineDash') {
-                c2d.setLineDash(data[0]);
-                c2d.lineDashOffset = data[1] || 0;
-              } else {
-                if (method1 === 'textBaseline') {
-                  if (data[0] === 'normal') {
-                    data[0] = 'alphabetic';
-                  }
-
-                  c2d[method1] = data[0];
-                } else {
-                  c2d[method1] = data[0];
-                }
-              }
+          } else if (method1 === 'fontSize') {
+            var font = c2d.__font__ || c2d.font;
+            c2d.__font__ = c2d.font = font.replace(/\d+\.?\d*px/, data[0] + 'px');
+          } else if (method1 === 'lineDash') {
+            c2d.setLineDash(data[0]);
+            c2d.lineDashOffset = data[1] || 0;
+          } else if (method1 === 'textBaseline') {
+            if (data[0] === 'normal') {
+              data[0] = 'alphabetic';
             }
+
+            c2d[method1] = data[0];
+          } else if (method1 === 'font') {
+            c2d.__font__ = c2d.font = data[0];
+          } else {
+            c2d[method1] = data[0];
           }
         } else if (method === 'fillPath' || method === 'strokePath') {
           method = method.replace(/Path/, '');
@@ -28962,7 +32612,7 @@ function getTempCanvas() {
       }
 
       if (!this.actionsWaiting && callbackId) {
-        UniViewJSBridge.publishHandler('onDrawCanvas', {
+        UniViewJSBridge.publishHandler('onCanvasMethodCallback', {
           callbackId: callbackId,
           data: {
             errMsg: 'drawCanvas:ok'
@@ -28996,97 +32646,23 @@ function getTempCanvas() {
 
 
         function loadImage() {
-          // 创建一个图片实例
-          self._images[src] = new Image(); // 给图片对象绑定加载事件
+          var image = self._images[src] = new Image();
 
-          self._images[src].onload = function () {
-            self._images[src].ready = true;
-          };
-          /**
-           * 从Blob加载
-           * @param {Blob} blob
-           */
+          image.onload = function () {
+            image.ready = true;
+          }; // 安卓 WebView 除本地路径无跨域问题
 
 
-          function loadBlob(blob) {
-            self._images[src].src = (window.URL || window.webkitURL).createObjectURL(blob);
-          }
-          /**
-           * 从本地文件加载
-           * @param {string} path 文件路径
-           */
+          if (false) {}
 
-
-          function loadFile(path) {
-            var bitmap = new plus.nativeObj.Bitmap('bitmap' + Date.now());
-            bitmap.load(path, function () {
-              self._images[src].src = bitmap.toBase64Data();
-              bitmap.clear();
-            }, function () {
-              bitmap.clear();
-              console.error('preloadImage error');
-            });
-          }
-          /**
-           * 从网络加载
-           * @param {string} url 文件地址
-           */
-
-
-          function loadUrl(url) {
-            function plusDownload() {
-              plus.downloader.createDownload(url, {
-                filename: '_doc/uniapp_temp/download/'
-              }, function (d, status) {
-                if (status === 200) {
-                  loadFile(d.filename);
-                } else {
-                  self._images[src].src = src;
-                }
-              }).start();
-            }
-
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', url, true);
-            xhr.responseType = 'blob';
-
-            xhr.onload = function () {
-              if (this.status === 200) {
-                loadBlob(this.response);
-              }
-            };
-
-            xhr.onerror = window.plus ? plusDownload : function () {
-              self._images[src].src = src;
-            };
-            xhr.send();
-          } // 存在plus属性 && 不是webkit渲染引擎 || 没有信息处理
-
-
-          if (window.plus && (!window.webkit || !window.webkit.messageHandlers)) {
-            // 加载图片
-            self._images[src].src = src;
-          } else {
-            // 解决 PLUS-APP（wkwebview）以及 H5 图像跨域问题（H5图像响应头需包含access-control-allow-origin）
-            // 本地文件加载
-            if (window.plus && src.indexOf('http://') !== 0 && src.indexOf('https://') !== 0 && !/^data:.*,.*/.test(src)) {
-              loadFile(src); // base64图片地址
-            } else if (/^data:.*,.*/.test(src)) {
-              self._images[src].src = src;
-            } else {
-              // 网络加载
-              loadUrl(src);
-            }
-          }
+          Object(uni_platform_helpers_file__WEBPACK_IMPORTED_MODULE_3__[/* getSameOriginUrl */ "d"])(src).then(function (src) {
+            image.src = src;
+          }).catch(function () {
+            image.src = src;
+          });
         }
       });
     },
-
-    /**
-     * 查看图片是否被加载
-     * 图片地址
-     *
-     */
     checkImageLoaded: function checkImageLoaded(src, actions, callbackId, fn) {
       var self = this;
       var image = this._images[src];
@@ -29132,70 +32708,82 @@ function getTempCanvas() {
           destHeight = _ref3.destHeight,
           _ref3$hidpi = _ref3.hidpi,
           hidpi = _ref3$hidpi === void 0 ? true : _ref3$hidpi,
+          dataType = _ref3.dataType,
+          _ref3$qualit = _ref3.qualit,
+          qualit = _ref3$qualit === void 0 ? 1 : _ref3$qualit,
+          _ref3$type = _ref3.type,
+          type = _ref3$type === void 0 ? 'png' : _ref3$type,
           callbackId = _ref3.callbackId;
-      var imgData;
       var canvas = this.$refs.canvas;
+      var data;
+      var maxWidth = canvas.offsetWidth - x;
+      width = width ? Math.min(width, maxWidth) : maxWidth;
+      var maxHeight = canvas.offsetHeight - y;
+      height = height ? Math.min(height, maxHeight) : maxHeight;
 
-      if (!width) {
-        width = canvas.offsetWidth - x;
+      if (!hidpi) {
+        if (!destWidth && !destHeight) {
+          destWidth = Math.round(width * uni_helpers_hidpi__WEBPACK_IMPORTED_MODULE_1__[/* pixelRatio */ "a"]);
+          destHeight = Math.round(height * uni_helpers_hidpi__WEBPACK_IMPORTED_MODULE_1__[/* pixelRatio */ "a"]);
+        } else if (!destWidth) {
+          destWidth = Math.round(width / height * destHeight);
+        } else if (!destHeight) {
+          destHeight = Math.round(height / width * destWidth);
+        }
+      } else {
+        destWidth = width;
+        destHeight = height;
       }
 
-      if (!height) {
-        height = canvas.offsetHeight - y;
+      var newCanvas = getTempCanvas(destWidth, destHeight);
+      var context = newCanvas.getContext('2d');
+
+      if (type === 'jpeg' || type === 'jpg') {
+        type = 'jpeg';
+        context.fillStyle = '#fff';
+        context.fillRect(0, 0, destWidth, destHeight);
       }
+
+      context.__hidpi__ = true;
+      context.drawImageByCanvas(canvas, x, y, width, height, 0, 0, destWidth, destHeight, false);
+      var result;
 
       try {
-        if (!hidpi) {
-          if (!destWidth && !destHeight) {
-            destWidth = Math.round(width * uni_helpers_hidpi__WEBPACK_IMPORTED_MODULE_1__[/* pixelRatio */ "a"]);
-            destHeight = Math.round(height * uni_helpers_hidpi__WEBPACK_IMPORTED_MODULE_1__[/* pixelRatio */ "a"]);
-          } else if (!destWidth) {
-            destWidth = Math.round(width / height * destHeight);
-          } else if (!destHeight) {
-            destHeight = Math.round(height / width * destWidth);
-          }
+        var compressed;
+
+        if (dataType === 'base64') {
+          data = newCanvas.toDataURL("image/".concat(type), qualit);
         } else {
-          destWidth = width;
-          destHeight = height;
-        }
+          var imgData = context.getImageData(0, 0, destWidth, destHeight);
 
-        var newCanvas = getTempCanvas(destWidth, destHeight);
-        var context = newCanvas.getContext('2d');
-        context.__hidpi__ = true;
-        context.drawImageByCanvas(canvas, x, y, width, height, 0, 0, destWidth, destHeight, false);
-        imgData = context.getImageData(0, 0, destWidth, destHeight);
-        newCanvas.height = newCanvas.width = 0;
-        context.__hidpi__ = false;
-      } catch (error) {
-        if (!callbackId) {
-          return;
-        }
-
-        UniViewJSBridge.publishHandler('onCanvasMethodCallback', {
-          callbackId: callbackId,
-          data: {
-            errMsg: 'canvasGetImageData:fail'
+          if (false) { var pako; } else {
+            // fix [...]展开TypedArray在低版本手机报错的问题，使用Array.prototype.slice
+            data = Array.prototype.slice.call(imgData.data);
           }
-        }, this.$page.id);
-        return;
-      }
+        }
 
-      if (!callbackId) {
-        // fix [...]展开TypedArray在低版本手机报错的问题，使用Array.prototype.slice
-        return {
-          data: Array.prototype.slice.call(imgData.data),
+        result = {
+          errMsg: 'canvasGetImageData:ok',
+          data: data,
+          compressed: compressed,
           width: destWidth,
           height: destHeight
         };
+      } catch (error) {
+        result = {
+          errMsg: "canvasGetImageData:fail ".concat(error)
+        };
+      }
+
+      newCanvas.height = newCanvas.width = 0;
+      context.__hidpi__ = false;
+
+      if (!callbackId) {
+        return result;
       } else {
         UniViewJSBridge.publishHandler('onCanvasMethodCallback', {
           callbackId: callbackId,
-          data: {
-            errMsg: 'canvasGetImageData:ok',
-            data: _toConsumableArray(imgData.data),
-            width: destWidth,
-            height: destHeight
-          }
+          data: result
         }, this.$page.id);
       }
     },
@@ -29205,6 +32793,7 @@ function getTempCanvas() {
           y = _ref4.y,
           width = _ref4.width,
           height = _ref4.height,
+          compressed = _ref4.compressed,
           callbackId = _ref4.callbackId;
 
       try {
@@ -29214,6 +32803,9 @@ function getTempCanvas() {
 
         var canvas = getTempCanvas(width, height);
         var context = canvas.getContext('2d');
+
+        if (false) { var pako; }
+
         context.putImageData(new ImageData(new Uint8ClampedArray(data), width, height), 0, 0);
         this.$refs.canvas.getContext('2d').drawImage(canvas, x, y, width, height);
         canvas.height = canvas.width = 0;
@@ -29234,7 +32826,7 @@ function getTempCanvas() {
         }
       }, this.$page.id);
     },
-    getDataUrl: function getDataUrl(_ref5) {
+    toTempFilePath: function toTempFilePath(_ref5) {
       var _this3 = this;
 
       var _ref5$x = _ref5.x,
@@ -29245,10 +32837,9 @@ function getTempCanvas() {
           height = _ref5.height,
           destWidth = _ref5.destWidth,
           destHeight = _ref5.destHeight,
-          _ref5$hidpi = _ref5.hidpi,
-          hidpi = _ref5$hidpi === void 0 ? true : _ref5$hidpi,
           fileType = _ref5.fileType,
           qualit = _ref5.qualit,
+          dirname = _ref5.dirname,
           callbackId = _ref5.callbackId;
       var res = this.getImageData({
         x: x,
@@ -29257,68 +32848,41 @@ function getTempCanvas() {
         height: height,
         destWidth: destWidth,
         destHeight: destHeight,
-        hidpi: hidpi
+        hidpi: false,
+        dataType: 'base64',
+        type: fileType,
+        qualit: qualit
       });
 
       if (!res.data || !res.data.length) {
         UniViewJSBridge.publishHandler('onCanvasMethodCallback', {
           callbackId: callbackId,
           data: {
-            errMsg: 'canvasGetDataUrl:fail'
+            errMsg: res.errMsg.replace('canvasPutImageData', 'toTempFilePath')
           }
         }, this.$page.id);
         return;
       }
 
-      var imgData;
+      Object(uni_platform_helpers_save_image__WEBPACK_IMPORTED_MODULE_2__[/* default */ "a"])(res.data, dirname, function (error, tempFilePath) {
+        var errMsg = "toTempFilePath:".concat(error ? 'fail' : 'ok');
 
-      try {
-        imgData = new ImageData(new Uint8ClampedArray(res.data), res.width, res.height);
-      } catch (error) {
-        UniViewJSBridge.publishHandler('onCanvasMethodCallback', {
-          callbackId: callbackId,
-          data: {
-            errMsg: 'canvasGetDataUrl:fail'
-          }
-        }, this.$page.id);
-        return;
-      }
-
-      destWidth = res.width;
-      destHeight = res.height;
-      var canvas = getTempCanvas(destWidth, destHeight);
-      var c2d = canvas.getContext('2d');
-      c2d.putImageData(imgData, 0, 0);
-      var base64 = canvas.toDataURL('image/png');
-      canvas.height = canvas.width = 0;
-      var img = new Image();
-
-      img.onload = function () {
-        var canvas = getTempCanvas(destWidth, destHeight);
-
-        if (fileType === 'jpeg' || fileType === 'jpg') {
-          fileType = 'jpeg';
-          c2d.fillStyle = '#fff';
-          c2d.fillRect(0, 0, destWidth, destHeight);
+        if (error) {
+          errMsg += " ".concat(error.message);
         }
 
-        c2d.drawImage(img, 0, 0);
-        base64 = canvas.toDataURL("image/".concat(fileType), qualit);
-        canvas.height = canvas.width = 0;
         UniViewJSBridge.publishHandler('onCanvasMethodCallback', {
           callbackId: callbackId,
           data: {
-            errMsg: 'canvasGetDataUrl:ok',
-            base64: base64
+            errMsg: errMsg,
+            tempFilePath: tempFilePath
           }
         }, _this3.$page.id);
-      };
-
-      img.src = base64;
+      });
     }
   }
 });
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("501c"), __webpack_require__("3ad9")["default"]))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("501c")))
 
 /***/ }),
 
@@ -29333,45 +32897,17 @@ function getTempCanvas() {
 
 /***/ }),
 
-/***/ "e2d4":
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "base64ToTempFilePath", function() { return base64ToTempFilePath; });
-var _UniServiceJSBridge = UniServiceJSBridge,
-    invoke = _UniServiceJSBridge.invokeCallbackHandler;
-function base64ToTempFilePath() {
-  var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-      base64Data = _ref.base64Data,
-      x = _ref.x,
-      y = _ref.y,
-      width = _ref.width,
-      height = _ref.height,
-      destWidth = _ref.destWidth,
-      destHeight = _ref.destHeight,
-      canvasId = _ref.canvasId,
-      fileType = _ref.fileType,
-      quality = _ref.quality;
-
-  var callbackId = arguments.length > 1 ? arguments[1] : undefined;
-  invoke(callbackId, {
-    errMsg: 'canvasToTempFilePath:ok',
-    tempFilePath: base64Data
-  });
-}
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("0dd1")))
-
-/***/ }),
-
 /***/ "e2e2":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return urlToFile; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "f", function() { return urlToFile; });
 /* unused harmony export base64ToFile */
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return fileToUrl; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return revokeObjectURL; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return getFileName; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return blobToFile; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return fileToUrl; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return getSameOriginUrl; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "e", function() { return revokeObjectURL; });
 /* harmony import */ var uni_shared__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("f2b3");
 
 /**
@@ -29426,10 +32962,54 @@ function base64ToFile(base64) {
     array[n] = str.charCodeAt(n);
   }
 
-  var filename = "".concat(Date.now(), ".").concat(type.split('/')[1]);
-  return new File([array], filename, {
-    type: type
-  });
+  return blobToFile(array, type);
+}
+/**
+ * 简易获取扩展名
+ * @param {string} type
+ * @return {string}
+ */
+
+function getExtname(type) {
+  var extname = type.split('/')[1];
+  return extname ? ".".concat(extname) : '';
+}
+/**
+ * 简易获取文件名
+ * @param {*} url
+ */
+
+
+function getFileName(url) {
+  url = url.split('#')[0].split('?')[0];
+  var array = url.split('/');
+  return array[array.length - 1];
+}
+/**
+ * blob转File
+ * @param {Blob} blob
+ * @param {string} type
+ * @return {File}
+ */
+
+function blobToFile(blob, type) {
+  if (!(blob instanceof File)) {
+    type = type || blob.type || '';
+    var filename = "".concat(Date.now()).concat(getExtname(type));
+
+    try {
+      blob = new File([blob], filename, {
+        type: type
+      });
+    } catch (error) {
+      blob = blob instanceof Blob ? blob : new Blob([blob], {
+        type: type
+      });
+      blob.name = blob.name || filename;
+    }
+  }
+
+  return blob;
 }
 /**
  * 从本地file或者blob对象创建url
@@ -29439,7 +33019,7 @@ function base64ToFile(base64) {
 
 function fileToUrl(file) {
   for (var key in files) {
-    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "h"])(files, key)) {
+    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "i"])(files, key)) {
       var oldFile = files[key];
 
       if (oldFile === file) {
@@ -29452,21 +33032,20 @@ function fileToUrl(file) {
   files[url] = file;
   return url;
 }
+function getSameOriginUrl(url) {
+  var a = document.createElement('a');
+  a.href = url;
+
+  if (a.origin === location.origin) {
+    return Promise.resolve(url);
+  }
+
+  return urlToFile(url).then(fileToUrl);
+}
 function revokeObjectURL(url) {
   (window.URL || window.webkitURL).revokeObjectURL(url);
   delete files[url];
 }
-
-/***/ }),
-
-/***/ "e38a":
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var _node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("8fa5");
-/* harmony import */ var _node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__);
-/* unused harmony reexport * */
- /* unused harmony default export */ var _unused_webpack_default_export = (_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default.a); 
 
 /***/ }),
 
@@ -29475,26 +33054,27 @@ function revokeObjectURL(url) {
 
 var map = {
 	"./base/event-bus.js": "6e0c",
-	"./context/audio.js": "924c",
-	"./context/canvas.js": "e2d4",
+	"./constants.js": "8b67",
 	"./context/inner-audio.js": "f9d2",
 	"./context/operate-map-player.js": "0758",
 	"./context/operate-video-player.js": "f941",
 	"./device/accelerometer.js": "2bdd",
 	"./device/compass.js": "f7b4",
 	"./device/get-system-info.js": "78c8",
-	"./device/hide-keyboard.js": "fa1e",
 	"./device/make-phone-call.js": "7f4e",
 	"./device/network-info.js": "3d64",
 	"./device/vibrate.js": "44de",
 	"./file/file.js": "3b54",
 	"./file/open-document.js": "e826",
 	"./index.js": "d218",
+	"./keyboard/keyboard.js": "54f4",
 	"./location/choose-location.js": "be14",
 	"./location/get-location.js": "0554",
 	"./location/open-location.js": "6575",
+	"./media/choose-file.js": "3898",
 	"./media/choose-image.js": "d5be",
 	"./media/choose-video.js": "8ce3",
+	"./media/create_input.js": "3563",
 	"./media/get-image-info.js": "34b2",
 	"./media/preview-image.js": "9e56",
 	"./network/download-file.js": "4f43",
@@ -29509,7 +33089,9 @@ var map = {
 	"./ui/pull-down-refresh.js": "45db",
 	"./ui/request-component-info.js": "09e5",
 	"./ui/tab-bar.js": "fcd1",
-	"./ui/window.js": "e8b5"
+	"./ui/window.js": "e8b5",
+	"./ui/windows.js": "0e5c",
+	"./util.js": "79d5"
 };
 
 
@@ -29542,6 +33124,7 @@ webpackContext.id = "e3a7";
 /* harmony import */ var uni_helpers_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("65a8");
 /* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("81ea");
 /* harmony import */ var uni_h5_app_mixins__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__("f1ea");
+/* harmony import */ var _observable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__("bdbe");
 //
 //
 //
@@ -29578,6 +33161,9 @@ webpackContext.id = "e3a7";
 //
 //
 //
+//
+//
+
 
 
 
@@ -29598,19 +33184,24 @@ webpackContext.id = "e3a7";
     return {
       transitionName: 'fade',
       hideTabBar: false,
-      tabBar: __uniConfig.tabBar || {},
-      sysComponents: this.$sysComponents
+      sysComponents: this.$sysComponents,
+      showLayout: false,
+      showMaxWidth: false,
+      tabBarMediaQuery: false
     };
   },
   computed: {
     key: function key() {
       return this.$route.meta.name + '-' + this.$route.params.__id__ + '-' + (__uniConfig.reLaunch || 1);
     },
+    tabBarOptions: function tabBarOptions() {
+      return _observable__WEBPACK_IMPORTED_MODULE_4__[/* tabBar */ "a"];
+    },
     hasTabBar: function hasTabBar() {
-      return __uniConfig.tabBar && __uniConfig.tabBar.list && __uniConfig.tabBar.list.length;
+      return _observable__WEBPACK_IMPORTED_MODULE_4__[/* tabBar */ "a"].list && _observable__WEBPACK_IMPORTED_MODULE_4__[/* tabBar */ "a"].list.length;
     },
     showTabBar: function showTabBar() {
-      return this.$route.meta.isTabBar && !this.hideTabBar;
+      return !this.hideTabBar && (this.$route.meta.isTabBar || this.tabBarMediaQuery);
     }
   },
   watch: {
@@ -29620,7 +33211,7 @@ webpackContext.id = "e3a7";
     hideTabBar: function hideTabBar(newVal, oldVal) {
       // TODO 不支持 css 变量时
       if (uni.canIUse('css.var')) {
-        var windowBottomValue = !newVal ? uni_helpers_constants__WEBPACK_IMPORTED_MODULE_1__[/* TABBAR_HEIGHT */ "b"] : 0;
+        var windowBottomValue = !newVal ? uni_helpers_constants__WEBPACK_IMPORTED_MODULE_1__[/* TABBAR_HEIGHT */ "c"] : 0;
         var envMethod = uni.canIUse('css.env') ? 'env' : uni.canIUse('css.constant') ? 'constant' : '';
         var windowBottom = windowBottomValue && envMethod ? "calc(".concat(windowBottomValue, "px + ").concat(envMethod, "(safe-area-inset-bottom))") : "".concat(windowBottomValue, "px");
         document.documentElement.style.setProperty('--window-bottom', windowBottom);
@@ -29635,10 +33226,12 @@ webpackContext.id = "e3a7";
     if (uni.canIUse('css.var')) {
       document.documentElement.style.setProperty('--status-bar-height', '0px');
     }
+
+    this.initMediaQuery();
   },
   mounted: function mounted() {
     window.addEventListener('message', function (evt) {
-      if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "k"])(evt.data) && evt.data.type === 'WEB_INVOKE_APPSERVICE') {
+      if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isPlainObject */ "l"])(evt.data) && evt.data.type === 'WEB_INVOKE_APPSERVICE') {
         UniServiceJSBridge.emit('onWebInvokeAppService', evt.data.data, evt.data.pageId);
       }
     });
@@ -29649,70 +33242,39 @@ webpackContext.id = "e3a7";
         UniServiceJSBridge.emit('onAppEnterBackground');
       }
     });
+  },
+  methods: {
+    onLayout: function onLayout(showLayout) {
+      this.showLayout = showLayout;
+    },
+    onMaxWidth: function onMaxWidth(showMaxWidth) {
+      this.showMaxWidth = showMaxWidth;
+    },
+    initMediaQuery: function initMediaQuery() {
+      var _this = this;
+
+      if (window.matchMedia && _observable__WEBPACK_IMPORTED_MODULE_4__[/* tabBar */ "a"].matchMedia && Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* hasOwn */ "i"])(_observable__WEBPACK_IMPORTED_MODULE_4__[/* tabBar */ "a"].matchMedia, 'minWidth')) {
+        var mediaQueryList = window.matchMedia('(min-width: ' + _observable__WEBPACK_IMPORTED_MODULE_4__[/* tabBar */ "a"].matchMedia.minWidth + 'px)');
+        mediaQueryList.addListener(function (e) {
+          _this.tabBarMediaQuery = e.matches;
+        });
+        this.tabBarMediaQuery = mediaQueryList.matches;
+      }
+    }
   }
 });
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("0dd1"), __webpack_require__("3ad9")["default"]))
 
 /***/ }),
 
-/***/ "e4ee":
+/***/ "e4bc":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "onCompassChange", function() { return onCompassChange; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "startCompass", function() { return startCompass; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "stopCompass", function() { return stopCompass; });
-/* harmony import */ var uni_core_service_bridge__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("a118");
-/* harmony import */ var _platform__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("db70");
-
-
-var callbacks = [];
-Object(_platform__WEBPACK_IMPORTED_MODULE_1__[/* onMethod */ "d"])('onCompassChange', function (res) {
-  callbacks.forEach(function (callbackId) {
-    Object(uni_core_service_bridge__WEBPACK_IMPORTED_MODULE_0__[/* invoke */ "a"])(callbackId, res);
-  });
-});
-var isEnable = false;
-/**
- * 监听加速度
- * @param {*} callbackId
- */
-
-function onCompassChange(callbackId) {
-  // TODO 当没有 start 时，添加 on 需要主动 start?
-  callbacks.push(callbackId);
-
-  if (!isEnable) {
-    startCompass();
-  }
-}
-function startCompass() {
-  var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-      interval = _ref.interval;
-
-  if (isEnable) {
-    return;
-  }
-
-  isEnable = true;
-  return Object(_platform__WEBPACK_IMPORTED_MODULE_1__[/* invokeMethod */ "c"])('enableCompass', {
-    enable: true
-  });
-}
-function stopCompass() {
-  isEnable = false;
-  return Object(_platform__WEBPACK_IMPORTED_MODULE_1__[/* invokeMethod */ "c"])('enableCompass', {
-    enable: false
-  });
-}
-
-/***/ }),
-
-/***/ "e4f1":
-/***/ (function(module, exports, __webpack_require__) {
-
-// extracted by mini-css-extract-plugin
+/* harmony import */ var _node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("581a");
+/* harmony import */ var _node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__);
+/* unused harmony reexport * */
+ /* unused harmony default export */ var _unused_webpack_default_export = (_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default.a); 
 
 /***/ }),
 
@@ -30036,6 +33598,26 @@ function appendCss(css, cssId) {
 
 /***/ }),
 
+/***/ "ea0f":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "scanCode", function() { return scanCode; });
+var scanCode = {
+  onlyFromCamera: {
+    type: Boolean
+  },
+  scanType: {
+    type: Array
+  },
+  autoDecodeCharSet: {
+    type: Boolean
+  }
+};
+
+/***/ }),
+
 /***/ "ea49":
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -30205,7 +33787,7 @@ var removeStorageSync = getStorageSync;
 /* harmony import */ var _interceptor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("8542");
 
 
-var SYNC_API_RE = /^\$|sendNativeEvent|restoreGlobal|getCurrentSubNVue|getMenuButtonBoundingClientRect|^report|interceptors|Interceptor$|getSubNVueById|requireNativePlugin|upx2px|hideKeyboard|canIUse|^create|Sync$|Manager$|base64ToArrayBuffer|arrayBufferToBase64/;
+var SYNC_API_RE = /^\$|Window$|WindowStyle$|sendNativeEvent|restoreGlobal|getCurrentSubNVue|getMenuButtonBoundingClientRect|^report|interceptors|Interceptor$|getSubNVueById|requireNativePlugin|upx2px|hideKeyboard|canIUse|^create|Sync$|Manager$|base64ToArrayBuffer|arrayBufferToBase64/;
 var CONTEXT_API_RE = /^create|Manager$/; // Context例外情况
 
 var CONTEXT_API_RE_EXC = ['createBLEConnection'];
@@ -30288,7 +33870,7 @@ function promisify(name, api) {
     }
 
     // 成功 失败 完成 是函数
-    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(options.success) || Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(options.fail) || Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(options.complete)) {
+    if (Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(options.success) || Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(options.fail) || Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(options.complete)) {
       return Object(_interceptor__WEBPACK_IMPORTED_MODULE_1__[/* wrapperReturnValue */ "e"])(name, _interceptor__WEBPACK_IMPORTED_MODULE_1__[/* invokeApi */ "b"].apply(void 0, [name, api, options].concat(params)));
     }
 
@@ -30316,17 +33898,26 @@ var chooseVideo = {
     required: false,
     default: SOURCE_TYPES,
     validator: function validator(sourceType, params) {
-      var length = sourceType.length;
-
-      if (!length) {
-        params.sourceType = SOURCE_TYPES;
-      } else {
-        for (var i = 0; i < length; i++) {
-          if (typeof sourceType[i] !== 'string' || !~SOURCE_TYPES.indexOf(sourceType[i])) {
-            params.sourceType = SOURCE_TYPES;
-            break;
-          }
-        }
+      sourceType = sourceType.filter(function (sourceType) {
+        return SOURCE_TYPES.includes(sourceType);
+      });
+      params.sourceType = sourceType.length ? sourceType : SOURCE_TYPES;
+    }
+  },
+  maxDuration: {
+    type: Number,
+    default: 60
+  },
+  camera: {
+    type: String,
+    default: 'back'
+  },
+  extension: {
+    type: Array,
+    default: ['*'],
+    validator: function validator(extension, params) {
+      if (extension.length === 0) {
+        return 'param extension should not be empty.';
       }
     }
   }
@@ -30477,7 +34068,7 @@ __webpack_require__.r(__webpack_exports__);
     // 处理 modal close 回调
     _onModalClose: function _onModalClose(type) {
       this.showModal.visible = false;
-      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "j"])(this.onModalCloseCallback) && this.onModalCloseCallback(type);
+      Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* isFn */ "k"])(this.onModalCloseCallback) && this.onModalCloseCallback(type);
     }
   }
 });
@@ -30668,23 +34259,11 @@ var chooseImage = {
     required: false,
     default: SIZE_TYPES,
     validator: function validator(sizeType, params) {
-      // 非必传的参数，不符合预期时处理为默认值。
-      var length = sizeType.length;
-
-      if (!length) {
-        params.sizeType = SIZE_TYPES;
-      } else if (typeof sizeType === 'string') {
-        if (!~SIZE_TYPES.indexOf(sizeType)) {
-          params.sizeType = SIZE_TYPES;
-        }
-      } else {
-        for (var i = 0; i < length; i++) {
-          if (typeof sizeType[i] !== 'string' || !~SIZE_TYPES.indexOf(sizeType[i])) {
-            params.sizeType = SIZE_TYPES;
-            break;
-          }
-        }
-      }
+      sizeType = typeof sizeType === 'string' ? [sizeType] : sizeType;
+      sizeType = sizeType.filter(function (sizeType) {
+        return SIZE_TYPES.includes(sizeType);
+      });
+      params.sizeType = sizeType.length ? sizeType : SIZE_TYPES;
     }
   },
   sourceType: {
@@ -30692,17 +34271,18 @@ var chooseImage = {
     required: false,
     default: SOURCE_TYPES,
     validator: function validator(sourceType, params) {
-      var length = sourceType.length;
-
-      if (!length) {
-        params.sourceType = SOURCE_TYPES;
-      } else {
-        for (var i = 0; i < length; i++) {
-          if (typeof sourceType[i] !== 'string' || !~SOURCE_TYPES.indexOf(sourceType[i])) {
-            params.sourceType = SOURCE_TYPES;
-            break;
-          }
-        }
+      sourceType = sourceType.filter(function (sourceType) {
+        return SOURCE_TYPES.includes(sourceType);
+      });
+      params.sourceType = sourceType.length ? sourceType : SOURCE_TYPES;
+    }
+  },
+  extension: {
+    type: Array,
+    default: ['*'],
+    validator: function validator(extension, params) {
+      if (extension.length === 0) {
+        return 'param extension should not be empty.';
       }
     }
   }
@@ -30735,12 +34315,12 @@ context.keys().forEach(function (key) {
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
-// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"17f55ff7-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/scroll-view/index.vue?vue&type=template&id=6c0786a7&
+// CONCATENATED MODULE: ./node_modules/cache-loader/dist/cjs.js?{"cacheDirectory":"node_modules/.cache/vue-loader","cacheIdentifier":"b221aec4-vue-loader-template"}!./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/scroll-view/index.vue?vue&type=template&id=06eb43c7&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('uni-scroll-view',_vm._g({},_vm.$listeners),[_c('div',{ref:"wrap",staticClass:"uni-scroll-view"},[_c('div',{ref:"main",staticClass:"uni-scroll-view",style:({'overflow-x': _vm.scrollX?'auto':'hidden','overflow-y': _vm.scrollY?'auto':'hidden'})},[_c('div',{ref:"content",staticClass:"uni-scroll-view-content"},[(_vm.refresherEnabled)?_c('div',{ref:"refresherinner",staticClass:"uni-scroll-view-refresher",style:({'background-color': _vm.refresherBackground, 'height': _vm.refresherHeight + 'px'})},[(_vm.refresherDefaultStyle !== 'none')?_c('div',{staticClass:"uni-scroll-view-refresh"},[_c('div',{staticClass:"uni-scroll-view-refresh-inner"},[(_vm.refreshState=='pulling')?_c('svg',{staticClass:"uni-scroll-view-refresh__icon",style:({'transform': 'rotate('+ _vm.refreshRotate +'deg)'}),attrs:{"fill":"#2BD009","width":"24","height":"24","viewBox":"0 0 24 24"}},[_c('path',{attrs:{"d":"M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"}}),_c('path',{attrs:{"d":"M0 0h24v24H0z","fill":"none"}})]):_vm._e(),(_vm.refreshState=='refreshing')?_c('svg',{staticClass:"uni-scroll-view-refresh__spinner",attrs:{"width":"24","height":"24","viewBox":"25 25 50 50"}},[_c('circle',{staticStyle:{"color":"#2BD009"},attrs:{"cx":"50","cy":"50","r":"20","fill":"none","stroke-width":"3"}})]):_vm._e()])]):_vm._e(),(_vm.refresherDefaultStyle=='none')?_vm._t("refresher"):_vm._e()],2):_vm._e(),_vm._t("default")],2)])])])}
 var staticRenderFns = []
 
 
-// CONCATENATED MODULE: ./src/core/view/components/scroll-view/index.vue?vue&type=template&id=6c0786a7&
+// CONCATENATED MODULE: ./src/core/view/components/scroll-view/index.vue?vue&type=template&id=06eb43c7&
 
 // EXTERNAL MODULE: ./node_modules/cache-loader/dist/cjs.js??ref--12-0!./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib!./node_modules/cache-loader/dist/cjs.js??ref--0-0!./node_modules/vue-loader/lib??vue-loader-options!./src/core/view/components/scroll-view/index.vue?vue&type=script&lang=js&
 var scroll_viewvue_type_script_lang_js_ = __webpack_require__("b564");
@@ -30783,26 +34363,27 @@ var component = Object(componentNormalizer["a" /* default */])(
 "use strict";
 
 // EXPORTS
-__webpack_require__.d(__webpack_exports__, "o", function() { return /* reexport */ supportsPassive; });
-__webpack_require__.d(__webpack_exports__, "j", function() { return /* reexport */ isFn; });
-__webpack_require__.d(__webpack_exports__, "k", function() { return /* reexport */ isPlainObject; });
-__webpack_require__.d(__webpack_exports__, "h", function() { return /* reexport */ hasOwn; });
-__webpack_require__.d(__webpack_exports__, "q", function() { return /* reexport */ toRawType; });
-__webpack_require__.d(__webpack_exports__, "n", function() { return /* reexport */ setProperties; });
-__webpack_require__.d(__webpack_exports__, "g", function() { return /* reexport */ getLen; });
-__webpack_require__.d(__webpack_exports__, "f", function() { return /* reexport */ formatDateTime; });
-__webpack_require__.d(__webpack_exports__, "r", function() { return /* reexport */ updateElementStyle; });
-__webpack_require__.d(__webpack_exports__, "b", function() { return /* reexport */ debounce; });
-__webpack_require__.d(__webpack_exports__, "p", function() { return /* reexport */ throttle; });
-__webpack_require__.d(__webpack_exports__, "l", function() { return /* reexport */ kebabCase; });
-__webpack_require__.d(__webpack_exports__, "d", function() { return /* reexport */ deepClone; });
-__webpack_require__.d(__webpack_exports__, "i", function() { return /* reexport */ hexToRgba; });
-__webpack_require__.d(__webpack_exports__, "c", function() { return /* reexport */ decodedQuery; });
-__webpack_require__.d(__webpack_exports__, "e", function() { return /* reexport */ disableScrollBounce; });
-__webpack_require__.d(__webpack_exports__, "m", function() { return /* reexport */ plusReady; });
+__webpack_require__.d(__webpack_exports__, "p", function() { return /* reexport */ supportsPassive; });
+__webpack_require__.d(__webpack_exports__, "k", function() { return /* reexport */ isFn; });
+__webpack_require__.d(__webpack_exports__, "l", function() { return /* reexport */ isPlainObject; });
+__webpack_require__.d(__webpack_exports__, "i", function() { return /* reexport */ hasOwn; });
+__webpack_require__.d(__webpack_exports__, "r", function() { return /* reexport */ toRawType; });
+__webpack_require__.d(__webpack_exports__, "b", function() { return /* reexport */ camelize; });
+__webpack_require__.d(__webpack_exports__, "c", function() { return /* reexport */ capitalize; });
+__webpack_require__.d(__webpack_exports__, "o", function() { return /* reexport */ setProperties; });
+__webpack_require__.d(__webpack_exports__, "h", function() { return /* reexport */ getLen; });
+__webpack_require__.d(__webpack_exports__, "g", function() { return /* reexport */ formatDateTime; });
+__webpack_require__.d(__webpack_exports__, "s", function() { return /* reexport */ updateElementStyle; });
+__webpack_require__.d(__webpack_exports__, "d", function() { return /* reexport */ debounce; });
+__webpack_require__.d(__webpack_exports__, "q", function() { return /* reexport */ throttle; });
+__webpack_require__.d(__webpack_exports__, "m", function() { return /* reexport */ kebabCase; });
+__webpack_require__.d(__webpack_exports__, "f", function() { return /* reexport */ deepClone; });
+__webpack_require__.d(__webpack_exports__, "j", function() { return /* reexport */ hexToRgba; });
+__webpack_require__.d(__webpack_exports__, "e", function() { return /* reexport */ decodedQuery; });
+__webpack_require__.d(__webpack_exports__, "n", function() { return /* reexport */ plusReady; });
 __webpack_require__.d(__webpack_exports__, "a", function() { return /* reexport */ callback; });
 
-// UNUSED EXPORTS: isStr, isObject, noop, cached, camelize, guid, looseEqual, parseQuery, stringifyQuery
+// UNUSED EXPORTS: isStr, isObject, noop, cached, guid, looseEqual, parseQuery, stringifyQuery
 
 // CONCATENATED MODULE: ./src/shared/env.js
 var supportsPassive = false;
@@ -30889,6 +34470,13 @@ var camelize = cached(function (str) {
   return str.replace(camelizeRE, function (_, c) {
     return c ? c.toUpperCase() : '';
   });
+});
+/**
+ * Capitalize a string.
+ */
+
+var capitalize = cached(function (str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 });
 function setProperties(item, props, propsData) {
   props.forEach(function (name) {
@@ -30980,6 +34568,8 @@ function throttle(fn, wait) {
   var last = 0;
   var timeout;
 
+  var _waitCallback;
+
   var newFn = function newFn() {
     var _this2 = this;
 
@@ -30990,21 +34580,28 @@ function throttle(fn, wait) {
     var now = Date.now();
     clearTimeout(timeout);
 
-    var waitCallback = function waitCallback() {
+    _waitCallback = function waitCallback() {
+      _waitCallback = null;
       last = now;
       fn.apply(_this2, arg);
     };
 
     if (now - last < wait) {
-      timeout = setTimeout(waitCallback, wait - (now - last));
+      timeout = setTimeout(_waitCallback, wait - (now - last));
       return;
     }
 
-    waitCallback();
+    _waitCallback();
   };
 
   newFn.cancel = function () {
     clearTimeout(timeout);
+    _waitCallback = null;
+  };
+
+  newFn.flush = function () {
+    clearTimeout(timeout);
+    _waitCallback && _waitCallback();
   };
 
   return newFn;
@@ -31088,14 +34685,13 @@ function hexToRgba(hex) {
   var g;
   var b; // hex 位#FFBBDD #FFF #fbd
   // hex的双字母可以变为单字母使用
-  // 去掉前缀
 
-  hex = hex.replace('#', ''); // 长度为6（完整长度）
+  hex = hex.replace('#', '');
 
   if (hex.length === 6) {
     r = hex.substring(0, 2);
     g = hex.substring(2, 4);
-    b = hex.substring(4, 6); // 长度为3
+    b = hex.substring(4, 6);
   } else if (hex.length === 3) {
     r = hex.substring(0, 1);
     g = hex.substring(1, 2);
@@ -31249,53 +34845,6 @@ function plusReady(callback) {
 
   document.addEventListener('plusready', callback);
 }
-// CONCATENATED MODULE: ./src/shared/scroll.js
-
-var view;
-var pullToRefreshStyle;
-var disabled;
-var lastAction = {};
-function disableScrollBounce(_ref) {
-  var disable = _ref.disable;
-
-  function exec() {
-    if (!view) {
-      view = plus.webview.currentWebview();
-    }
-
-    if (!disabled) {
-      pullToRefreshStyle = (view.getStyle() || {}).pullToRefresh || {};
-    }
-
-    disabled = disable;
-
-    if (pullToRefreshStyle.support) {
-      view.setPullToRefresh(Object.assign({}, pullToRefreshStyle, {
-        support: !disable
-      }));
-    }
-  } // 准备事件
-
-
-  var time = Date.now();
-
-  if (disable === lastAction.disable && time - lastAction.time < 20) {
-    return;
-  }
-
-  lastAction.disable = disable;
-  lastAction.time = time;
-  plusReady(function () {
-    // 开始执行
-    if (plus.os.name === 'iOS') {
-      // 延迟执行避免iOS13触摸卡死
-      setTimeout(exec, 20);
-    } else {
-      //
-      exec();
-    }
-  });
-}
 // CONCATENATED MODULE: ./src/shared/callback.js
 var id = 0;
 var callbacks = {}; // 装饰者模式
@@ -31352,7 +34901,6 @@ var callback = {
 
 
 
-
 /***/ }),
 
 /***/ "f4e0":
@@ -31377,6 +34925,30 @@ var callback = {
 
 /***/ }),
 
+/***/ "f68f":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "preLogin", function() { return preLogin; });
+var provider = {
+  UNIVERIFY: 'univerify'
+};
+var preLogin = {
+  provider: {
+    type: String,
+    required: true,
+    default: provider.UNIVERIFY,
+    validator: function validator(value, params) {
+      if (Object.values(provider).indexOf(value) < 0) {
+        return 'provider error';
+      }
+    }
+  }
+};
+
+/***/ }),
+
 /***/ "f735":
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -31396,52 +34968,61 @@ var callback = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "onCompassChange", function() { return onCompassChange; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "startCompass", function() { return startCompass; });
+/* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "startCompass", function() { return startCompass; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "stopCompass", function() { return stopCompass; });
-var callbacks = [];
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "onCompassChange", function() { return onCompassChange; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "offCompassChange", function() { return offCompassChange; });
 var listener;
-/**
- * 监听罗盘数据
- * @param {*} callbackId
- */
-
-function onCompassChange(callbackId) {
-  callbacks.push(callbackId);
-
-  if (!listener) {
-    startCompass();
-  }
-}
-/**
- * 开始监听罗盘数据
- */
-
-function startCompass() {
+var callbackIds = [];
+function startCompass(options, callbackId) {
   var _UniServiceJSBridge = UniServiceJSBridge,
       invoke = _UniServiceJSBridge.invokeCallbackHandler;
 
-  if (window.DeviceOrientationEvent) {
+  if (!window.DeviceOrientationEvent) {
+    return {
+      errMsg: 'startCompass:fail'
+    };
+  }
+
+  function addEventListener() {
     listener = function listener(event) {
       var direction = 360 - event.alpha;
-      callbacks.forEach(function (callbackId) {
+      callbackIds.forEach(function (callbackId) {
         invoke(callbackId, {
-          errMsg: 'onCompassChange:ok',
           direction: direction || 0
         });
       });
     };
 
     window.addEventListener('deviceorientation', listener, false);
-    return {};
-  } else {
-    throw new Error('device nonsupport deviceorientation');
   }
-}
-/**
- * 停止监听罗盘数据
- */
 
+  if (!listener) {
+    if (DeviceOrientationEvent.requestPermission) {
+      DeviceOrientationEvent.requestPermission().then(function (res) {
+        if (res === 'granted') {
+          addEventListener();
+          invoke(callbackId, {
+            errMsg: 'startCompass:ok'
+          });
+        } else {
+          invoke(callbackId, {
+            errMsg: "startCompass:fail ".concat(res)
+          });
+        }
+      }).catch(function (error) {
+        invoke(callbackId, {
+          errMsg: "startCompass:fail ".concat(error)
+        });
+      });
+      return;
+    }
+
+    addEventListener();
+  }
+
+  return {};
+}
 function stopCompass() {
   if (listener) {
     window.removeEventListener('deviceorientation', listener, false);
@@ -31449,6 +35030,27 @@ function stopCompass() {
   }
 
   return {};
+}
+function onCompassChange(callbackId) {
+  if (!callbackIds.length) {
+    startCompass();
+  }
+
+  callbackIds.push(callbackId);
+}
+function offCompassChange(callbackId) {
+  // 暂不支持移除所有监听
+  if (callbackId) {
+    var index = callbackIds.indexOf(callbackId);
+
+    if (index >= 0) {
+      callbackIds.splice(index, 1);
+    }
+  }
+
+  if (!callbackIds.length) {
+    stopCompass();
+  }
 }
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("0dd1")))
 
@@ -31714,22 +35316,6 @@ function createInnerAudioContext() {
 
 /***/ }),
 
-/***/ "fa1e":
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hideKeyboard", function() { return hideKeyboard; });
-function hideKeyboard() {
-  var activeElement = document.activeElement;
-
-  if (activeElement && (activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'INPUT')) {
-    activeElement.blur();
-  }
-}
-
-/***/ }),
-
 /***/ "fae3":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -31824,7 +35410,7 @@ function setTabBar(type) {
     }
 
     var index = args.index;
-    var tabBar = app.$children[0].tabBar;
+    var tabBar = __uniConfig.tabBar;
 
     if (index >= __uniConfig.tabBar.list.length) {
       return {
@@ -31842,22 +35428,43 @@ function setTabBar(type) {
         break;
 
       case 'setTabBarItem':
-        Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* setProperties */ "n"])(tabBar.list[index], setTabBarItemProps, args);
-        break;
+        {
+          Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* setProperties */ "o"])(tabBar.list[index], setTabBarItemProps, args);
+          var pagePath = args.pagePath;
+
+          var route = pagePath && __uniRoutes.find(function (_ref) {
+            var path = _ref.path;
+            return path === pagePath;
+          });
+
+          if (route) {
+            var meta = route.meta;
+            meta.isTabBar = true;
+            meta.tabBarIndex = index;
+            meta.isQuit = true;
+            var _tabBar = __uniConfig.tabBar;
+
+            if (_tabBar && _tabBar.list && _tabBar.list[index]) {
+              _tabBar.list[index].pagePath = pagePath.startsWith('/') ? pagePath.substring(1) : pagePath;
+            }
+          }
+
+          break;
+        }
 
       case 'setTabBarStyle':
-        Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* setProperties */ "n"])(tabBar, setTabBarStyleProps, args);
+        Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* setProperties */ "o"])(tabBar, setTabBarStyleProps, args);
         break;
 
       case 'showTabBarRedDot':
-        Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* setProperties */ "n"])(tabBar.list[index], setTabBarBadgeProps, {
+        Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* setProperties */ "o"])(tabBar.list[index], setTabBarBadgeProps, {
           badge: '',
           redDot: true
         });
         break;
 
       case 'setTabBarBadge':
-        Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* setProperties */ "n"])(tabBar.list[index], setTabBarBadgeProps, {
+        Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* setProperties */ "o"])(tabBar.list[index], setTabBarBadgeProps, {
           badge: args.text,
           redDot: true
         });
@@ -31865,7 +35472,7 @@ function setTabBar(type) {
 
       case 'hideTabBarRedDot':
       case 'removeTabBarBadge':
-        Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* setProperties */ "n"])(tabBar.list[index], setTabBarBadgeProps, {
+        Object(uni_shared__WEBPACK_IMPORTED_MODULE_0__[/* setProperties */ "o"])(tabBar.list[index], setTabBarBadgeProps, {
           badge: '',
           redDot: false
         });
@@ -31911,6 +35518,441 @@ function setTabBarBadge(args) {
 /* harmony import */ var _node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_toast_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_toast_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__);
 /* unused harmony reexport * */
  /* unused harmony default export */ var _unused_webpack_default_export = (_node_modules_mini_css_extract_plugin_dist_loader_js_ref_6_oneOf_1_0_node_modules_css_loader_dist_cjs_js_ref_6_oneOf_1_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_6_oneOf_1_2_node_modules_cache_loader_dist_cjs_js_ref_0_0_node_modules_vue_loader_lib_index_js_vue_loader_options_toast_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default.a); 
+
+/***/ }),
+
+/***/ "ff70":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(UniServiceJSBridge) {/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("8bbf");
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(vue__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var uni_shared__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("f2b3");
+/* harmony import */ var uni_helpers_constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("65a8");
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+var windowTypes = ['top', 'left', 'right'];
+var documentElement = document.documentElement;
+var styleObj;
+
+function updateCssVar(name, value) {
+  if (!styleObj) {
+    styleObj = documentElement.style;
+  }
+
+  styleObj.setProperty(name, value);
+}
+
+function checkMinWidth(minWidth) {
+  var screen = window.screen;
+  var sizes = [window.outerWidth, window.outerHeight, screen.width, screen.height, documentElement.clientWidth, documentElement.clientHeight];
+  return Math.max.apply(null, sizes) > minWidth;
+}
+
+/* harmony default export */ __webpack_exports__["a"] = ({
+  name: 'Layout',
+  props: {
+    routerKey: {
+      type: String,
+      default: ''
+    },
+    keepAliveInclude: {
+      type: Array,
+      default: function _default() {
+        return [];
+      }
+    }
+  },
+  data: function data() {
+    return {
+      marginWidth: 0,
+      leftWindowStyle: '',
+      rightWindowStyle: '',
+      topWindowStyle: '',
+      topWindowMediaQuery: false,
+      leftWindowMediaQuery: false,
+      rightWindowMediaQuery: false,
+      topWindowHeight: '0px',
+      apiShowTopWindow: false,
+      apiShowLeftWindow: false,
+      apiShowRightWindow: false,
+      navigationBarTitleText: '',
+      maxWidthMeidaQuery: false
+    };
+  },
+  computed: {
+    bindWindow: function bindWindow() {
+      return {
+        matchTopWindow: this.topWindowMediaQuery,
+        showTopWindow: this.showTopWindow || this.apiShowTopWindow,
+        matchLeftWindow: this.leftWindowMediaQuery,
+        showLeftWindow: this.showLeftWindow || this.apiShowLeftWindow,
+        matchRightWindow: this.rightWindowMediaQuery,
+        showRightWindow: this.showRightWindow || this.apiShowRightWindow
+      };
+    },
+    showLayout: function showLayout() {
+      return this.showTopWindow || this.showLeftWindow || this.showRightWindow;
+    },
+    showTopWindow: function showTopWindow() {
+      this.resetApiShowWindow();
+      return this.$route.meta.topWindow !== false && this.topWindowMediaQuery;
+    },
+    showLeftWindow: function showLeftWindow() {
+      this.resetApiShowWindow();
+      return this.$route.meta.leftWindow !== false && this.leftWindowMediaQuery;
+    },
+    showRightWindow: function showRightWindow() {
+      this.resetApiShowWindow();
+      return this.$route.meta.rightWindow !== false && this.rightWindowMediaQuery;
+    }
+  },
+  watch: {
+    $route: function $route() {
+      this.checkMaxWidth();
+    },
+    showLayout: function showLayout() {
+      this.checkLayout();
+    },
+    showTopWindow: function showTopWindow(newVal, val) {
+      if (newVal) {
+        this.$nextTick(this.onTopWindowInit);
+      } else {
+        updateCssVar('--top-window-height', '0px');
+      }
+    },
+    showLeftWindow: function showLeftWindow(newVal, val) {
+      if (newVal) {
+        this.$nextTick(this.onLeftWindowInit);
+      } else {
+        updateCssVar('--window-left', '0px');
+      }
+    },
+    showRightWindow: function showRightWindow(newVal, val) {
+      if (newVal) {
+        this.$nextTick(this.onRightWindowInit);
+      } else {
+        updateCssVar('--window-right', '0px');
+      }
+    },
+    marginWidth: function marginWidth(newVal) {
+      updateCssVar('--window-margin', newVal + 'px');
+    }
+  },
+  beforeCreate: function beforeCreate() {
+    updateCssVar('--top-window-height', '0px');
+    updateCssVar('--window-left', '0px');
+    updateCssVar('--window-right', '0px');
+    updateCssVar('--window-margin', '0px');
+  },
+  created: function created() {
+    var _this = this;
+
+    this.topWindow = vue__WEBPACK_IMPORTED_MODULE_0___default.a.component('VUniTopWindow');
+    this.leftWindow = vue__WEBPACK_IMPORTED_MODULE_0___default.a.component('VUniLeftWindow');
+    this.rightWindow = vue__WEBPACK_IMPORTED_MODULE_0___default.a.component('VUniRightWindow');
+
+    if ( // 低版本不提供 responsive 支持
+    (this.topWindow || this.leftWindow || this.rightWindow) && uni.canIUse('css.var') && window.matchMedia) {
+      windowTypes.forEach(function (type) {
+        return _this.initWindowMinWidth(type);
+      });
+      this.responsive = checkMinWidth(this.minWidth);
+
+      if (this.responsive) {
+        if (this.topWindow && this.topWindow.options.style) {
+          this.topWindowStyle = this.topWindow.options.style;
+        }
+
+        if (this.leftWindow && this.leftWindow.options.style) {
+          this.leftWindowStyle = this.leftWindow.options.style;
+        }
+
+        if (this.rightWindow && this.rightWindow.options.style) {
+          this.rightWindowStyle = this.rightWindow.options.style;
+        }
+
+        windowTypes.forEach(function (type) {
+          return _this.initMediaQuery(type);
+        });
+        UniServiceJSBridge.on('onNavigationBarChange', function (navigationBar) {
+          _this.navigationBarTitleText = navigationBar.titleText;
+        });
+      }
+    }
+
+    this.initMaxWidth();
+  },
+  mounted: function mounted() {
+    this.checkLayout();
+    this.checkMaxWidth();
+  },
+  methods: {
+    resetApiShowWindow: function resetApiShowWindow() {
+      // 仅对 left，right 重置
+      // this.apiShowTopWindow = false
+      this.apiShowLeftWindow = false;
+      this.apiShowRightWindow = false;
+    },
+    showWindow: function showWindow(type) {
+      var show = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
+      if (!this[type + 'Window']) {
+        return type + 'Window not found';
+      }
+
+      var fType = Object(uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* capitalize */ "c"])(type);
+
+      if (!this['show' + fType + 'Window']) {
+        // 小屏下
+        var apiShowName = 'apiShow' + fType + 'Window';
+
+        if (this[apiShowName] !== show) {
+          this[apiShowName] = show;
+
+          if (type === 'top') {
+            // 特殊处理 top
+            if (show) {
+              this.$nextTick(this.onTopWindowInit);
+            } else {
+              updateCssVar('--top-window-height', '0px');
+            }
+          }
+        }
+      }
+    },
+    getWindowStyle: function getWindowStyle(type) {
+      if (!this[type + 'Window']) {
+        return type + 'Window not found';
+      }
+
+      var style = Object.assign({}, this[type + 'WindowStyle']);
+      return style;
+    },
+    setWindowStyle: function setWindowStyle(type, style) {
+      if (!this[type + 'Window']) {
+        return type + 'Window not found';
+      }
+
+      if (style) {
+        this[type + 'WindowStyle'] = style;
+        this.$nextTick(this['on' + Object(uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* capitalize */ "c"])(type) + 'WindowInit']);
+      }
+    },
+    initMaxWidth: function initMaxWidth() {
+      var _this2 = this;
+
+      window.addEventListener('resize', function () {
+        _this2.checkMaxWidth();
+      });
+    },
+    checkLayout: function checkLayout() {
+      this.$emit('layout', this.showLayout);
+    },
+    checkMaxWidth: function checkMaxWidth() {
+      var _this3 = this;
+
+      var windowWidth = document.body.clientWidth;
+      var maxWidth = parseInt(this.$route.meta.maxWidth);
+      var showMaxWidth = false;
+
+      if (windowWidth > maxWidth) {
+        showMaxWidth = true;
+      } else {
+        showMaxWidth = false;
+      }
+
+      this.$emit('maxWidth', showMaxWidth);
+
+      if (!this.$containerElem) {
+        this.$containerElem = document.querySelector('uni-app');
+      }
+
+      if (!this.$containerElem) {
+        return;
+      }
+
+      if (showMaxWidth && maxWidth) {
+        this.marginWidth = (windowWidth - maxWidth) / 2;
+        this.$nextTick(function () {
+          _this3.onLeftWindowInit();
+
+          _this3.onRightWindowInit();
+
+          _this3.$containerElem.setAttribute('style', 'max-width:' + maxWidth + 'px;margin:0 auto;');
+        });
+      } else {
+        this.marginWidth = 0;
+        this.$nextTick(function () {
+          _this3.onLeftWindowInit();
+
+          _this3.onRightWindowInit();
+
+          _this3.$containerElem.removeAttribute('style');
+        });
+      }
+    },
+    initWindowMinWidth: function initWindowMinWidth(type) {
+      var name = type + 'Window';
+
+      if (this[name]) {
+        var minWidthName = type + 'WindowMinWidth';
+        this[minWidthName] = uni_helpers_constants__WEBPACK_IMPORTED_MODULE_2__[/* RESPONSIVE_MIN_WIDTH */ "b"];
+        var windowOptions = __uniConfig[name];
+
+        if (windowOptions && windowOptions.matchMedia && Object(uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* hasOwn */ "i"])(windowOptions.matchMedia, 'minWidth')) {
+          this[minWidthName] = windowOptions.matchMedia.minWidth;
+        }
+
+        if (typeof this.minWidth === 'undefined' || this.minWidth > this[minWidthName]) {
+          this.minWidth = this[minWidthName];
+        }
+      }
+    },
+    initMediaQuery: function initMediaQuery(type) {
+      var _this4 = this;
+
+      if (this[type + 'Window']) {
+        var name = type + 'WindowMediaQuery';
+        var mediaQueryList = window.matchMedia('(min-width: ' + this[type + 'WindowMinWidth'] + 'px)');
+        mediaQueryList.addListener(function (e) {
+          _this4[name] = e.matches;
+
+          _this4.$nextTick(function () {
+            _this4['on' + Object(uni_shared__WEBPACK_IMPORTED_MODULE_1__[/* capitalize */ "c"])(type) + 'WindowInit']();
+          });
+        });
+        this[name] = mediaQueryList.matches;
+      }
+    },
+    onTopWindowInit: function onTopWindowInit() {
+      if (!(this.responsive && this.topWindow)) {
+        return;
+      } // TODO page header
+
+
+      var windowTopHeight = '0px';
+
+      if (this.topWindowStyle && this.topWindowStyle.height) {
+        windowTopHeight = this.$refs.topWindow.offsetHeight + 'px';
+      } else {
+        windowTopHeight = this.$refs.top.$el.offsetHeight + 'px';
+      }
+
+      this.topWindowHeight = windowTopHeight;
+      updateCssVar('--top-window-height', windowTopHeight);
+    },
+    onLeftWindowInit: function onLeftWindowInit() {
+      if (!(this.responsive && this.leftWindow)) {
+        updateCssVar('--window-left', this.marginWidth + 'px');
+        return;
+      }
+
+      if (this.leftWindowStyle && this.leftWindowStyle.width) {
+        updateCssVar('--window-left', this.$refs.leftWindow.offsetWidth + this.marginWidth + 'px');
+      } else {
+        updateCssVar('--window-left', this.$refs.left.$el.offsetWidth + this.marginWidth + 'px');
+      }
+    },
+    onRightWindowInit: function onRightWindowInit() {
+      if (!(this.responsive && this.rightWindow)) {
+        updateCssVar('--window-right', this.marginWidth + 'px');
+        return;
+      }
+
+      if (this.rightWindowStyle && this.rightWindowStyle.width) {
+        updateCssVar('--window-right', this.$refs.rightWindow.offsetWidth + this.marginWidth + 'px');
+      } else {
+        updateCssVar('--window-right', this.$refs.right.$el.offsetWidth + this.marginWidth + 'px');
+      }
+    }
+  }
+});
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__("0dd1")))
 
 /***/ }),
 
