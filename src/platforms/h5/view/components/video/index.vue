@@ -1,11 +1,11 @@
 <template>
   <uni-video
     :id="id"
-    v-on="$listeners">
+    v-on="$listeners"
+  >
     <div
       ref="container"
       class="uni-video-container"
-      @click="triggerControls"
       @touchstart="touchstart"
       @touchend="touchend"
       @touchmove="touchmove"
@@ -14,7 +14,7 @@
     >
       <video
         ref="video"
-        :style="{opacity:!start?0.8:1,objectFit:objectFit}"
+        :style="{objectFit:objectFit}"
         :muted="muted"
         :loop="loop"
         :src="srcSync"
@@ -24,6 +24,7 @@
         class="uni-video-video"
         webkit-playsinline
         playsinline
+        @click="triggerControls"
         @durationchange="onDurationChange"
         @loadedmetadata="onLoadedMetadata"
         @progress="onProgress"
@@ -41,7 +42,8 @@
       <div
         v-show="controlsShow"
         class="uni-video-bar uni-video-bar-full"
-        @click.stop>
+        @click.stop
+      >
         <div class="uni-video-controls">
           <div
             v-show="showPlayBtn"
@@ -49,7 +51,9 @@
             class="uni-video-control-button"
             @click.stop="trigger"
           />
-          <div class="uni-video-current-time">{{ currentTime|time }}</div>
+          <div class="uni-video-current-time">
+            {{ currentTime|time }}
+          </div>
           <div
             ref="progress"
             class="uni-video-progress-container"
@@ -58,23 +62,29 @@
             <div class="uni-video-progress">
               <div
                 :style="{width:buffered+'%'}"
-                class="uni-video-progress-buffered" />
+                class="uni-video-progress-buffered"
+              />
               <div
                 ref="ball"
                 :style="{left:progress+'%'}"
-                class="uni-video-ball">
+                class="uni-video-ball"
+              >
                 <div class="uni-video-inner" />
               </div>
             </div>
           </div>
-          <div class="uni-video-duration">{{ (duration||durationTime)|time }}</div>
+          <div class="uni-video-duration">
+            {{ (duration||durationTime)|time }}
+          </div>
         </div>
         <div
           v-if="danmuBtn"
           :class="{'uni-video-danmu-button-active':enableDanmuSync}"
           class="uni-video-danmu-button"
           @click.stop="triggerDanmu"
-        >弹幕</div>
+        >
+          {{ $$t("uni.video.danmu") }}
+        </div>
         <div
           v-show="showFullscreenBtn"
           :class="{'uni-video-type-fullscreen':fullscreen}"
@@ -86,20 +96,28 @@
         v-show="start&&enableDanmuSync"
         ref="danmu"
         style="z-index: 0;"
-        class="uni-video-danmu" />
+        class="uni-video-danmu"
+      />
       <div
-        v-if="!start"
+        v-if="centerPlayBtnShow"
         class="uni-video-cover"
-        @click.stop>
+        @click.stop
+      >
         <div
           class="uni-video-cover-play-button"
-          @click.stop="play" />
-        <p class="uni-video-cover-duration">{{ (duration||durationTime)|time }}</p>
+          @click.stop="play"
+        />
+        <p class="uni-video-cover-duration">
+          {{ (duration||durationTime)|time }}
+        </p>
       </div>
       <div
         :class="{'uni-video-toast-volume':gestureType==='volume'}"
-        class="uni-video-toast">
-        <div class="uni-video-toast-title">音量</div>
+        class="uni-video-toast"
+      >
+        <div class="uni-video-toast-title">
+          {{ $$t("uni.video.volume") }}
+        </div>
         <svg
           class="uni-video-toast-icon"
           width="200px"
@@ -115,7 +133,8 @@
         <div class="uni-video-toast-value">
           <div
             :style="{width:volumeNew*100+'%'}"
-            class="uni-video-toast-value-content">
+            class="uni-video-toast-value-content"
+          >
             <div class="uni-video-toast-volume-grids">
               <div
                 v-for="(item,index) in 10"
@@ -128,14 +147,15 @@
       </div>
       <div
         :class="{'uni-video-toast-progress':gestureType=='progress'}"
-        class="uni-video-toast">
-        <div class="uni-video-toast-title">{{ currentTimeNew|time }} / {{ durationTime|time }}</div>
+        class="uni-video-toast"
+      >
+        <div class="uni-video-toast-title">
+          {{ currentTimeNew|time }} / {{ durationTime|time }}
+        </div>
       </div>
-    </div>
-    <div
-      style="position: absolute; top: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none;"
-    >
-      <slot />
+      <div class="uni-video-slots">
+        <slot />
+      </div>
     </div>
   </uni-video>
 </template>
@@ -147,6 +167,9 @@ import {
 import {
   supportsPassive
 } from 'uni-shared'
+import {
+  i18nMixin
+} from 'uni-core/helpers/i18n'
 
 const passiveOptions = supportsPassive ? {
   passive: false
@@ -177,7 +200,7 @@ export default {
       return str
     }
   },
-  mixins: [subscriber, interact],
+  mixins: [i18nMixin, subscriber, interact],
   props: {
     id: {
       type: String,
@@ -256,6 +279,10 @@ export default {
     showPlayBtn: {
       type: [Boolean, String],
       default: true
+    },
+    showCenterPlayBtn: {
+      type: [Boolean, String],
+      default: true
     }
   },
   data () {
@@ -284,8 +311,11 @@ export default {
     }
   },
   computed: {
+    centerPlayBtnShow () {
+      return this.showCenterPlayBtn && !this.start
+    },
     controlsShow () {
-      return this.start && this.controls && this.controlsVisible
+      return !this.centerPlayBtnShow && this.controls && this.controlsVisible
     },
     autoHideContorls () {
       return this.controlsShow && this.playing && !this.controlsTouching
@@ -590,7 +620,7 @@ export default {
       const danmuList = otherData.danmuList
       if (currentTime > oldDanmuIndex.time) {
         for (let index = oldDanmuIndex.index + 1; index < danmuList.length; index++) {
-          let element = danmuList[index]
+          const element = danmuList[index]
           if (currentTime >= (element.time || 0)) {
             danmuIndex.index = index
             if (this.playing && this.enableDanmuSync) {
@@ -602,7 +632,7 @@ export default {
         }
       } else if (currentTime < oldDanmuIndex.time) {
         for (let index = oldDanmuIndex.index - 1; index > -1; index--) {
-          let element = danmuList[index]
+          const element = danmuList[index]
           if (currentTime <= (element.time || 0)) {
             danmuIndex.index = index - 1
           } else {
@@ -781,12 +811,23 @@ uni-video[hidden] {
   z-index: 1;
 }
 
+.uni-video-slots {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 .uni-video-cover-play-button {
   width: 40px;
   height: 40px;
   background-size: 50%;
   background-repeat: no-repeat;
   background-position: 50% 50%;
+  cursor: pointer;
 }
 
 .uni-video-cover-duration {
@@ -831,6 +872,7 @@ uni-video[hidden] {
   padding: 14.5px 12.5px 14.5px 12.5px;
   margin-left: -8.5px;
   box-sizing: content-box;
+  cursor: pointer;
 }
 
 .uni-video-control-button::after {
@@ -873,6 +915,7 @@ uni-video[hidden] {
   margin: 21px 12px;
   background-color: rgba(255, 255, 255, 0.4);
   position: relative;
+  cursor: pointer;
 }
 
 .uni-video-progress-buffered {
@@ -912,6 +955,7 @@ uni-video[hidden] {
   font-size: 13px;
   color: #fff;
   margin: 0 8.5px;
+  cursor: pointer;
 }
 
 .uni-video-danmu-button.uni-video-danmu-button-active {
@@ -928,6 +972,7 @@ uni-video[hidden] {
   background-size: 50%;
   background-position: 50% 50%;
   background-repeat: no-repeat;
+  cursor: pointer;
 }
 
 .uni-video-fullscreen.uni-video-type-fullscreen {

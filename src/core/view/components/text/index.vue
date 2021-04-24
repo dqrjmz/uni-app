@@ -1,8 +1,8 @@
 <script>
 const SPACE_UNICODE = {
-  'ensp': '\u2002',
-  'emsp': '\u2003',
-  'nbsp': '\u00a0'
+  ensp: '\u2002',
+  emsp: '\u2003',
+  nbsp: '\u00a0'
 }
 
 export default {
@@ -51,7 +51,7 @@ export default {
         })
       } else {
         if (vnode.componentOptions && vnode.componentOptions.tag !== 'v-uni-text') {
-          console.warn('<text> 组件内只支持嵌套 <text>，不支持其它组件或自定义组件，否则会引发在不同平台的渲染差异。')
+          console.warn('Do not nest other components in the text component, as there may be display differences on different platforms.')
         }
         nodeList.push(vnode)
       }

@@ -50,7 +50,8 @@ onMethod('onRequestTaskStateChange', function ({
   data,
   statusCode,
   header,
-  errMsg
+  errMsg,
+  cookies
 }) {
   const {
     args,
@@ -67,7 +68,8 @@ onMethod('onRequestTaskStateChange', function ({
         data,
         statusCode,
         header,
-        errMsg: 'request:ok'
+        errMsg: 'request:ok',
+        cookies
       }, args))
       break
     case 'fail':
@@ -100,6 +102,16 @@ class RequestTask {
 }
 
 export function request (args, callbackId) {
+  let contentType
+  for (const name in args.header) {
+    if (name.toLowerCase() === 'content-type') {
+      contentType = args.header[name]
+      break
+    }
+  }
+  if (args.method !== 'GET' && contentType.indexOf('application/json') === 0 && isPlainObject(args.data)) {
+    args.data = JSON.stringify(args.data)
+  }
   const {
     requestTaskId
   } = invokeMethod('createRequestTask', args)

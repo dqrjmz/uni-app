@@ -2,27 +2,34 @@
   <uni-slider
     ref="uni-slider"
     v-on="$listeners"
-    @click="_onClick">
+    @click="_onClick"
+  >
     <div class="uni-slider-wrapper">
       <div class="uni-slider-tap-area">
         <div
           :style="setBgColor"
-          class="uni-slider-handle-wrapper">
+          class="uni-slider-handle-wrapper"
+        >
           <div
             ref="uni-slider-handle"
             :style="setBlockBg"
-            class="uni-slider-handle" />
+            class="uni-slider-handle"
+          />
           <div
             :style="setBlockStyle"
-            class="uni-slider-thumb" />
+            class="uni-slider-thumb"
+          />
           <div
             :style="setActiveColor"
-            class="uni-slider-track" />
+            class="uni-slider-track"
+          />
         </div>
       </div>
       <span
         v-show="showValue"
-        class="uni-slider-value">{{ sliderValue }}</span>
+        ref="uni-slider-value"
+        class="uni-slider-value"
+      >{{ sliderValue }}</span>
     </div>
     <slot />
   </uni-slider>
@@ -33,6 +40,78 @@ import {
   listeners
 } from 'uni-mixins'
 import touchtrack from 'uni-mixins/touchtrack'
+
+// 处理js计算小数时的精度问题
+var computeController = {
+  add: function (arg) {
+    var r1, r2, m
+    try {
+      // 获得小数位数
+      r1 = this.toString().split('.')[1].length
+    } catch (e) {
+      r1 = 0
+    }
+    try {
+      // 获得小数位数
+      r2 = arg.toString().split('.')[1].length
+    } catch (e) {
+      r2 = 0
+    }
+    m = Math.pow(10, Math.max(r1, r2))
+    return (this * m + arg * m) / m
+  },
+  sub: function (arg) {
+    return this.add(-arg)
+  },
+  mul: function (arg) {
+    var m = 0; var s1 = this.toString(); var s2 = arg.toString()
+    try {
+      // 获得小数位数
+      m += s1.split('.')[1].length
+    } catch (e) { }
+    try {
+      // 获得小数位数
+      m += s2.split('.')[1].length
+    } catch (e) { }
+    // 转为十进制计算后，要除以两个数的共同小数位数
+    return Number(s1.replace('.', '')) * Number(s2.replace('.', '')) / Math.pow(10, m)
+  },
+  div: function (arg) {
+    var t1 = 0; var t2 = 0; var r1; var r2
+    try {
+      // 获得小数位数
+      t1 = this.toString().split('.')[1].length
+    } catch (e) { }
+    try {
+      // 获得小数位数
+      t2 = arg.toString().split('.')[1].length
+    } catch (e) { }
+    r1 = Number(this.toString().replace('.', ''))
+    r2 = Number(arg.toString().replace('.', ''))
+    // 转为十进制计算后，要乘以除数与被除数小数位数的差
+    return (r1 / r2) * Math.pow(10, t2 - t1)
+  },
+  mod: function (arg) {
+    var t1 = 0; var t2 = 0; var r1; var r2
+    try {
+      t1 = this.toString().split('.')[1].length
+    } catch (e) { }
+    try {
+      t2 = arg.toString().split('.')[1].length
+    } catch (e) { }
+    // 小数位数
+    var digit = Math.pow(10, Math.abs(t1 - t2))
+    // eslint-disable-next-line eqeqeq
+    if (digit == 1) { digit = Math.pow(10, t1) }
+    // 计算余数
+    r1 = (this * digit).toString().split('.')[0]
+    r2 = arg * digit
+    // 小数点后数字，直接拼接上即可
+    var decimals = (this * digit).toString().split('.')[1] ? (this * digit).toString().split('.')[1] : ''
+    return (r1 % r2 + decimals) / digit
+  }
+}
+
 export default {
   name: 'Slider',
   mixins: [emitter, listeners, touchtrack],
@@ -145,15 +224,20 @@ export default {
   },
   methods: {
     _onUserChangedValue (e) {
-      let slider = this.$refs['uni-slider']
-      let offsetWidth = slider.offsetWidth
-      let boxLeft = slider.getBoundingClientRect().left
-      let value = (e.x - boxLeft) * (this.max - this.min) / offsetWidth + Number(this.min)
+      const sliderRightBox = this.$refs['uni-slider-value']
+      const sliderRightBoxLeft = getComputedStyle(sliderRightBox, null).marginLeft
+      let sliderRightBoxWidth = sliderRightBox.offsetWidth
+      sliderRightBoxWidth = sliderRightBoxWidth + parseInt(sliderRightBoxLeft)
+      const slider = this.$refs['uni-slider']
+      const offsetWidth = slider.offsetWidth - (this.showValue ? sliderRightBoxWidth : 0)
+      const boxLeft = slider.getBoundingClientRect().left
+      const value = (e.x - boxLeft) * (this.max - this.min) / offsetWidth + Number(this.min)
       this.sliderValue = this._filterValue(value)
     },
     _filterValue (e) {
-      return e < this.min ? this.min : e > this.max ? this.max : Math.round((e - this.min) / this
-        .step) * this.step + Number(this.min)
+      const max = Number(this.max)
+      const min = Number(this.min)
+      return e < min ? min : e > max ? max : computeController.mul.call(Math.round((e - min) / this.step), this.step) + min
     },
     _getValueWidth () {
       return 100 * (this.sliderValue - this.min) / (this.max - this.min) + '%'
@@ -172,7 +256,7 @@ export default {
           x: e.detail.x0
         }), this.$trigger('changing', e, {
           value: this.sliderValue
-        }), !1) : void (e.detail.state === 'end' && this.$trigger('change', e, {
+        }), !1) : (e.detail.state === 'end' && this.$trigger('change', e, {
           value: this.sliderValue
         }))
       }
@@ -190,10 +274,10 @@ export default {
       this.sliderValue = this.min
     },
     _getFormData () {
-      let data = {}
+      const data = {}
       if (this.name !== '') {
-        data['value'] = this.sliderValue
-        data['key'] = this.name
+        data.value = this.sliderValue
+        data.key = this.name
       }
       return data
     }
@@ -259,6 +343,7 @@ export default {
 		margin-left: -14px;
 		background-color: transparent;
 		z-index: 3;
+		cursor: grab;
 	}
 
 	uni-slider .uni-slider-thumb {
@@ -275,6 +360,7 @@ export default {
 	}
 
 	uni-slider .uni-slider-value {
+    width: 3ch;
 		color: #888;
 		font-size: 14px;
 		margin-left: 1em;

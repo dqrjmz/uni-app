@@ -1,59 +1,164 @@
 <template>
   <uni-picker
-    @click.stop="_show"
-    v-on="$listeners">
+    :disabled="disabled"
+    @click="_show"
+    v-on="$listeners"
+  >
     <div
       ref="picker"
       class="uni-picker-container"
-      @touchmove.prevent>
+      :class="`uni-${mode}-${selectorTypeComputed}`"
+      @wheel.prevent
+      @touchmove.prevent
+    >
       <transition name="uni-fade">
         <div
           v-show="visible"
-          class="uni-mask"
-          @click="_cancel" />
+          class="uni-mask uni-picker-mask"
+          @click="_cancel"
+          @mousemove="_fixInputPosition"
+        />
       </transition>
       <div
-        :class="{'uni-picker-toggle':visible}"
-        class="uni-picker">
+        v-if="!system"
+        :class="{ 'uni-picker-toggle': visible }"
+        :style="popupStyle.content"
+        class="uni-picker-custom"
+      >
         <div
           class="uni-picker-header"
-          @click.stop>
+          @click.stop
+        >
           <div
             class="uni-picker-action uni-picker-action-cancel"
-            @click="_cancel">取消</div>
+            @click="_cancel"
+          >
+            {{ $$t("uni.picker.cancel") }}
+          </div>
           <div
             class="uni-picker-action uni-picker-action-confirm"
-            @click="_change">确定</div>
+            @click="_change"
+          >
+            {{ $$t("uni.picker.done") }}
+          </div>
         </div>
         <v-uni-picker-view
-          v-if="visible"
-          :value.sync="valueArray"
-          class="uni-picker-content">
+          v-if="contentVisible"
+          :value="_l10nColumn(valueArray)"
+          class="uni-picker-content"
+          @change="_pickerViewChange"
+        >
           <v-uni-picker-view-column
-            v-for="(range,index0) in rangeArray"
-            :key="index0">
+            v-for="(rangeItem, index0) in _l10nColumn(rangeArray)"
+            :key="index0"
+          >
             <div
-              v-for="(item,index) in range"
+              v-for="(item, index) in rangeItem"
               :key="index"
               class="uni-picker-item"
-            >{{ typeof item==='object'?item[rangeKey]||'':item }}{{ units[index0]||'' }}</div>
+            >
+              {{
+                typeof item === "object"
+                  ? item[rangeKey] || ""
+                  : _l10nItem(item, index0)
+              }}
+            </div>
           </v-uni-picker-view-column>
         </v-uni-picker-view>
-        <!-- 第二种时间单位展示方式-暂时不用这种 -->
-        <!-- <div v-if="units.length" class="uni-picker-units">
-        <div v-for="(item,index) in units" :key="index">{{item}}</div>
-        </div>-->
+        <div
+          ref="select"
+          class="uni-picker-select"
+          @wheel.stop
+          @touchmove.stop
+        >
+          <div
+            v-for="(item, index) in rangeArray[0]"
+            :key="index"
+            class="uni-picker-item"
+            :class="{ selected: valueArray[0] === index }"
+            @click="
+              valueArray[0] = index;
+              _change();
+            "
+          >
+            {{ typeof item === "object" ? item[rangeKey] || "" : item }}
+          </div>
+        </div>
+        <div :style="popupStyle.triangle" />
       </div>
     </div>
     <div>
       <slot />
     </div>
+    <div
+      v-if="system"
+      class="uni-picker-system"
+      @mousemove="_fixInputPosition"
+    >
+      <input
+        ref="input"
+        :value="valueSync"
+        :type="mode"
+        tabindex="-1"
+        :min="start"
+        :max="end"
+        :class="[system, popupStyle.dock]"
+        @change.stop="_input"
+      >
+    </div>
+    <keypress
+      :disable="!visible"
+      @esc="_cancel"
+      @enter="_change"
+    />
   </uni-picker>
 </template>
 
 <script>
 import { emitter } from 'uni-mixins'
 import { formatDateTime } from 'uni-shared'
+import popup from '../../../components/app/popup/mixins/popup'
+import keypress from '../../../helpers/keypress'
+import {
+  i18nMixin,
+  getLocale
+} from 'uni-core/helpers/i18n'
+
+function getDefaultStartValue () {
+  if (this.mode === mode.TIME) {
+    return '00:00'
+  }
+  if (this.mode === mode.DATE) {
+    const year = new Date().getFullYear() - 100
+    switch (this.fields) {
+      case fields.YEAR:
+        return year.toString()
+      case fields.MONTH:
+        return year + '-01'
+      default:
+        return year + '-01-01'
+    }
+  }
+  return ''
+}
+
+function getDefaultEndValue () {
+  if (this.mode === mode.TIME) {
+    return '23:59'
+  }
+  if (this.mode === mode.DATE) {
+    const year = new Date().getFullYear() + 100
+    switch (this.fields) {
+      case fields.YEAR:
+        return year.toString()
+      case fields.MONTH:
+        return year + '-12'
+      default:
+        return year + '-12-31'
+    }
+  }
+  return ''
+}
 
 const mode = {
   SELECTOR: 'selector',
@@ -68,9 +173,14 @@ const fields = {
   MONTH: 'month',
   DAY: 'day'
 }
+const selectorType = {
+  PICKER: 'picker',
+  SELECT: 'select'
+}
 export default {
   name: 'Picker',
-  mixins: [emitter],
+  components: { keypress },
+  mixins: [i18nMixin, emitter, popup],
   props: {
     name: {
       type: String,
@@ -94,65 +204,36 @@ export default {
       type: String,
       default: mode.SELECTOR,
       validator (val) {
-        return Object.values(mode).indexOf(val) >= 0
+        return Object.values(mode).includes(val)
       }
     },
     fields: {
       type: String,
-      default: 'day',
-      validator (val) {
-        return Object.values(fields).indexOf(val) >= 0
-      }
+      default: ''
     },
     start: {
       type: String,
-      default () {
-        if (this.mode === mode.TIME) {
-          return '00:00'
-        }
-        if (this.mode === mode.DATE) {
-          let year = new Date().getFullYear() - 100
-          switch (this.fields) {
-            case fields.YEAR:
-              return year
-            case fields.MONTH:
-              return year + '-01'
-            case fields.DAY:
-              return year + '-01-01'
-          }
-        }
-        return ''
-      }
+      default: getDefaultStartValue
     },
     end: {
       type: String,
-      default () {
-        if (this.mode === mode.TIME) {
-          return '23:59'
-        }
-        if (this.mode === mode.DATE) {
-          let year = new Date().getFullYear() + 100
-          switch (this.fields) {
-            case fields.YEAR:
-              return year
-            case fields.MONTH:
-              return year + '-12'
-            case fields.DAY:
-              return year + '-12-31'
-          }
-        }
-        return ''
-      }
+      default: getDefaultEndValue
     },
     disabled: {
       type: [Boolean, String],
       default: false
+    },
+    selectorType: {
+      type: String,
+      default: ''
     }
   },
   data () {
     return {
-      valueSync: this.value || 0,
+      valueSync: null,
       visible: false,
+      contentVisible: false,
+      popover: null,
       valueChangeSource: '',
       timeArray: [],
       dateArray: [],
@@ -172,82 +253,82 @@ export default {
           return this.timeArray
         case mode.DATE:
         {
-          let dateArray = this.dateArray
+          const dateArray = this.dateArray
           switch (this.fields) {
             case fields.YEAR:
               return [dateArray[0]]
             case fields.MONTH:
               return [dateArray[0], dateArray[1]]
-            case fields.DAY:
+            default:
               return [dateArray[0], dateArray[1], dateArray[2]]
           }
         }
       }
+      return []
     },
     startArray () {
-      var splitStr = this.mode === mode.DATE ? '-' : ':'
-      var array = this.mode === mode.DATE ? this.dateArray : this.timeArray
-      var val = this.start.split(splitStr).map((val, i) => array[i].indexOf(
-        val))
-      if (val.indexOf(-1) >= 0) {
-        val = array.map(() => 0)
-      }
-      return val
+      return this._getDateValueArray(this.start, getDefaultStartValue.bind(this)())
     },
     endArray () {
-      var splitStr = this.mode === mode.DATE ? '-' : ':'
-      var array = this.mode === mode.DATE ? this.dateArray : this.timeArray
-      var val = this.end.split(splitStr).map((val, i) => array[i].indexOf(
-        val))
-      if (val.indexOf(-1) >= 0) {
-        val = array.map((val) => val.length - 1)
-      }
-      return val
+      return this._getDateValueArray(this.end, getDefaultEndValue.bind(this)())
     },
-    units () {
-      switch (this.mode) {
-        case mode.DATE:
-          return ['年', '月', '日']
-        case mode.TIME:
-          return ['时', '分']
-        default:
-          return []
+    selectorTypeComputed () {
+      const type = this.selectorType
+      if (Object.values(selectorType).includes(type)) {
+        return type
       }
+      return String(navigator.vendor).indexOf('Apple') === 0 && navigator.maxTouchPoints > 0 ? selectorType.PICKER : selectorType.SELECT
+    },
+    system () {
+      if (this.mode === mode.DATE && !Object.values(fields).includes(this.fields) && this.isDesktop && /win|mac/i.test(navigator.platform)) {
+        if (navigator.vendor === 'Google Inc.') {
+          return 'chrome'
+        } else if (/Firefox/.test(navigator.userAgent)) {
+          return 'firefox'
+        }
+      }
+      return ''
     }
   },
   watch: {
-    value (val) {
-      if (Array.isArray(val)) {
-        if (!Array.isArray(this.valueSync)) {
-          this.valueSync = []
-        }
-        this.valueSync.length = val.length
-        val.forEach((val, index) => {
-          if (val !== this.valueSync[index]) {
-            this.$set(this.valueSync, index, val)
-          }
-        })
-      } else if (typeof val !== 'object') {
-        this.valueSync = val
+    visible (val) {
+      if (val) {
+        clearTimeout(this.__contentVisibleDelay)
+        this.contentVisible = val
+        this._select()
+      } else {
+        this.__contentVisibleDelay = setTimeout(() => {
+          this.contentVisible = val
+        }, 300)
       }
+    },
+    value () {
+      this._setValueSync()
+    },
+    mode () {
+      this._setValueSync()
+    },
+    range () {
+      this._setValueSync()
+    },
+    valueSync () {
+      this._setValueArray()
     },
     valueArray (val) {
       if (this.mode === mode.TIME || this.mode === mode.DATE) {
-        let getValue =
+        const getValue =
           this.mode === mode.TIME ? this._getTimeValue : this._getDateValue
-        let valueArray = this.valueArray
-        let startArray = this.startArray
-        let endArray = this.endArray
+        const valueArray = this.valueArray
+        const startArray = this.startArray
+        const endArray = this.endArray
         if (this.mode === mode.DATE) {
           const dateArray = this.dateArray
-          let max = dateArray[2].length
-          let day = dateArray[2][valueArray[2]]
-          let realDay = new Date(
-            `${dateArray[0][valueArray[0]]}/${
-              dateArray[1][valueArray[1]]
+          const max = dateArray[2].length
+          const day = Number(dateArray[2][valueArray[2]]) || 1
+          const realDay = new Date(
+            `${dateArray[0][valueArray[0]]}/${dateArray[1][valueArray[1]]
             }/${day}`
           ).getDate()
-          day = Number(day)
           if (realDay < day) {
             valueArray[2] -= realDay + max - day
           }
@@ -279,8 +360,7 @@ export default {
     })
     this._createTime()
     this._createDate()
-    this.$watch('valueSync', this._setValue)
-    this.$watch('mode', this._setValue)
+    this._setValueSync()
   },
   beforeDestroy () {
     this.$refs.picker.remove()
@@ -290,16 +370,22 @@ export default {
     })
   },
   methods: {
-    _show () {
+    _show (event) {
       if (this.disabled) {
         return
       }
       this.valueChangeSource = ''
-      this._setValue()
       var $picker = this.$refs.picker
       $picker.remove();
       (document.querySelector('uni-app') || document.body).appendChild($picker)
       $picker.style.display = 'block'
+      const rect = event.currentTarget.getBoundingClientRect()
+      this.popover = {
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height
+      }
       setTimeout(() => {
         this.visible = true
       }, 20)
@@ -311,7 +397,20 @@ export default {
       }
     },
     _resetFormData () {
-      this.valueSync = 0
+      switch (this.mode) {
+        case mode.SELECTOR:
+          this.valueSync = 0
+          break
+        case mode.MULTISELECTOR:
+          this.valueSync = this.value.map(val => 0)
+          break
+        case mode.DATE:
+        case mode.TIME:
+          this.valueSync = ''
+          break
+        default:
+          break
+      }
     },
     _createTime () {
       var hours = []
@@ -346,7 +445,8 @@ export default {
       return val[0] * 60 + val[1]
     },
     _getDateValue (val) {
-      return val[0] * 366 + (val[1] || 0) * 31 + (val[2] || 0)
+      const DAY = 31
+      return val[0] * DAY * 12 + (val[1] || 0) * DAY + (val[2] || 0)
     },
     /**
      * 将右侧数组值同步到左侧（交集部分）
@@ -356,59 +456,57 @@ export default {
         val1[i] = val2[i]
       }
     },
-    _setValue () {
+    _setValueSync () {
+      let val = this.value
+      switch (this.mode) {
+        case mode.MULTISELECTOR:
+          {
+            if (!Array.isArray(val)) {
+              val = []
+            }
+            if (!Array.isArray(this.valueSync)) {
+              this.valueSync = []
+            }
+            const length = this.valueSync.length = Math.max(val.length, this.range.length)
+            for (let index = 0; index < length; index++) {
+              const val0 = Number(val[index])
+              const val1 = Number(this.valueSync[index])
+              const val2 = isNaN(val0) ? (isNaN(val1) ? 0 : val1) : val0
+              const maxVal = this.range[index] ? this.range[index].length - 1 : 0
+              this.valueSync.splice(index, 1, (val2 < 0 || val2 > maxVal) ? 0 : val2)
+            }
+          }
+          break
+        case mode.TIME:
+        case mode.DATE:
+          this.valueSync = String(val)
+          break
+        default: {
+          const valueSync = Number(val)
+          this.valueSync = valueSync < 0 ? 0 : valueSync
+          break
+        }
+      }
+    },
+    _setValueArray () {
       var val = this.valueSync
       var valueArray
       switch (this.mode) {
-        case mode.SELECTOR:
-          valueArray = [val]
-          break
         case mode.MULTISELECTOR:
           valueArray = [...val]
           break
         case mode.TIME:
-          var timeValTestFail = false
-          if (typeof this.value !== 'string') {
-            timeValTestFail = true
-          } else {
-            val.split(':').map((val, i) => {
-              var valIndex = this.timeArray[i].indexOf(val)
-              if (valIndex === -1) {
-                timeValTestFail = true
-              }
-            })
-          }
-          // 处理默认值为当前时间
-          if (timeValTestFail) {
-            val = formatDateTime({
-              mode: mode.TIME
-            })
-          }
-          valueArray = val
-            .split(':')
-            .map((val, i) => this.timeArray[i].indexOf(val))
+          valueArray = this._getDateValueArray(val, formatDateTime({
+            mode: mode.TIME
+          }))
           break
         case mode.DATE:
-          var dateValTestFail = false
-          if (typeof this.value !== 'string') {
-            dateValTestFail = true
-          } else {
-            val.split('-').map((val, i) => {
-              var valIndex = this.dateArray[i].indexOf(val)
-              if (valIndex === -1) {
-                dateValTestFail = true
-              }
-            })
-          }
-          // 处理默认值为当前日期
-          if (dateValTestFail) {
-            val = formatDateTime({
-              mode: mode.DATE
-            })
-          }
-          valueArray = val
-            .split('-')
-            .map((val, i) => this.dateArray[i].indexOf(val))
+          valueArray = this._getDateValueArray(val, formatDateTime({
+            mode: mode.DATE
+          }))
+          break
+        default:
+          valueArray = [val]
           break
       }
       this.oldValueArray = [...valueArray]
@@ -431,16 +529,54 @@ export default {
             .join('-')
       }
     },
+    _getDateValueArray (valueStr, defaultValue) {
+      const splitStr = this.mode === mode.DATE ? '-' : ':'
+      const array = this.mode === mode.DATE ? this.dateArray : this.timeArray
+      let max
+      if (this.mode === mode.TIME) {
+        max = 2
+      } else {
+        switch (this.fields) {
+          case fields.YEAR:
+            max = 1
+            break
+          case fields.MONTH:
+            max = 2
+            break
+          default:
+            max = 3
+            break
+        }
+      }
+      const inputArray = String(valueStr).split(splitStr)
+      let value = []
+      for (let i = 0; i < max; i++) {
+        const val = inputArray[i]
+        value.push(array[i].indexOf(val))
+      }
+      if (value.indexOf(-1) >= 0) {
+        value = defaultValue ? this._getDateValueArray(defaultValue) : value.map(() => 0)
+      }
+      return value
+    },
     _change () {
       this._close()
       this.valueChangeSource = 'click'
-      let value = this._getValue()
+      const value = this._getValue()
       this.valueSync = Array.isArray(value) ? value.map(val => val) : value
       this.$trigger('change', {}, {
         value
       })
     },
-    _cancel () {
+    _cancel ($event) {
+      if (this.system === 'firefox') {
+        // Firefox 在 input 同位置区域点击无法隐藏控件
+        const { top, left, width, height } = this.popover
+        const { pageX, pageY } = $event
+        if (pageX > left && pageX < left + width && pageY > top && pageY < top + height) {
+          return
+        }
+      }
       this._close()
       this.$trigger('cancel', {}, {})
     },
@@ -452,6 +588,77 @@ export default {
         this.$el.prepend($picker)
         $picker.style.display = 'none'
       }, 260)
+    },
+    _select () {
+      if (this.mode === mode.SELECTOR && this.selectorTypeComputed === selectorType.SELECT) {
+        this.$refs.select.scrollTop = this.valueArray[0] * 34
+      }
+    },
+    _input ($event) {
+      this.valueSync = $event.target.value
+      this.$nextTick(() => {
+        this._change()
+      })
+    },
+    _fixInputPosition ($event) {
+      if (this.system === 'chrome') {
+        const rect = this.$el.getBoundingClientRect()
+        const style = this.$refs.input.style
+        const fontSize = 32
+        style.left = `${$event.clientX - rect.left - fontSize * 1.5}px`
+        style.top = `${$event.clientY - rect.top - fontSize * 0.5}px`
+      }
+    },
+    _pickerViewChange (event) {
+      this.valueArray = this._l10nColumn(event.detail.value, true)
+    },
+    _l10nColumn (array, normalize) {
+      if (this.mode === mode.DATE) {
+        const locale = getLocale()
+        if (!locale.startsWith('zh')) {
+          switch (this.fields) {
+            case fields.YEAR:
+              return array
+            case fields.MONTH:
+              return [array[1], array[0]]
+            default:
+              switch (locale) {
+                case 'es':
+                case 'fr':
+                  return [array[2], array[1], array[0]]
+                // case 'en':
+                default:
+                  return normalize ? [array[2], array[0], array[1]] : [array[1], array[2], array[0]]
+              }
+          }
+        }
+      }
+      return array
+    },
+    _l10nItem (item, index) {
+      if (this.mode === mode.DATE) {
+        const locale = getLocale()
+        if (locale.startsWith('zh')) {
+          const array = ['年', '月', '日']
+          return item + array[index]
+        } else if (this.fields !== fields.YEAR && index === (this.fields !== fields.MONTH && (locale === 'es' || locale === 'fr') ? 1 : 0)) {
+          let array
+          switch (locale) {
+            case 'es':
+              array = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', '​​julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+              break
+            case 'fr':
+              array = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+              break
+            // case 'en':
+            default:
+              array = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+              break
+          }
+          return array[Number(item) - 1]
+        }
+      }
+      return item
     }
   }
 }
@@ -459,7 +666,17 @@ export default {
 
 <style>
 uni-picker {
+  position: relative;
   display: block;
+  cursor: pointer;
+}
+
+uni-picker[hidden] {
+  display: none;
+}
+
+uni-picker[disabled] {
+  cursor: not-allowed;
 }
 
 .uni-picker-container {
@@ -474,11 +691,11 @@ uni-picker {
   font-size: 16px;
 }
 
-.uni-picker-container .uni-picker * {
+.uni-picker-container .uni-picker-custom * {
   box-sizing: border-box;
 }
 
-.uni-picker-container .uni-picker {
+.uni-picker-container .uni-picker-custom {
   position: fixed;
   left: 0;
   bottom: 0;
@@ -491,7 +708,7 @@ uni-picker {
   transition: transform 0.3s, visibility 0.3s;
 }
 
-.uni-picker-container .uni-picker.uni-picker-toggle {
+.uni-picker-container .uni-picker-custom.uni-picker-toggle {
   visibility: visible;
   transform: translate(0, 0);
 }
@@ -513,6 +730,7 @@ uni-picker {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .uni-picker-container .uni-picker-header {
@@ -548,6 +766,7 @@ uni-picker {
   font-size: 17px;
   line-height: 45px;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .uni-picker-container .uni-picker-action.uni-picker-action-cancel {
@@ -560,25 +779,95 @@ uni-picker {
   color: #007aff;
 }
 
-/* .uni-picker {
-  position: relative;
+.uni-picker-container .uni-picker-select {
+  display: none;
 }
-.uni-picker-units {
+
+.uni-picker-system {
   position: absolute;
-  display: flex;
+  display: none;
+  display: block;
+  top: 0;
+  left: 0;
   width: 100%;
-  line-height: 16px;
-  font-size: 14px;
-  top: 50%;
-  margin-top: 22.5px;
-  transform: translateY(-50%);
+  height: 100%;
   overflow: hidden;
-  color: #666666;
-  pointer-events: none;
 }
-.uni-picker-units > div {
-  flex: 1;
-  text-align: center;
-  transform: translateX(2em);
-} */
+
+.uni-picker-system > input {
+  position: absolute;
+  border: none;
+  height: 100%;
+  opacity: 0;
+  /* Chrome 无效 */
+  cursor: pointer;
+}
+
+.uni-picker-system > input.firefox {
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.uni-picker-system > input.chrome {
+  /* 日历空白位置宽度 32px */
+  top: 0;
+  left: 0;
+  width: 2em;
+  font-size: 32px;
+  height: 32px;
+}
+
+@media screen and (min-width: 500px) and (min-height: 500px) {
+  .uni-mask.uni-picker-mask {
+    background: none;
+  }
+  .uni-picker-container .uni-picker-custom {
+    width: 300px;
+    left: 50%;
+    right: auto;
+    top: 50%;
+    bottom: auto;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    border-radius: 5px;
+    transition: opacity 0.3s, visibility 0.3s;
+    box-shadow: 0px 0 20px 5px rgba(0, 0, 0, 0.3);
+  }
+  .uni-picker-container .uni-picker-header {
+    border-radius: 5px 5px 0 0;
+  }
+  .uni-picker-container .uni-picker-content {
+    /* transform 用于解决 Safari overflow 失效的问题 */
+    transform: translate(0 0);
+    overflow: hidden;
+    border-radius: 0 0 5px 5px;
+  }
+  .uni-picker-container .uni-picker-custom.uni-picker-toggle {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  .uni-selector-select .uni-picker-header,
+  .uni-selector-select .uni-picker-content {
+    display: none;
+  }
+  .uni-selector-select .uni-picker-select {
+    display: block;
+    max-height: 300px;
+    overflow: auto;
+    background-color: white;
+    border-radius: 5px;
+    padding: 6px 0;
+  }
+  .uni-selector-select .uni-picker-item {
+    padding: 0 10px;
+    color: #555555;
+  }
+  .uni-selector-select .uni-picker-item:hover {
+    background-color: #f6f6f6;
+  }
+  .uni-selector-select .uni-picker-item.selected {
+    color: #007aff;
+  }
+}
 </style>

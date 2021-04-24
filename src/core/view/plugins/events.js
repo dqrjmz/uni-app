@@ -3,7 +3,7 @@ import {
 } from 'uni-shared'
 
 import {
-  normalizeDataset
+  getTargetDataset
 } from 'uni-helpers/index'
 
 import {
@@ -17,7 +17,7 @@ function processTarget (target, detail, checkShadowRoot = false) {
     id: target.id,
     offsetLeft: target.offsetLeft,
     offsetTop: target.offsetTop,
-    dataset: normalizeDataset(target.dataset)
+    dataset: getTargetDataset(target)
   }
   if (detail) {
     Object.assign(res, detail)
@@ -90,11 +90,23 @@ export function processEvent (name, $event = {}, detail = {}, target = {}, curre
     stopPropagation () {}
   })
 
+  if (name.startsWith('mouse')) {
+    const {
+      top
+    } = getWindowOffset()
+    ret.pageX = $event.pageX
+    ret.pageY = $event.pageY - top
+    ret.clientX = $event.clientX
+    ret.clientY = $event.clientY - top
+  }
+
   if (__PLATFORM__ === 'app-plus') {
     const nid = currentTarget.getAttribute('_i')
     ret.options = {
       nid
     }
+    // 保留原始 currentTarget 方便后续对比
+    ret.$origCurrentTarget = currentTarget
   }
 
   return ret
@@ -133,7 +145,7 @@ function touchstart (evt) {
   startPageY = pageY
 
   longPressTimer = setTimeout(function () {
-    let customEvent = new CustomEvent('longpress', {
+    const customEvent = new CustomEvent('longpress', {
       bubbles: true,
       cancelable: true,
       target: evt.target,

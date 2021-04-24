@@ -44,10 +44,18 @@ module.exports = function traverseData (path, state, tagName) {
         t.stringLiteral('wx')
       )
     )
+    if (state.options.platform.name === 'mp-alipay') {
+      addAttrProperties.push(
+        t.objectProperty(
+          t.stringLiteral('ref'),
+          t.stringLiteral('__r')
+        )
+      )
+    }
   }
 
   if (addAttrProperties.length) {
-    const attrsPath = paths['attrs']
+    const attrsPath = paths.attrs
     if (attrsPath) {
       attrsPath.node.value.properties = attrsPath.node.value.properties.concat(addAttrProperties)
     } else {

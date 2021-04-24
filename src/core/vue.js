@@ -5,33 +5,46 @@ import {
   hasLifecycleHook
 } from 'uni-helpers/index'
 
+import {
+  toRawType
+} from 'uni-shared'
+
 export default function initVue (Vue) {
-  Vue.config.errorHandler = function (err) {
-    const app = getApp()
+  Vue.config.errorHandler = function (err, vm, info) {
+    const errType = toRawType(err)
+    Vue.util.warn(`Error in ${info}: "${errType === 'Error' ? err.toString() : err}"`, vm)
+    const app = typeof getApp === 'function' && getApp()
+    // 有生命周期钩子函数onError
     if (app && hasLifecycleHook(app.$options, 'onError')) {
+      // 调用onError钩子函数
       app.__call_hook('onError', err)
     } else {
-      console.error(err)
+      if (__PLATFORM__ === 'app-plus' && process.env.NODE_ENV !== 'production' && errType === 'Error') {
+        console.error(`
+  ${err.message}
+  ${err.stack}
+  `)
+      } else {
+        console.error(err)
+      }
     }
   }
 
-  const oldIsReservedTag = Vue.config.isReservedTag
 
+  const oldIsReservedTag = Vue.config.isReservedTag
   Vue.config.isReservedTag = function (tag) {
     return tags.indexOf(tag) !== -1 || oldIsReservedTag(tag)
   }
 
-// 被忽略元素
   Vue.config.ignoredElements = tags
-
   const oldGetTagNamespace = Vue.config.getTagNamespace
-
   const conflictTags = ['switch', 'image', 'text', 'view']
 
   Vue.config.getTagNamespace = function (tag) {
+    // ~ -1 为 0, 冲突标签返回false,没有名称空间
     if (~conflictTags.indexOf(tag)) { // svg 部分标签名称与 uni 标签冲突
       return false
     }
-    return oldGetTagNamespace(tag) || false
+    return oldGetTagNamespace(tag)
   }
 }

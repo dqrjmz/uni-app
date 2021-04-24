@@ -4,15 +4,27 @@ import {
 } from '../../constants'
 
 import {
+  WEBVIEW_ID_PREFIX
+} from '../../../constants'
+
+import {
   setStatusBarStyle
 } from '../../bridge'
+
+import {
+  closeWebview
+} from './util'
+
+import {
+  t
+} from 'uni-core/helpers/i18n'
 
 let firstBackTime = 0
 
 function quit () {
   if (!firstBackTime) {
     firstBackTime = Date.now()
-    plus.nativeUI.toast('再按一次退出应用')
+    plus.nativeUI.toast(t('uni.app.quit'))
     setTimeout(() => {
       firstBackTime = null
     }, 2000)
@@ -26,7 +38,10 @@ function backWebview (webview, callback) {
   if (!children || !children.length) { // 有子 webview
     return callback()
   }
-  const childWebview = children[0]
+
+  // 如果页面有subNvues，切使用了webview组件，则返回时子webview会取错，因此需要做id匹配
+  const childWebview = children.find(webview => webview.id.indexOf(WEBVIEW_ID_PREFIX) === 0) || children[0]
+
   childWebview.canBack(({
     canBack
   }) => {
@@ -46,18 +61,19 @@ function back (delta, animationType, animationDuration) {
   if (delta > 1) {
     // 中间页隐藏
     pages.slice(len - delta, len - 1).reverse().forEach(deltaPage => {
-      deltaPage.$getAppWebview().close('none')
+      closeWebview(deltaPage.$getAppWebview(), 'none')
     })
   }
 
   const backPage = function (webview) {
     if (animationType) {
-      webview.close(animationType, animationDuration || ANI_DURATION)
+      closeWebview(webview, animationType, animationDuration || ANI_DURATION)
     } else {
       if (currentPage.$page.openType === 'redirect') { // 如果是 redirectTo 跳转的，需要制定 back 动画
-        webview.close(ANI_CLOSE, ANI_DURATION)
+        closeWebview(webview, ANI_CLOSE, ANI_DURATION)
+      } else {
+        closeWebview(webview, 'auto')
       }
-      webview.close('auto')
     }
 
     pages.slice(len - delta, len).forEach(page => page.$remove())
@@ -98,7 +114,9 @@ export function navigateBack ({
     return
   }
 
-  uni.hideToast() // 后退时，关闭 toast,loading
+  // 后退时，关闭 toast,loading
+  uni.hideToast()
+  uni.hideLoading()
 
   if (currentPage.$page.meta.isQuit) {
     quit()

@@ -17,6 +17,7 @@ const {
 
 const {
   parseIs,
+  parseRef,
   parseIf,
   parseFor,
   parseText,
@@ -79,7 +80,7 @@ function parseComponentAttrs (el, genVar) {
       name,
       value
     } = attr
-    if (name.indexOf('data-') === 0) {
+    if (isVar(value) && (name === 'id' || name.indexOf('data-') === 0)) {
       attr.value = genVar('a-' + name, value)
     }
   })
@@ -92,7 +93,11 @@ function checkAutoFill (el) {
       el.tag === 'template' ||
       el.tag === 'block'
     ) &&
-    !el.children.find(child => child.type === 1)
+    !el.children.find(child =>
+      child.type === 1 &&
+      child.tag !== 'template' &&
+      child.tag !== 'block'
+    )
   ) {
     return true
   }
@@ -101,6 +106,8 @@ function checkAutoFill (el) {
 
 function transformNode (el, parent, state, isScopedSlot) {
   if (el.type === 3) {
+    // fixed by xxxxxx 注意：保持平台一致性，trim 一下，理论上service不需要，保险起见也处理一遍
+    el.text = el.text.trim()
     return
   }
   parseBlock(el, parent)
@@ -115,6 +122,7 @@ function transformNode (el, parent, state, isScopedSlot) {
       pid = getNewId(pid, '_si')
     }
     return parseText(el, parent, {
+      childIndex: state.childIndex || 0,
       index: 0,
       service: true,
       // <uni-popup>{{content}}</uni-popup>
@@ -125,6 +133,7 @@ function transformNode (el, parent, state, isScopedSlot) {
   const genVar = createGenVar(el.attrsMap[ID], isScopedSlot)
 
   parseIs(el, genVar)
+  parseRef(el, genVar)
   parseFor(el, createGenVar, isScopedSlot, checkAutoFill(el))
   parseKey(el, isScopedSlot)
 
@@ -152,7 +161,13 @@ function transformNode (el, parent, state, isScopedSlot) {
 
 function postTransformNode (el, options) {
   if (!el.parent) { // 从根节点开始递归处理
+    if (options.root) { // 当根节点是由if,elseif,else组成
+      parseIf(options.root, createGenVar)
+    } else {
+      options.root = el
+    }
     traverseNode(el, false, {
+      createGenVar,
       forIteratorId: 0,
       transformNode,
       filterModules: options.filterModules

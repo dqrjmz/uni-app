@@ -1,29 +1,38 @@
-function setNavigationBar (type, args) {
-  const pages = getCurrentPages()
-  if (pages.length) {
-    const page = pages[pages.length - 1].$holder
+import {
+  isCurrentPage,
+  getPageHolder
+} from '../util.js'
 
+function setNavigationBar (type, args = {}) {
+  const page = getPageHolder(args.__page__)
+  if (page) {
     switch (type) {
       case 'setNavigationBarColor':
-        const {
-          frontColor,
-          backgroundColor,
-          animation
-        } = args
+        {
+          const {
+            frontColor,
+            backgroundColor,
+            animation
+          } = args
 
-        const {
-          duration,
-          timingFunc
-        } = animation
+          const {
+            duration,
+            timingFunc
+          } = animation
 
-        if (frontColor) {
-          page.navigationBar.textColor = frontColor === '#000000' ? 'black' : 'white'
+          if (frontColor) {
+            page.navigationBar.textColor = frontColor === '#000000' ? 'black' : 'white'
+          }
+          if (backgroundColor) {
+            page.navigationBar.backgroundColor = backgroundColor
+          }
+          UniServiceJSBridge.emit('onNavigationBarChange', {
+            textColor: frontColor === '#000000' ? '#000' : '#fff',
+            backgroundColor: page.navigationBar.backgroundColor
+          })
+          page.navigationBar.duration = duration + 'ms'
+          page.navigationBar.timingFunc = timingFunc
         }
-        if (backgroundColor) {
-          page.navigationBar.backgroundColor = backgroundColor
-        }
-        page.navigationBar.duration = duration + 'ms'
-        page.navigationBar.timingFunc = timingFunc
         break
       case 'showNavigationBarLoading':
         page.navigationBar.loading = true
@@ -32,12 +41,17 @@ function setNavigationBar (type, args) {
         page.navigationBar.loading = false
         break
       case 'setNavigationBarTitle':
-        const {
-          title
-        } = args
-        page.navigationBar.titleText = title
-        if (__PLATFORM__ === 'h5') {
-          document.title = title
+        {
+          const {
+            title
+          } = args
+          page.navigationBar.titleText = title
+          if (isCurrentPage(page)) { // 仅当前页面
+            document.title = title
+          }
+          UniServiceJSBridge.emit('onNavigationBarChange', {
+            titleText: title
+          })
         }
         break
     }
@@ -49,12 +63,12 @@ export function setNavigationBarColor (args) {
   return setNavigationBar('setNavigationBarColor', args)
 }
 
-export function showNavigationBarLoading () {
-  return setNavigationBar('showNavigationBarLoading')
+export function showNavigationBarLoading (args) {
+  return setNavigationBar('showNavigationBarLoading', args)
 }
 
-export function hideNavigationBarLoading () {
-  return setNavigationBar('hideNavigationBarLoading')
+export function hideNavigationBarLoading (args) {
+  return setNavigationBar('hideNavigationBarLoading', args)
 }
 
 export function setNavigationBarTitle (args) {

@@ -1,7 +1,7 @@
 import 'intersection-observer'
 
 import {
-  normalizeDataset
+  getTargetDataset
 } from 'uni-helpers/index'
 
 import {
@@ -26,21 +26,20 @@ export function requestComponentObserver ({
   component,
   options
 }, pageId) {
-  const pages = getCurrentPages()
-
-  const page = pages.find(page => page.$page.id === pageId)
-
-  if (!page) {
-    throw new Error(`Not Found：Page[${pageId}]`)
+  let pageVm
+  if (pageId._isVue) {
+    pageVm = pageId
+  } else {
+    const pages = getCurrentPages() // 跨平台时，View 层也应该实现该方法，举例 App 上，View 层的 getCurrentPages 返回长度为1的当前页面数组
+    const page = pages.find(page => page.$page.id === pageId)
+    if (!page) {
+      throw new Error(`Not Found：Page[${pageId}]`)
+    }
+    pageVm = page.$vm
   }
-
-  const pageVm = page.$vm
-
   const $el = findElm(component, pageVm)
-
   const root = options.relativeToSelector ? $el.querySelector(options.relativeToSelector) : null
-
-  let intersectionObserver = intersectionObservers[reqId] = new IntersectionObserver((entries, observer) => {
+  const intersectionObserver = intersectionObservers[reqId] = new IntersectionObserver((entries, observer) => {
     entries.forEach(entrie => {
       UniViewJSBridge.publishHandler('onRequestComponentObserver', {
         reqId,
@@ -50,10 +49,10 @@ export function requestComponentObserver ({
           boundingClientRect: getRect(entrie.boundingClientRect),
           relativeRect: getRect(entrie.rootBounds),
           time: Date.now(),
-          dataset: normalizeDataset(entrie.target.dataset || {}),
+          dataset: getTargetDataset(entrie.target),
           id: entrie.target.id
         }
-      }, pageVm.$page.id)
+      })
     })
   }, {
     root,
@@ -63,11 +62,20 @@ export function requestComponentObserver ({
   if (options.observeAll) {
     intersectionObserver.USE_MUTATION_OBSERVER = true
     Array.prototype.map.call($el.querySelectorAll(options.selector), el => {
+      if (!el) {
+        console.warn(`Node ${options.selector} is not found. Intersection observer will not trigger.`)
+        return
+      }
       intersectionObserver.observe(el)
     })
   } else {
     intersectionObserver.USE_MUTATION_OBSERVER = false
-    intersectionObserver.observe($el.querySelector(options.selector))
+    const el = $el.querySelector(options.selector)
+    if (!el) {
+      console.warn(`Node ${options.selector} is not found. Intersection observer will not trigger.`)
+      return
+    }
+    intersectionObserver.observe(el)
   }
 }
 
@@ -77,6 +85,7 @@ export function destroyComponentObserver ({
   const intersectionObserver = intersectionObservers[reqId]
   if (intersectionObserver) {
     intersectionObserver.disconnect()
+    delete intersectionObservers[reqId]
     UniViewJSBridge.publishHandler('onRequestComponentObserver', {
       reqId,
       reqEnd: true

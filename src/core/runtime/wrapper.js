@@ -10,7 +10,9 @@ import {
   isContextApi
 } from '../helpers/promise'
 
-import { protocols } from 'uni-platform/runtime/api/protocols'
+import {
+  protocols
+} from 'uni-platform/runtime/api/protocols'
 
 const CALLBACKS = ['success', 'fail', 'cancel', 'complete']
 
@@ -26,21 +28,23 @@ function processArgs (methodName, fromArgs, argsOption = {}, returnValue = {}, k
     if (isFn(argsOption)) {
       argsOption = argsOption(fromArgs, toArgs) || {}
     }
-    for (let key in fromArgs) {
+    for (const key in fromArgs) {
       if (hasOwn(argsOption, key)) {
         let keyOption = argsOption[key]
         if (isFn(keyOption)) {
           keyOption = keyOption(fromArgs[key], fromArgs, toArgs)
         }
         if (!keyOption) { // 不支持的参数
-          console.warn(`__PLATFORM_TITLE__ ${methodName}暂不支持${key}`)
+          console.warn(`The '${methodName}' method of platform '__PLATFORM_TITLE__' does not support option '${key}'`)
         } else if (isStr(keyOption)) { // 重写参数 key
           toArgs[keyOption] = fromArgs[key]
         } else if (isPlainObject(keyOption)) { // {name:newName,value:value}可重新指定参数 key:value
           toArgs[keyOption.name ? keyOption.name : key] = keyOption.value
         }
       } else if (CALLBACKS.indexOf(key) !== -1) {
-        toArgs[key] = processCallback(methodName, fromArgs[key], returnValue)
+        if (isFn(fromArgs[key])) {
+          toArgs[key] = processCallback(methodName, fromArgs[key], returnValue)
+        }
       } else {
         if (!keepFromArgs) {
           toArgs[key] = fromArgs[key]
@@ -69,7 +73,7 @@ export default function wrapper (methodName, method) {
     // 暂不支持的 api
     if (!protocol) {
       return function () {
-        console.error(`__PLATFORM_TITLE__ 暂不支持${methodName}`)
+        console.error(`Platform '__PLATFORM_TITLE__' does not support '${methodName}'.`)
       }
     }
     return function (arg1, arg2) { // 目前 api 最多两个参数
@@ -85,7 +89,12 @@ export default function wrapper (methodName, method) {
       if (typeof arg2 !== 'undefined') {
         args.push(arg2)
       }
-      const returnValue = __GLOBAL__[options.name || methodName].apply(__GLOBAL__, args)
+      if (isFn(options.name)) {
+        methodName = options.name(arg1)
+      } else if (isStr(options.name)) {
+        methodName = options.name
+      }
+      const returnValue = __GLOBAL__[methodName].apply(__GLOBAL__, args)
       if (isSyncApi(methodName)) { // 同步 api
         return processReturnValue(methodName, returnValue, options.returnValue, isContextApi(methodName))
       }

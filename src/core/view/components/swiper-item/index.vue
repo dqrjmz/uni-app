@@ -1,6 +1,6 @@
 <template>
   <uni-swiper-item v-on="$listeners">
-    <slot/>
+    <slot />
   </uni-swiper-item>
 </template>
 <script>
@@ -34,6 +34,7 @@ uni-swiper-item {
   position: absolute;
   width: 100%;
   height: 100%;
+  cursor: grab;
 }
 
 uni-swiper-item[hidden] {

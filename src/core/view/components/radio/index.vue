@@ -1,12 +1,15 @@
 <template>
   <uni-radio
+    :disabled="disabled"
     v-on="$listeners"
-    @click="_onClick">
+    @click="_onClick"
+  >
     <div class="uni-radio-wrapper">
       <div
         :class="radioChecked ? 'uni-radio-input-checked' : ''"
         :style="radioChecked ? checkedStyle : ''"
-        class="uni-radio-input" />
+        class="uni-radio-input"
+      />
       <slot />
     </div>
   </uni-radio>
@@ -102,10 +105,15 @@ export default {
 	uni-radio {
 		-webkit-tap-highlight-color: transparent;
 		display: inline-block;
+		cursor: pointer;
 	}
 
 	uni-radio[hidden] {
 		display: none;
+	}
+
+	uni-radio[disabled] {
+		cursor: not-allowed;
 	}
 
 	uni-radio .uni-radio-wrapper {
@@ -127,6 +135,10 @@ export default {
 		width: 22px;
 		height: 22px;
 		position: relative;
+	}
+
+	uni-radio:not([disabled]) .uni-radio-input:hover {
+		border-color: #007aff;
 	}
 
 	uni-radio .uni-radio-input.uni-radio-input-checked:before {

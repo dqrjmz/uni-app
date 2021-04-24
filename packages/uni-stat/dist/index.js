@@ -6,7 +6,9 @@ const STAT_H5_URL = 'https://tongji.dcloud.io/uni/stat.gif';
 const PAGE_PVER_TIME = 1800;
 const APP_PVER_TIME = 300;
 const OPERATING_TIME = 10;
+const DIFF_TIME = 60 * 1000 * 60 * 24;
 
+const statConfig = require('uni-stat-config').default || require('uni-stat-config');
 const UUID_KEY = '__DC_STAT_UUID';
 const UUID_VALUE = '__DC_UUID_VALUE';
 
@@ -69,14 +71,17 @@ const getTime = () => {
 };
 
 const getPlatformName = () => {
+  const aliArr = ['y', 'a', 'p', 'mp-ali'];
   const platformList = {
     'app-plus': 'n',
     'h5': 'h5',
     'mp-weixin': 'wx',
-    'mp-alipay': 'ali',
+    [aliArr.reverse().join('')]: 'ali',
     'mp-baidu': 'bd',
     'mp-toutiao': 'tt',
-    'mp-qq': 'qq'
+    'mp-qq': 'qq',
+    'quickapp-native': 'qn',
+    'mp-kuaishou': 'ks'
   };
   return platformList[process.env.VUE_APP_PLATFORM];
 };
@@ -85,7 +90,7 @@ const getPackName = () => {
   let packName = '';
   if (getPlatformName() === 'wx' || getPlatformName() === 'qq') {
     // 兼容微信小程序低版本基础库
-    if(uni.canIUse('getAccountInfoSync')){
+    if (uni.canIUse('getAccountInfoSync')) {
       packName = uni.getAccountInfoSync().miniProgram.appId || '';
     }
   }
@@ -235,6 +240,7 @@ const getResidenceTime = (type) => {
 const getRoute = () => {
   var pages = getCurrentPages();
   var page = pages[pages.length - 1];
+  if (!page) return ''
   let _self = page.$vm;
 
   if (getPlatformName() === 'bd') {
@@ -247,6 +253,7 @@ const getRoute = () => {
 const getPageRoute = (self) => {
   var pages = getCurrentPages();
   var page = pages[pages.length - 1];
+  if (!page) return ''
   let _self = page.$vm;
   let query = self._query;
   let str = query && JSON.stringify(query) !== '{}' ? '?' + JSON.stringify(query) : '';
@@ -255,7 +262,7 @@ const getPageRoute = (self) => {
   if (getPlatformName() === 'bd') {
     return _self.$mp && _self.$mp.page.is + str;
   } else {
-    return (_self.$scope && _self.$scope.route + str )|| (_self.$mp && _self.$mp.page.route + str);
+    return (_self.$scope && _self.$scope.route + str) || (_self.$mp && _self.$mp.page.route + str);
   }
 };
 
@@ -268,7 +275,7 @@ const getPageTypes = (self) => {
 
 const calibration = (eventName, options) => {
   //  login 、 share 、pay_success 、pay_fail 、register 、title
-  if(!eventName){
+  if (!eventName) {
     console.error(`uni.report 缺少 [eventName] 参数`);
     return true
   }
@@ -297,8 +304,96 @@ const calibration = (eventName, options) => {
   }
 };
 
+const Report_Data_Time = 'Report_Data_Time';
+const Report_Status = 'Report_Status';
+const isReportData = () => {
+  return new Promise((resolve, reject) => {
+    let start_time = '';
+    let end_time = new Date().getTime();
+    let diff_time = DIFF_TIME;
+    let report_status = 1;
+    try {
+      start_time = uni.getStorageSync(Report_Data_Time);
+      report_status = uni.getStorageSync(Report_Status);
+    } catch (e) {
+      start_time = '';
+      report_status = 1;
+    }
+
+    if (report_status === '') {
+      requestData(({
+        enable
+      }) => {
+        uni.setStorageSync(Report_Data_Time, end_time);
+        uni.setStorageSync(Report_Status, enable);
+        if (enable === 1) {
+          resolve();
+        }
+      });
+      return
+    }
+
+    if (report_status === 1) {
+      resolve();
+    }
+
+    if (!start_time) {
+      uni.setStorageSync(Report_Data_Time, end_time);
+      start_time = end_time;
+    }
+
+    if ((end_time - start_time) > diff_time) {
+      requestData(({
+        enable
+      }) => {
+        uni.setStorageSync(Report_Data_Time, end_time);
+        uni.setStorageSync(Report_Status, enable);
+      });
+    }
+
+  })
+};
+
+const requestData = (done) => {
+  let formData = {
+    usv: STAT_VERSION,
+    conf: JSON.stringify({
+      ak: statConfig.appid
+    })
+  };
+  uni.request({
+    url: STAT_URL,
+    method: 'GET',
+    data: formData,
+    success: (res) => {
+      const {
+        data
+      } = res;
+      if (data.ret === 0) {
+        typeof done === 'function' && done({
+          enable: data.enable
+        });
+      }
+    },
+    fail: (e) => {
+      let report_status_code = 1;
+      try {
+        report_status_code = uni.getStorageSync(Report_Status);
+      } catch (e) {
+        report_status_code = 1;
+      }
+      if (report_status_code === '') {
+        report_status_code = 1;
+      }
+      typeof done === 'function' && done({
+        enable: report_status_code
+      });
+    }
+  });
+};
+
 const PagesJson = require('uni-pages?{"type":"style"}').default;
-const statConfig = require('uni-stat-config').default || require('uni-stat-config');
+const statConfig$1 = require('uni-stat-config').default || require('uni-stat-config');
 
 const resultOptions = uni.getSystemInfoSync();
 
@@ -328,7 +423,7 @@ class Util {
       uuid: getUuid(),
       ut: getPlatformName(),
       mpn: getPackName(),
-      ak: statConfig.appid,
+      ak: statConfig$1.appid,
       usv: STAT_VERSION,
       v: getVersion(),
       ch: getChannel(),
@@ -351,6 +446,10 @@ class Util {
       sh: resultOptions.screenHeight
     };
 
+  }
+
+  getIsReportData() {
+    return isReportData()
   }
 
   _applicationShow() {
@@ -547,7 +646,7 @@ class Util {
   }
 
   getLocation() {
-    if (statConfig.getLocation) {
+    if (statConfig$1.getLocation) {
       uni.getLocation({
         type: 'wgs84',
         geocode: true,
@@ -642,34 +741,38 @@ class Util {
     this._sendRequest(optionsData);
   }
   _sendRequest(optionsData) {
-    uni.request({
-      url: STAT_URL,
-      method: 'POST',
-      // header: {
-      //   'content-type': 'application/json' // 默认值
-      // },
-      data: optionsData,
-      success: () => {
-        // if (process.env.NODE_ENV === 'development') {
-        //   console.log('stat request success');
-        // }
-      },
-      fail: (e) => {
-        if (++this._retry < 3) {
-          setTimeout(() => {
-            this._sendRequest(optionsData);
-          }, 1000);
+    this.getIsReportData().then(() => {
+      uni.request({
+        url: STAT_URL,
+        method: 'POST',
+        // header: {
+        //   'content-type': 'application/json' // 默认值
+        // },
+        data: optionsData,
+        success: () => {
+          // if (process.env.NODE_ENV === 'development') {
+          //   console.log('stat request success');
+          // }
+        },
+        fail: (e) => {
+          if (++this._retry < 3) {
+            setTimeout(() => {
+              this._sendRequest(optionsData);
+            }, 1000);
+          }
         }
-      }
+      });
     });
   }
   /**
    * h5 请求
    */
   imageRequest(data) {
-    let image = new Image();
-    let options = getSgin(GetEncodeURIComponentOptions(data)).options;
-    image.src = STAT_H5_URL + '?' + options;
+    this.getIsReportData().then(() => {
+      let image = new Image();
+      let options = getSgin(GetEncodeURIComponentOptions(data)).options;
+      image.src = STAT_H5_URL + '?' + options;
+    });
   }
 
   sendEvent(key, value) {
@@ -869,7 +972,7 @@ const lifecycle = {
 function main() {
   if (process.env.NODE_ENV === 'development') {
     uni.report = function(type, options) {};
-  }else{
+  } else {
     const Vue = require('vue');
     (Vue.default || Vue).mixin(lifecycle);
     uni.report = function(type, options) {

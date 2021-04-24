@@ -2,6 +2,9 @@ import {
   invoke,
   requireNativePlugin
 } from '../../bridge'
+import {
+  t
+} from 'uni-core/helpers/i18n'
 
 function checkIsSupportFaceID () {
   const platform = plus.os.name.toLowerCase()
@@ -17,7 +20,7 @@ function checkIsSupportFingerPrint () {
 }
 
 export function checkIsSupportSoterAuthentication () {
-  let supportMode = []
+  const supportMode = []
   if (checkIsSupportFingerPrint()) {
     supportMode.push('fingerPrint')
   }
@@ -96,7 +99,7 @@ export function startSoterAuthentication ({
       errMsg: 'startSoterAuthentication:fail'
     }
   }
-  let supportRequestAuthMode = []
+  const supportRequestAuthMode = []
   requestAuthModes.map((item, index) => {
     if (supportMode.indexOf(item) > -1) {
       supportRequestAuthMode.push(item)
@@ -109,7 +112,7 @@ export function startSoterAuthentication ({
       errMsg: 'startSoterAuthentication:fail no corresponding mode'
     }
   }
-  let enrolledRequestAuthMode = []
+  const enrolledRequestAuthMode = []
   supportRequestAuthMode.map((item, index) => {
     const checked = checkIsSoterEnrolledInDevice({
       checkAuthMode: item
@@ -128,7 +131,7 @@ export function startSoterAuthentication ({
   const realAuthMode = enrolledRequestAuthMode[0]
   if (realAuthMode === 'fingerPrint') {
     if (plus.os.name.toLowerCase() === 'android') {
-      plus.nativeUI.showWaiting(authContent || '指纹识别中...').onclose = function () {
+      plus.nativeUI.showWaiting(authContent || t('uni.startSoterAuthentication.authContent')).onclose = function () {
         plus.fingerprint.cancel()
       }
     }

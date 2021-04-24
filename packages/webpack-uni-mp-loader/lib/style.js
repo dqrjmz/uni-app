@@ -12,29 +12,31 @@ const {
   normalizeNodeModules
 } = require('./shared')
 
-module.exports = function (content) {
+module.exports = function (content, map) {
   this.cacheable && this.cacheable()
 
   if (!process.env.UNI_USING_NVUE_COMPILER) {
-    return content
+    return this.callback(null, content, map)
   }
   if (path.extname(this.resourcePath) !== '.nvue') {
-    return content
+    return this.callback(null, content, map)
   }
-  let resourcePath = normalizeNodeModules(
+  const resourcePath = normalizeNodeModules(
     removeExt(
       normalizePath(path.relative(process.env.UNI_INPUT_DIR, this.resourcePath))
     )
   )
   if (!process.UNI_ENTRY[resourcePath]) {
-    return content
+    return this.callback(null, content, map)
   }
 
   const manifestJsonPath = path.resolve(process.env.UNI_INPUT_DIR, 'manifest.json')
   const manifestJson = parseManifestJson(fs.readFileSync(manifestJsonPath, 'utf8'))
 
-  return `<style>
+  this.callback(null,
+    `<style>
   view,
+  label,
   swiper-item,
   scroll-view {
     display:flex;
@@ -61,6 +63,10 @@ module.exports = function (content) {
   swiper-item {
     position: absolute;
   }
+  button {
+    margin: 0;
+  }
 </style>
-${content}`
+${content}`,
+    map)
 }

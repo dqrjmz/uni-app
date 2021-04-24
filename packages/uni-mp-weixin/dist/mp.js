@@ -8,12 +8,13 @@ function parseData (data, vueComponentOptions) {
 }
 
 function parseComponents (vueComponentOptions) {
-  vueComponentOptions.components = global['__wxVueOptions'].components;
+  vueComponentOptions.components = global.__wxVueOptions.components;
 }
 
 const _toString = Object.prototype.toString;
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
+// 是否是函数
 function isFn (fn) {
   return typeof fn === 'function'
 }
@@ -22,6 +23,7 @@ function isPlainObject (obj) {
   return _toString.call(obj) === '[object Object]'
 }
 
+// 是否有自己属性
 function hasOwn (obj, key) {
   return hasOwnProperty.call(obj, key)
 }
@@ -30,11 +32,15 @@ function noop () { }
 
 /**
  * Create a cached version of a pure function.
+ * 使用闭包，缓存数据
  */
 function cached (fn) {
+  // 创建一个没有原型链的对象
   const cache = Object.create(null);
   return function cachedFn (str) {
+    // 获取当前属性的值
     const hit = cache[str];
+    // 值存在返回，不存在，进行添加
     return hit || (cache[str] = fn(str))
   }
 }
@@ -50,11 +56,11 @@ const camelize = cached((str) => {
 const SOURCE_KEY = '__data__';
 
 const COMPONENT_LIFECYCLE = {
-  'created': 'onServiceCreated',
-  'attached': 'onServiceAttached',
-  'ready': 'mounted',
-  'moved': 'moved',
-  'detached': 'destroyed'
+  created: 'onServiceCreated',
+  attached: 'onServiceAttached',
+  ready: 'mounted',
+  moved: 'moved',
+  detached: 'destroyed'
 };
 
 const COMPONENT_LIFECYCLE_KEYS = Object.keys(COMPONENT_LIFECYCLE);
@@ -66,8 +72,9 @@ const PAGE_LIFETIMES = {
 };
 
 const PAGE_LIFETIMES_KEYS = Object.keys(PAGE_LIFETIMES);
-
+// TODO 待整理，现在到处都是
 const PAGE_LIFECYCLE = [
+  'onInit',
   'onLoad',
   'onShow',
   'onReady',
@@ -75,6 +82,8 @@ const PAGE_LIFECYCLE = [
   'onUnload',
   'onPullDownRefresh',
   'onReachBottom',
+  'onAddToFavorites',
+  'onShareTimeline',
   'onShareAppMessage',
   'onPageScroll',
   'onResize',
@@ -83,18 +92,25 @@ const PAGE_LIFECYCLE = [
 
 function parsePageMethods (mpComponentOptions, vueComponentOptions) {
   const methods = Object.create(null);
+  // 获取小程序组件的选项键集合
   Object.keys(mpComponentOptions).forEach(key => {
+    // 获取键的值
     const value = mpComponentOptions[key];
+    // 是函数 && 生命周期中没有这个方法
     if (isFn(value) && PAGE_LIFECYCLE.indexOf(key) === -1) {
       methods[key] = value;
     }
   });
+  // 将小程序的用户自定义方法添加到vue组件的用户自定义方法
   vueComponentOptions.methods = methods;
 }
 
 function parsePageLifecycle (mpComponentOptions, vueComponentOptions) {
+  // 小程序组件的配置选项
   Object.keys(mpComponentOptions).forEach(key => {
+    // 生命周期中存在这个方法
     if (PAGE_LIFECYCLE.indexOf(key) !== -1) {
+      // 定义到vue组件上，小程序组件的生命周期
       vueComponentOptions[key] = mpComponentOptions[key];
     }
   });
@@ -135,7 +151,7 @@ function parseMethods (methods, vueComponentOptions) {
     return
   }
   if (methods.$emit) {
-    console.warn(`Method "$emit" conflicts with an existing Vue instance method`);
+    console.warn('Method "$emit" conflicts with an existing Vue instance method');
     delete methods.$emit;
   }
   vueComponentOptions.methods = methods;
@@ -299,7 +315,7 @@ function parseRelations (relations, vueComponentOptions) {
   Object.keys(relations).forEach(name => {
     const relation = relations[name];
     relation.name = name;
-    relation.target = relation.target ? String(relation.target) : relative(global['__wxRoute'], name);
+    relation.target = relation.target ? String(relation.target) : relative(global.__wxRoute, name);
   });
   vueComponentOptions.mpOptions.relations = relations;
 }
@@ -681,6 +697,7 @@ function updateProperties (vm) {
 function initState (vm) {
   const instanceData = JSON.parse(JSON.stringify(vm.$options.mpOptions.data || {}));
 
+  // vm__data__ 小程序的data对象
   vm[SOURCE_KEY] = instanceData;
 
   const propertyDefinition = {
@@ -692,6 +709,7 @@ function initState (vm) {
     }
   };
 
+  // 给组件实例定义
   Object.defineProperties(vm, {
     data: propertyDefinition,
     properties: propertyDefinition
@@ -737,10 +755,12 @@ function initMethods (vm) {
 }
 
 function handleObservers (vm) {
+  // 获取组件的watch选项
   const watch = vm.$options.watch;
   if (!watch) {
     return
   }
+  //
   Object.keys(watch).forEach(name => {
     const observer = watch[name];
     if (observer.mounted) {
@@ -758,8 +778,12 @@ var polyfill = {
   beforeCreate () {
     // 取消 development 时的 Proxy,避免小程序组件模板中使用尚未定义的属性告警
     this._renderProxy = this;
+
+    this._$self = this;
+    this._$noop = noop;
   },
   created () { // properties 中可能会访问 methods,故需要在 created 中初始化
+    // 创建
     initState(this);
     initMethods(this);
     initRelations(this);
@@ -772,40 +796,58 @@ var polyfill = {
   }
 };
 
-global['__wxRoute'] = '';
-global['__wxComponents'] = Object.create(null);
-global['__wxVueOptions'] = Object.create(null);
+// 全局添加路由属性
+global.__wxRoute = '';
+// 全局添加组建属性
+global.__wxComponents = Object.create(null);
+// 全局添加配置属性
+global.__wxVueOptions = Object.create(null);
 
 function Page (options) {
+  // 解析页面的配置对像
   const pageOptions = parsePage(options);
+  // 页面的mixins数组添加补丁
   pageOptions.mixins.unshift(polyfill);
-  pageOptions.mpOptions.path = global['__wxRoute'];
-  global['__wxComponents'][global['__wxRoute']] = pageOptions;
+
+  // 将路由属性添加到
+  pageOptions.mpOptions.path = global.__wxRoute;
+  global.__wxComponents[global.__wxRoute] = pageOptions;
 }
 
 function initRelationsHandler (vueComponentOptions) {
   // linked 需要在当前组件 attached 之后再执行
-  if (!vueComponentOptions['onServiceAttached']) {
-    vueComponentOptions['onServiceAttached'] = [];
+  if (!vueComponentOptions.onServiceAttached) {
+    vueComponentOptions.onServiceAttached = [];
   }
-  vueComponentOptions['onServiceAttached'].push(function onServiceAttached () {
+  vueComponentOptions.onServiceAttached.push(function onServiceAttached () {
     handleRelations(this, 'linked');
   });
 }
 
+/**
+ * 自定义组件
+ * @param {*} options 组件配置信息
+ */
 function Component (options) {
+  // 解析组件配置参数
   const componentOptions = parseComponent(options);
+  // 给组件混入补丁程序
   componentOptions.mixins.unshift(polyfill);
-  componentOptions.mpOptions.path = global['__wxRoute'];
+  // 给组件添加路由属性
+  componentOptions.mpOptions.path = global.__wxRoute;
+  //
   initRelationsHandler(componentOptions);
-  global['__wxComponents'][global['__wxRoute']] = componentOptions;
+  global.__wxComponents[global.__wxRoute] = componentOptions;
 }
 
 function Behavior (options) {
   return options
 }
 
+// 导出Vue中的nextTick方法
 const nextTick = Vue.nextTick;
 
-export default uni;
+var index = uni.__$wx__;
+
+export default index;
 export { Behavior, Component, Page, nextTick };

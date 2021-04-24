@@ -1,18 +1,24 @@
 let id = 0
 const callbacks = {}
 
+// 装饰者模式
 function warp (fn) {
   return function (options = {}) {
+    // 回调函数id
     const callbackId = String(id++)
+    // 缓存回调函数
     callbacks[callbackId] = {
       success: options.success,
       fail: options.fail,
       complete: options.complete
     }
+    //  浅拷贝 options
     const data = Object.assign({}, options)
-    delete data.success
-    delete data.fail
-    delete data.complete
+    // TODO 下版重构 nvue h5 callback
+    // delete data.success
+    // delete data.fail
+    // delete data.complete
+    // 调用包装函数
     const res = fn.bind(this)(data, callbackId)
     if (res) {
       invoke(callbackId, res)

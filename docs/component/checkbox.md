@@ -19,9 +19,11 @@
 |checked|Boolean|false|当前是否选中，可用来设置默认选中|
 |color|Color||checkbox的颜色，同css的color|
 
-**示例** [查看演示](https://uniapp.dcloud.io/h5/pages/component/checkbox/checkbox)
+**示例** [查看演示](https://hellouniapp.dcloud.net.cn/pages/component/checkbox/checkbox)
  
+以下示例代码，来自于[hello uni-app项目](https://github.com/dcloudio/hello-uniapp)，推荐使用HBuilderX，新建uni-app项目，选择hello uni-app模板，可直接体验完整示例。
 ```html
+<!-- 本示例未包含完整css，获取外链css请参考上文，在hello uni-app项目中查看 -->
 <template>
 	<view>
 		<view class="uni-padding-wrap uni-common-mt">
@@ -125,12 +127,12 @@
 ```
  
 
-![uniapp](https://img-cdn-qiniu.dcloud.net.cn/uniapp/doc/img/checkbox.png?t=201857)
+![uniapp](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/f4db8b80-4f32-11eb-bdc1-8bd33eb6adaa.png)
 
-示例代码说明：以上示例代码从hello uni-app示例中复制，涉及的css样式在hello uni-app的app.vue和uni.css中
-
-预览H5效果：使用浏览器的手机模式访问[https://uniapp.dcloud.io/h5/pages/component/checkbox/checkbox](https://uniapp.dcloud.io/h5/pages/component/checkbox/checkbox)
 
 **注意**
-- checkbox的默认颜色，在不同平台不一样。微信小程序是绿色的，头条小程序为红色，其他平台是蓝色的。更改颜色使用color属性。
+- checkbox的默认颜色，在不同平台不一样。微信小程序、360小程序是绿色的，字节跳动小程序为红色，其他平台是蓝色的。更改颜色使用color属性。
 - 如需调节checkbox大小，可通过css的scale方法调节，如缩小到70%`style="transform:scale(0.7)"`
+
+**扩展**
+- uni-ui提供了增强的uni-data-checkbox组件，基于[datacom规范](/component/datacom)，只需传入data数据，即可自动生成一组复选框，使用方式更简洁，并且支持[uni-forms](https://ext.dcloud.net.cn/plugin?id=2773)的表单验证。uni-data-checkbox组件详见[https://ext.dcloud.net.cn/plugin?id=3456](https://ext.dcloud.net.cn/plugin?id=3456)

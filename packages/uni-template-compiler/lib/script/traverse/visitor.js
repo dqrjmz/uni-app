@@ -16,6 +16,7 @@ const {
 } = require('../../h5')
 
 const {
+  hasOwn,
   hyphenate,
   traverseFilter,
   getComponentName
@@ -55,16 +56,17 @@ function addVueId (path, state) {
   // ) {
   //   return
   // }
-  if (!state.options.hasOwnProperty('$vueId')) {
+  if (!hasOwn(state.options, '$vueId')) {
     state.options.$vueId = 1
   }
-  const vueId = String(state.options.$vueId++)
+  const hashId = state.options.hashId
+  const vueId = (hashId ? (hashId + '-') : '') + (state.options.$vueId++)
 
   let value
 
   if (state.scoped.length) {
-    let scopeds = state.scoped
-    let len = scopeds.length
+    const scopeds = state.scoped
+    const len = scopeds.length
     if (len > 1) { // v-for 嵌套，forIndex 不允许重复
       const forIndexSet = new Set()
       for (let i = 0; i < len; i++) {
@@ -130,7 +132,7 @@ function checkUsingGlobalComponents (name, globalUsingComponents, state) {
 }
 
 module.exports = {
-  noScope: true,
+  noScope: false,
   MemberExpression (path) {
     if ( // t.m(123)
       t.isIdentifier(path.node.object) &&
@@ -147,38 +149,42 @@ module.exports = {
       const methodName = callee.name
       switch (methodName) {
         case METHOD_CREATE_ELEMENT:
-          const tagNode = path.node.arguments[0]
-          if (t.isStringLiteral(tagNode)) {
-            // 需要把标签增加到 class 样式中
-            const tagName = getTagName(tagNode.value)
-            if (tagName !== tagNode.value) {
-              addStaticClass(path, '_' + tagNode.value)
+          {
+            const tagNode = path.node.arguments[0]
+            if (t.isStringLiteral(tagNode)) {
+              // 需要把标签增加到 class 样式中
+              const tagName = getTagName(tagNode.value)
+              if (tagName !== tagNode.value) {
+                addStaticClass(path, '_' + tagNode.value)
+              }
+              tagNode.value = getComponentName(hyphenate(tagName))
+
+              // 组件增加 vueId
+              if (this.options.platform.isComponent(tagNode.value)) {
+                addVueId(path, this)
+              }
+
+              // 查找全局组件
+              checkUsingGlobalComponents(
+                tagNode.value,
+                this.options.globalUsingComponents,
+                this
+              )
             }
-            tagNode.value = getComponentName(hyphenate(tagName))
-
-            // 组件增加 vueId
-            if (this.options.platform.isComponent(tagNode.value)) {
-              addVueId(path, this)
+            if (this.options.scopeId) {
+              addStaticClass(path, this.options.scopeId)
             }
 
-            // 查找全局组件
-            checkUsingGlobalComponents(
-              tagNode.value,
-              this.options.globalUsingComponents,
-              this
-            )
+            const dataPath = path.get('arguments.1')
+            dataPath && dataPath.isObjectExpression() && traverseData(dataPath, this, tagNode.value)
           }
-          if (this.options.scopeId) {
-            addStaticClass(path, this.options.scopeId)
-          }
-
-          const dataPath = path.get('arguments.1')
-          dataPath && dataPath.isObjectExpression() && traverseData(dataPath, this, tagNode.value)
           break
         case METHOD_TO_STRING:
-          const stringNodes = path.node.arguments[0]
-          stringNodes.$toString = true
-          path.replaceWith(stringNodes)
+          {
+            const stringNodes = path.node.arguments[0]
+            stringNodes.$toString = true
+            path.replaceWith(stringNodes)
+          }
           break
         case METHOD_RENDER_LIST:
           traverseRenderList(path, this)

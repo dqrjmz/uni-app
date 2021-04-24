@@ -26,20 +26,16 @@ export function upx2px (number, newDeviceWidth) {
   if (number === 0) {
     return 0
   }
-  // 转换后的尺寸 （新设备尺寸/基础设备尺寸 === result/number (缩放比例)
   let result = (number / BASE_DEVICE_WIDTH) * (newDeviceWidth || deviceWidth)
-  // 不能为负值
   if (result < 0) {
     result = -result
   }
-  // 
   result = Math.floor(result + EPS)
-  // 750设备宽
   if (result === 0) {
     if (deviceDPR === 1 || !isIOS) {
-      return 1
+      result = 1
     } else {
-      return 0.5
+      result = 0.5
     }
   }
   return number < 0 ? -result : result

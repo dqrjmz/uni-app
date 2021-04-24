@@ -4,9 +4,9 @@
 
 **平台差异说明**
 
-|App|H5|微信小程序|支付宝小程序|百度小程序|头条小程序|QQ小程序|
-|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-|√|√(2.2.3+)|√|√|√|√|√|
+|App|H5|微信小程序|支付宝小程序|百度小程序|字节跳动小程序|QQ小程序|快应用|360小程序|
+|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+|√|√(2.2.3+)|√|√|√|√|√|√|√|
 
 **Tips**
 
@@ -61,6 +61,6 @@ export default {
 **效果展示**
 
 <div style="display:flex;align-items: flex-start;justify-content: center;flex-wrap: wrap;">
-		<img src="https://img-cdn-qiniu.dcloud.net.cn/uniapp/doc/icon1.png" width="375" style="margin-right:20px;"/>
-		<img src="https://img-cdn-qiniu.dcloud.net.cn/uniapp/doc/icon2.png" width="375"/>
+		<img src="https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/d188f390-4f30-11eb-97b7-0dc4655d6e68.png" width="375" style="margin-right:20px;"/>
+		<img src="https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/d2562ea0-4f30-11eb-97b7-0dc4655d6e68.png" width="375"/>
 </div>

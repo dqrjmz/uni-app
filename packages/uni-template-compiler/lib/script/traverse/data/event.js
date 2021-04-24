@@ -1,10 +1,12 @@
 const t = require('@babel/types')
+const parser = require('@babel/parser')
 
 const {
   IDENTIFIER_EVENT,
   VUE_EVENT_MODIFIERS,
   INTERNAL_EVENT_PROXY,
   ATTR_DATA_EVENT_OPTS,
+  ATTR_DATA_EVENT_PARAMS,
   INTERNAL_SET_SYNC
 } = require('../../../constants')
 
@@ -200,6 +202,10 @@ function parseEventByCallExpression (callExpr, methods) {
   methods.push(t.arrayExpression(arrayExpression))
 }
 
+function isValuePath (path) {
+  return path.key !== 'key' && path.key !== 'id' && (path.key !== 'property' || path.parent.computed) && !(path.key === 'value' && path.parentPath.parentPath.isObjectPattern()) && !(path.key === 'left' && path.parentPath.parentPath.parentPath.isObjectPattern())
+}
+
 function parseEvent (keyPath, valuePath, state, isComponent, isNativeOn = false, tagName, ret) {
   const key = keyPath.node
   let type = key.value || key.name || ''
@@ -211,7 +217,8 @@ function parseEvent (keyPath, valuePath, state, isComponent, isNativeOn = false,
   let isPassive = false
   let isOnce = false
 
-  let methods = []
+  const methods = []
+  const params = []
 
   if (type) {
     isPassive = type.charAt(0) === VUE_EVENT_MODIFIERS.passive
@@ -265,18 +272,31 @@ function parseEvent (keyPath, valuePath, state, isComponent, isNativeOn = false,
         state.errors.add(
           `${tagName} 组件 ${type} 事件仅支持 @${type}="methodName" 方式绑定`
         )
-      } else if (funcPath.isArrowFunctionExpression()) { // e=>count++
-        methods.push(addEventExpressionStatement(funcPath, state, isCustom))
       } else {
         let anonymous = true
 
         // "click":function($event) {click1(item);click2(item);}
         const body = funcPath.node.body && funcPath.node.body.body
-        if (body && body.length) {
+        const funcParams = funcPath.node.params
+        if (body && body.length && funcParams && funcParams.length === 1) {
           const exprStatements = body.filter(node => {
             return t.isExpressionStatement(node) && t.isCallExpression(node.expression)
           })
           if (exprStatements.length === body.length) {
+            const paramPath = funcPath.get('params')[0]
+            const paramName = paramPath.node.name
+            if (paramName !== '$event') {
+              funcPath.get('body').traverse({
+                Identifier (path) {
+                  const node = path.node
+                  const binding = path.scope.getBinding(node.name)
+                  if (binding && binding.identifier === paramPath.node && isValuePath(path)) {
+                    path.replaceWith(t.identifier('$event'))
+                  }
+                }
+              })
+              paramPath.replaceWith(t.identifier('$event'))
+            }
             anonymous = false
             exprStatements.forEach(exprStatement => {
               parseEventByCallExpression(exprStatement.expression, methods)
@@ -284,48 +304,87 @@ function parseEvent (keyPath, valuePath, state, isComponent, isNativeOn = false,
           }
         }
 
-        anonymous && funcPath.traverse({
-          noScope: true,
-          MemberExpression (path) {
-            if (path.node.object.name === '$event' && path.node.property.name ===
-              'stopPropagation') {
-              isCatch = true
-              path.stop()
-            }
-          },
-          AssignmentExpression (path) { // "update:title": function($event) {title = $event}
-            const left = path.node.left
-            const right = path.node.right
-            // v-bind:title.sync="title"
-            if (t.isIdentifier(left) &&
-              t.isIdentifier(right) &&
-              right.name === '$event' &&
-              type.indexOf('update:') === 0) {
-              methods.push(t.arrayExpression( // ['$set',['title','$event']]
-                [
-                  t.stringLiteral(INTERNAL_SET_SYNC),
-                  t.arrayExpression([
-                    t.identifier(left.name),
-                    t.stringLiteral(left.name),
-                    t.stringLiteral('$event')
-                  ])
-                ]
-              ))
-              anonymous = false
-              path.stop()
-            }
-          },
-          ReturnStatement (path) {
-            const argument = path.node.argument
-            if (t.isCallExpression(argument)) {
-              if (t.isIdentifier(argument.callee)) {
+        // 判断是否是复杂表达式  数组  或  对象
+        const isNotDynamicExpression = (state) => {
+          if (!(state.scoped[0])) {
+            return true
+          }
+          const value = state.scoped[0].forExtra[0].elements[0].value
+          return !(typeof value === 'string' && (value.startsWith('[') || value.startsWith('}')))
+        }
+
+        // 如果v-for遍历的值为 数组、对象 则进入复杂表达式
+        if (isNotDynamicExpression(state)) {
+          anonymous && funcPath.traverse({
+            noScope: true,
+            MemberExpression (path) {
+              if (path.node.object.name === '$event' && path.node.property.name ===
+                'stopPropagation') {
+                isCatch = true
+                path.stop()
+              }
+            },
+            AssignmentExpression (path) { // "update:title": function($event) {title = $event}
+              const left = path.node.left
+              const right = path.node.right
+              // v-bind:title.sync="title"
+              if (t.isIdentifier(left) &&
+                t.isIdentifier(right) &&
+                right.name === '$event' &&
+                type.indexOf('update:') === 0) {
+                methods.push(t.arrayExpression( // ['$set',['title','$event']]
+                  [
+                    t.stringLiteral(INTERNAL_SET_SYNC),
+                    t.arrayExpression([
+                      t.identifier(left.name),
+                      t.stringLiteral(left.name),
+                      t.stringLiteral('$event')
+                    ])
+                  ]
+                ))
                 anonymous = false
-                parseEventByCallExpression(argument, methods)
+                path.stop()
+              }
+            },
+            ReturnStatement (path) {
+              const argument = path.node.argument
+              if (t.isCallExpression(argument)) {
+                if (t.isIdentifier(argument.callee)) { // || t.isMemberExpression(argument.callee)
+                  anonymous = false
+                  parseEventByCallExpression(argument, methods)
+                }
               }
             }
-          }
-        })
+          })
+        }
+
         if (anonymous) {
+          // 处理复杂表达式中使用的局部变量（主要在v-for中定义）
+          funcPath.traverse({
+            Identifier (path) {
+              const scope = path.scope
+              const node = path.node
+              const name = node.name
+              if (isValuePath(path) && scope && !scope.hasOwnBinding(name) && scope.hasBinding(name) && !params.includes(name) && name !== 'undefined') {
+                params.push(name)
+              }
+            }
+          })
+          params.forEach(name => {
+            funcPath.node.params.push(t.identifier(name))
+          })
+          if (params.length) {
+            let argumentsName = 'arguments'
+            if (funcPath.isArrowFunctionExpression()) {
+              argumentsName = 'args'
+              funcPath.node.params.push(t.restElement(t.identifier(argumentsName)))
+            }
+            const datasetUid = funcPath.scope.generateDeclaredUidIdentifier().name
+            const paramsUid = funcPath.scope.generateDeclaredUidIdentifier().name
+            const dataset = ATTR_DATA_EVENT_PARAMS.substring(5)
+            const code = `var ${datasetUid}=${argumentsName}[${argumentsName}.length-1].currentTarget.dataset,${paramsUid}=${datasetUid}.${dataset.replace(/-([a-z])/, (_, str) => str.toUpperCase())}||${datasetUid}['${dataset}'],${params.map(item => `${item}=${paramsUid}.${item}`).join(',')}`
+            funcPath.node.body.body.unshift(parser.parse(code).program.body[0])
+          }
           methods.push(addEventExpressionStatement(funcPath, state, isComponent, isNativeOn))
         }
       }
@@ -334,6 +393,7 @@ function parseEvent (keyPath, valuePath, state, isComponent, isNativeOn = false,
 
   return {
     type,
+    params,
     methods,
     modifiers: {
       isCatch,
@@ -358,6 +418,7 @@ function _processEvent (path, state, isComponent, isNativeOn = false, tagName, r
     const valuePath = propertyPath.get('value')
     const {
       type,
+      params,
       methods,
       modifiers: {
         isCatch,
@@ -393,12 +454,13 @@ function _processEvent (path, state, isComponent, isNativeOn = false, tagName, r
     if (isCustom) {
       optType = VUE_EVENT_MODIFIERS.custom + optType
     }
-    opts.push(
-      t.arrayExpression([
+    opts.push({
+      opt: t.arrayExpression([
         t.stringLiteral(optType),
         t.arrayExpression(methods)
-      ])
-    )
+      ]),
+      params
+    })
 
     keyPath.replaceWith(
       t.stringLiteral(
@@ -416,21 +478,24 @@ function _processEvent (path, state, isComponent, isNativeOn = false, tagName, r
   return opts
 }
 module.exports = function processEvent (paths, path, state, isComponent, tagName) {
-  const onPath = paths['on']
-  const nativeOnPath = paths['nativeOn']
+  const onPath = paths.on
+  const nativeOnPath = paths.nativeOn
 
   const ret = []
 
   const opts = []
+  const params = []
 
   if (onPath) {
-    _processEvent(onPath, state, isComponent, false, tagName, ret).forEach(opt => {
+    _processEvent(onPath, state, isComponent, false, tagName, ret).forEach(({ opt, params: array }) => {
       opts.push(opt)
+      params.push(...array)
     })
   }
   if (nativeOnPath) {
-    _processEvent(nativeOnPath, state, isComponent, true, tagName, ret).forEach(opt => {
+    _processEvent(nativeOnPath, state, isComponent, true, tagName, ret).forEach(({ opt, params: array }) => {
       opts.push(opt)
+      params.push(...array)
     })
   }
   if (!opts.length) {
@@ -443,6 +508,16 @@ module.exports = function processEvent (paths, path, state, isComponent, tagName
       t.arrayExpression(opts)
     )
   )
+
+  if (params.length) {
+    ret.push(
+      t.objectProperty(
+        t.stringLiteral(ATTR_DATA_EVENT_PARAMS),
+        // 直接使用对象格式微信小程序编译会报错
+        t.stringLiteral(`{{({${params.join(',')}})}}`)
+      )
+    )
+  }
 
   return ret
 }

@@ -1,4 +1,8 @@
 import {
+  hasOwn
+} from 'uni-shared'
+
+import {
   getRealPath
 } from '../util'
 
@@ -19,10 +23,11 @@ const createUploadTaskById = function (uploadTaskId, {
   name,
   files,
   header,
-  formData
+  formData,
+  timeout = __uniConfig.networkTimeout.uploadFile ? __uniConfig.networkTimeout.uploadFile / 1000 : 120
 } = {}) {
   const uploader = plus.uploader.createUpload(url, {
-    timeout: __uniConfig.networkTimeout.uploadFile ? __uniConfig.networkTimeout.uploadFile / 1000 : 120,
+    timeout,
     // 需要与其它平台上的表现保持一致，不走重试的逻辑。
     retry: 0,
     retryInterval: 0
@@ -46,13 +51,13 @@ const createUploadTaskById = function (uploadTaskId, {
   })
 
   for (const name in header) {
-    if (header.hasOwnProperty(name)) {
-      uploader.setRequestHeader(name, header[name])
+    if (hasOwn(header, name)) {
+      uploader.setRequestHeader(name, String(header[name]))
     }
   }
   for (const name in formData) {
-    if (formData.hasOwnProperty(name)) {
-      uploader.addData(name, formData[name])
+    if (hasOwn(formData, name)) {
+      uploader.addData(name, String(formData[name]))
     }
   }
   if (files && files.length) {

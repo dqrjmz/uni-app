@@ -1,3 +1,7 @@
+import {
+  hasOwn
+} from 'uni-shared'
+
 /**
  * 请求任务类
  */
@@ -6,6 +10,7 @@ class RequestTask {
   constructor (xhr) {
     this._xhr = xhr
   }
+
   abort () {
     if (this._xhr) {
       this._xhr.abort()
@@ -45,17 +50,18 @@ export function request ({
   header,
   method,
   dataType,
-  responseType
+  responseType,
+  withCredentials,
+  timeout = (__uniConfig.networkTimeout && __uniConfig.networkTimeout.request) || 60 * 1000
 }, callbackId) {
   const {
     invokeCallbackHandler: invoke
   } = UniServiceJSBridge
   var body = null
-  var timeout = (__uniConfig.networkTimeout && __uniConfig.networkTimeout.request) || 60 * 1000
   // 根据请求类型处理数据
   var contentType
   for (const key in header) {
-    if (header.hasOwnProperty(key)) {
+    if (hasOwn(header, key)) {
       if (key.toLowerCase() === 'content-type') {
         contentType = header[key]
         if (contentType.indexOf('application/json') === 0) {
@@ -80,9 +86,9 @@ export function request ({
           body = data.toString()
         }
       } else if (contentType === 'urlencoded') {
-        let bodyArray = []
-        for (let key in data) {
-          if (data.hasOwnProperty(key)) {
+        const bodyArray = []
+        for (const key in data) {
+          if (hasOwn(data, key)) {
             bodyArray.push(encodeURIComponent(key) + '=' + encodeURIComponent(data[key]))
           }
         }
@@ -96,7 +102,7 @@ export function request ({
   var requestTask = new RequestTask(xhr)
   xhr.open(method, url)
   for (var key in header) {
-    if (header.hasOwnProperty(key)) {
+    if (hasOwn(header, key)) {
       xhr.setRequestHeader(key, header[key])
     }
   }
@@ -111,7 +117,7 @@ export function request ({
   xhr.responseType = responseType
   xhr.onload = function () {
     clearTimeout(timer)
-    let statusCode = xhr.status
+    const statusCode = xhr.status
     let res = responseType === 'text' ? xhr.responseText : xhr.response
     if (responseType === 'text' && dataType === 'json') {
       try {
@@ -143,6 +149,7 @@ export function request ({
       errMsg: 'request:fail'
     })
   }
+  xhr.withCredentials = withCredentials
   xhr.send(body)
   return requestTask
 }

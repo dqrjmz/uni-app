@@ -18,11 +18,36 @@ const TAGS = [
   'slider'
 ]
 
-const modules = []
+const modules = [{
+  // render-whole => append="tree"
+  preTransformNode (el, options) {
+    if (!Object.hasOwnProperty.call(el.attrsMap, 'append')) {
+      const name = 'render-whole'
+      const value = el.attrsMap[name]
+      if (value === true || value === 'true') {
+        // remove
+        delete el.attrsMap.append
+        const index = el.attrsList.findIndex(item => item.name === name)
+        const attr = el.attrsList[index]
+        el.attrsList.splice(index, 1)
+
+        el.appendAsTree = true
+        el.attrsMap.append = 'tree'
+        el.attrsList.push({
+          name: 'append',
+          value: 'tree',
+          bool: false,
+          start: attr.start,
+          end: attr.end
+        })
+      }
+    }
+  }
+}]
 
 const deprecated = {
   events: {
-    'tap': 'click'
+    tap: 'click'
   }
 }
 
@@ -104,6 +129,10 @@ const compiler = require('weex-template-compiler')
 const oldCompile = compiler.compile
 compiler.compile = function (source, options = {}) {
   (options.modules || (options.modules = [])).push(autoComponentsModule)
+
+  options.modules.push(require('@dcloudio/uni-template-compiler/lib/asset-url'))
+  options.modules.push(require('@dcloudio/uni-template-compiler/lib/bool-attr'))
+
   options.isUnaryTag = isUnaryTag
   // 将 autoComponents 挂在 isUnaryTag 上边
   options.isUnaryTag.autoComponents = new Set()

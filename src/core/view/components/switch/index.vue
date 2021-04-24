@@ -1,18 +1,22 @@
 <template>
   <uni-switch
+    :disabled="disabled"
     v-on="$listeners"
-    @click="_onClick">
+    @click="_onClick"
+  >
     <div class="uni-switch-wrapper">
       <div
         v-show="type === 'switch'"
         :class="[switchChecked ? 'uni-switch-input-checked' : '']"
         :style="{backgroundColor: switchChecked ? color : '#DFDFDF',borderColor:switchChecked ? color : '#DFDFDF'}"
-        class="uni-switch-input" />
+        class="uni-switch-input"
+      />
       <div
         v-show="type === 'checkbox'"
         :class="[switchChecked ? 'uni-checkbox-input-checked' : '']"
         :style="{color: color}"
-        class="uni-checkbox-input" />
+        class="uni-checkbox-input"
+      />
     </div>
   </uni-switch>
 </template>
@@ -91,10 +95,10 @@ export default {
       this.switchChecked = false
     },
     _getFormData () {
-      let data = {}
+      const data = {}
       if (this.name !== '') {
-        data['value'] = this.switchChecked
-        data['key'] = this.name
+        data.value = this.switchChecked
+        data.key = this.name
       }
       return data
     }
@@ -105,10 +109,15 @@ export default {
 	uni-switch {
 		-webkit-tap-highlight-color: transparent;
 		display: inline-block;
+		cursor: pointer;
 	}
 
 	uni-switch[hidden] {
 		display: none;
+	}
+
+	uni-switch[disabled] {
+		cursor: not-allowed;
 	}
 
 	uni-switch .uni-switch-wrapper {
@@ -132,6 +141,10 @@ export default {
 		box-sizing: border-box;
 		background-color: #DFDFDF;
 		transition: background-color 0.1s, border 0.1s;
+	}
+
+	uni-switch[disabled] .uni-switch-input {
+		opacity: .7;
 	}
 
 	uni-switch .uni-switch-input:before {
@@ -190,6 +203,10 @@ export default {
 		height: 22px;
 		position: relative;
 		color: #007aff;
+	}
+
+	uni-switch:not([disabled]) .uni-checkbox-input:hover {
+		border-color: #007aff;
 	}
 
 	uni-switch .uni-checkbox-input.uni-checkbox-input-checked:before {

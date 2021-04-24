@@ -1,4 +1,7 @@
-import { fileToUrl } from 'uni-platform/helpers/file'
+import {
+  fileToUrl,
+  getFileName
+} from 'uni-platform/helpers/file'
 /**
  * 下载任务
  */
@@ -8,6 +11,7 @@ class DownloadTask {
   constructor (xhr) {
     this._xhr = xhr
   }
+
   /**
    * 监听下载进度
    * @param {Function} callback 回调
@@ -18,12 +22,14 @@ class DownloadTask {
     }
     this._callbacks.push(callback)
   }
+
   offProgressUpdate (callback) {
     const index = this._callbacks.indexOf(callback)
     if (index >= 0) {
       this._callbacks.splice(index, 1)
     }
   }
+
   /**
    * 停止任务
    */
@@ -42,9 +48,9 @@ class DownloadTask {
  */
 export function downloadFile ({
   url,
-  header
+  header,
+  timeout = (__uniConfig.networkTimeout && __uniConfig.networkTimeout.request) || 60 * 1000
 }, callbackId) {
-  var timeout = (__uniConfig.networkTimeout && __uniConfig.networkTimeout.downloadFile) || 60 * 1000
   const {
     invokeCallbackHandler: invoke
   } = UniServiceJSBridge
@@ -58,8 +64,19 @@ export function downloadFile ({
   xhr.responseType = 'blob'
   xhr.onload = function () {
     clearTimeout(timer)
-    let statusCode = xhr.status
-    let blob = this.response
+    const statusCode = xhr.status
+    const blob = this.response
+    let filename
+    // 使用 getResponseHeader 跨域时会出现警告，但相比 getAllResponseHeaders 更方便
+    const contentDisposition = xhr.getResponseHeader('content-disposition')
+    if (contentDisposition) {
+      // 暂时仅解析 filename 不解析 filename*
+      const res = contentDisposition.match(/filename="?(\S+)"?\b/)
+      if (res) {
+        filename = res[1]
+      }
+    }
+    blob.name = filename || getFileName(url)
     invoke(callbackId, {
       errMsg: 'downloadFile:ok',
       statusCode,

@@ -57,7 +57,7 @@ function findRefByElm (id, elm) {
   if (!id || !elm) {
     return
   }
-  if (elm.attr.id === id) {
+  if (elm.attr && elm.attr.id === id) {
     return elm
   }
   const children = elm.children
@@ -108,7 +108,7 @@ function normalizeCallback (method, callbacks) {
     isFn(callback) && callback(ret)
 
     if (type === SUCCESS || type === FAIL) {
-      const complete = callbacks['complete']
+      const complete = callbacks.complete
       isFn(complete) && complete(ret)
     }
   }

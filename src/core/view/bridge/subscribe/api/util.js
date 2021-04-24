@@ -14,7 +14,7 @@ function findVmById (id, vm) {
 
 export function findElm (component, pageVm) {
   if (!pageVm) {
-    return console.error(`page is not ready`)
+    return console.error('page is not ready')
   }
   if (!component) {
     return pageVm.$el
@@ -29,4 +29,22 @@ export function findElm (component, pageVm) {
     }
   }
   return component.$el
+}
+
+export function elementMatchesPolyfill (Element) {
+  if (!Element.matches) {
+    Element.matches =
+        Element.matchesSelector ||
+        Element.mozMatchesSelector ||
+        Element.msMatchesSelector ||
+        Element.oMatchesSelector ||
+        Element.webkitMatchesSelector ||
+        function (s) {
+          var matches = (this.document || this.ownerDocument).querySelectorAll(s)
+          var i = matches.length
+          while (--i >= 0 && matches.item(i) !== this) {}
+          return i > -1
+        }
+  }
+  return Element
 }

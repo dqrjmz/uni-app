@@ -1,3 +1,7 @@
+import {
+  camelize
+} from 'uni-shared'
+
 const components = ['SystemAsyncLoading', 'SystemAsyncError']
 export function isPage (vm) {
   if (vm.$parent && vm.$parent.$options.name === 'PageBody') {
@@ -27,12 +31,41 @@ export function normalizeDataset (dataset = {}) {
         const len = key.length
         if (key.substr(0, 1) === 'v' && (len === 9 || len === 10)) {
           delete result[key]
-          break
         }
       }
     }
   }
   return result
+}
+
+export function getTargetDataset (target) {
+  let dataset = {}
+  const vm = target.__vue__
+  function updateDataset (vm, force) {
+    const $attrs = vm.$attrs
+    for (const key in $attrs) {
+      if (key.startsWith('data-')) {
+        const newKey = camelize(key.substr(5))
+        const value = $attrs[key]
+        dataset[newKey] = force ? value : dataset[newKey] || value
+      }
+    }
+  }
+  if (vm) {
+    let $child = vm
+    while ($child && $child.$el === target) {
+      updateDataset($child)
+      $child = $child.$children[0]
+    }
+    let $parent = vm.$parent
+    while ($parent && $parent.$el === target) {
+      updateDataset($parent, true)
+      $parent = $parent.$parent
+    }
+  } else {
+    dataset = target.dataset || {}
+  }
+  return normalizeDataset(dataset)
 }
 
 export function upx2px (str) {
@@ -41,4 +74,16 @@ export function upx2px (str) {
     return uni.upx2px(parseInt(str) || 0)
   }
   return parseInt(str) || 0
+}
+
+export function findExistsPageIndex (url) {
+  const pages = getCurrentPages()
+  let len = pages.length
+  while (len--) {
+    const page = pages[len]
+    if (page.$page && page.$page.fullPath === url) {
+      return len
+    }
+  }
+  return -1
 }

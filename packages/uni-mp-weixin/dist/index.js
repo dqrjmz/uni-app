@@ -13,7 +13,6 @@ function isStr (str) {
   return typeof str === 'string'
 }
 
-// 是否是原生对象{}
 function isPlainObject (obj) {
   return _toString.call(obj) === '[object Object]'
 }
@@ -23,15 +22,19 @@ function hasOwn (obj, key) {
   return hasOwnProperty.call(obj, key)
 }
 
-function noop () {}
+function noop () { }
 
 /**
  * Create a cached version of a pure function.
+ * 使用闭包，缓存数据
  */
 function cached (fn) {
+  // 创建一个没有原型链的对象
   const cache = Object.create(null);
   return function cachedFn (str) {
+    // 获取当前属性的值
     const hit = cache[str];
+    // 值存在返回，不存在，进行添加
     return hit || (cache[str] = fn(str))
   }
 }
@@ -139,7 +142,7 @@ function queue (hooks, data) {
   for (let i = 0; i < hooks.length; i++) {
     const hook = hooks[i];
     if (promise) {
-      promise = Promise.then(wrapperHook(hook));
+      promise = Promise.resolve(wrapperHook(hook));
     } else {
       const res = hook(data);
       if (isPromise(res)) {
@@ -174,12 +177,21 @@ function wrapperOptions (interceptor, options = {}) {
   return options
 }
 
+/**
+ * 包裹返回值
+ * @param {*} method 方法
+ * @param {*} returnValue 返回值
+ */
 function wrapperReturnValue (method, returnValue) {
   const returnValueHooks = [];
+  // 全局拦截器的返回值是数组
   if (Array.isArray(globalInterceptors.returnValue)) {
+    // 添加到返回值的hook中
     returnValueHooks.push(...globalInterceptors.returnValue);
   }
+  // 作用域下的拦截器
   const interceptor = scopedInterceptors[method];
+  // 存在 && 返回值为数组
   if (interceptor && Array.isArray(interceptor.returnValue)) {
     returnValueHooks.push(...interceptor.returnValue);
   }
@@ -236,17 +248,23 @@ const promiseInterceptor = {
 };
 
 const SYNC_API_RE =
-  /^\$|restoreGlobal|getCurrentSubNVue|getMenuButtonBoundingClientRect|^report|interceptors|Interceptor$|getSubNVueById|requireNativePlugin|upx2px|hideKeyboard|canIUse|^create|Sync$|Manager$|base64ToArrayBuffer|arrayBufferToBase64/;
+  /^\$|Window$|WindowStyle$|sendNativeEvent|restoreGlobal|getCurrentSubNVue|getMenuButtonBoundingClientRect|^report|interceptors|Interceptor$|getSubNVueById|requireNativePlugin|upx2px|hideKeyboard|canIUse|^create|Sync$|Manager$|base64ToArrayBuffer|arrayBufferToBase64/;
 
 const CONTEXT_API_RE = /^create|Manager$/;
 
-const CALLBACK_API_RE = /^on/;
+// Context例外情况
+const CONTEXT_API_RE_EXC = ['createBLEConnection'];
+
+// 同步例外情况
+const ASYNC_API = ['createBLEConnection'];
+
+const CALLBACK_API_RE = /^on|^off/;
 
 function isContextApi (name) {
-  return CONTEXT_API_RE.test(name)
+  return CONTEXT_API_RE.test(name) && CONTEXT_API_RE_EXC.indexOf(name) === -1
 }
 function isSyncApi (name) {
-  return SYNC_API_RE.test(name)
+  return SYNC_API_RE.test(name) && ASYNC_API.indexOf(name) === -1
 }
 
 function isCallbackApi (name) {
@@ -254,18 +272,21 @@ function isCallbackApi (name) {
 }
 
 function handlePromise (promise) {
+  // 调用Promise ，格式化返回值
   return promise.then(data => {
     return [null, data]
   })
     .catch(err => [err])
 }
 
-
 // 不能promise化的api
 function shouldPromise (name) {
   if (
+    // 上下文api
     isContextApi(name) ||
+    // 同步api
     isSyncApi(name) ||
+    // 回调api
     isCallbackApi(name)
   ) {
     return false
@@ -273,11 +294,35 @@ function shouldPromise (name) {
   return true
 }
 
+/* eslint-disable no-extend-native */
+if (!Promise.prototype.finally) {
+  Promise.prototype.finally = function (callback) {
+    const promise = this.constructor;
+    return this.then(
+      value => promise.resolve(callback()).then(() => value),
+      reason => promise.resolve(callback()).then(() => {
+        throw reason
+      })
+    )
+  };
+}
+
+/**
+ *
+ * @param {*} name
+ * @param {*} api
+ */
 function promisify (name, api) {
+  // 是否可以Promise化
   if (!shouldPromise(name)) {
+    // 不能直接返回
     return api
   }
+  /**
+   *
+   */
   return function promiseApi (options = {}, ...params) {
+    // 成功 失败 完成 是函数
     if (isFn(options.success) || isFn(options.fail) || isFn(options.complete)) {
       return wrapperReturnValue(name, invokeApi(name, api, options, ...params))
     }
@@ -286,18 +331,6 @@ function promisify (name, api) {
         success: resolve,
         fail: reject
       }), ...params);
-      /* eslint-disable no-extend-native */
-      if (!Promise.prototype.finally) {
-        Promise.prototype.finally = function (callback) {
-          const promise = this.constructor;
-          return this.then(
-            value => promise.resolve(callback()).then(() => value),
-            reason => promise.resolve(callback()).then(() => {
-              throw reason
-            })
-          )
-        };
-      }
     })))
   }
 }
@@ -330,20 +363,16 @@ function upx2px (number, newDeviceWidth) {
   if (number === 0) {
     return 0
   }
-  // 转换后的尺寸 （新设备尺寸/基础设备尺寸 === result/number (缩放比例)
   let result = (number / BASE_DEVICE_WIDTH) * (newDeviceWidth || deviceWidth);
-  // 不能为负值
   if (result < 0) {
     result = -result;
   }
-  // 
   result = Math.floor(result + EPS);
-  // 750设备宽
   if (result === 0) {
     if (deviceDPR === 1 || !isIOS) {
-      return 1
+      result = 1;
     } else {
-      return 0.5
+      result = 0.5;
     }
   }
   return number < 0 ? -result : result
@@ -353,15 +382,45 @@ const interceptors = {
   promiseInterceptor
 };
 
-
-
 var baseApi = /*#__PURE__*/Object.freeze({
   __proto__: null,
   upx2px: upx2px,
-  interceptors: interceptors,
   addInterceptor: addInterceptor,
-  removeInterceptor: removeInterceptor
+  removeInterceptor: removeInterceptor,
+  interceptors: interceptors
 });
+
+function findExistsPageIndex (url) {
+  const pages = getCurrentPages();
+  let len = pages.length;
+  while (len--) {
+    const page = pages[len];
+    if (page.$page && page.$page.fullPath === url) {
+      return len
+    }
+  }
+  return -1
+}
+
+var redirectTo = {
+  name (fromArgs) {
+    if (fromArgs.exists === 'back' && fromArgs.delta) {
+      return 'navigateBack'
+    }
+    return 'redirectTo'
+  },
+  args (fromArgs) {
+    if (fromArgs.exists === 'back' && fromArgs.url) {
+      const existsPageIndex = findExistsPageIndex(fromArgs.url);
+      if (existsPageIndex !== -1) {
+        const delta = getCurrentPages().length - 1 - existsPageIndex;
+        if (delta > 0) {
+          fromArgs.delta = delta;
+        }
+      }
+    }
+  }
+};
 
 var previewImage = {
   args (fromArgs) {
@@ -397,6 +456,20 @@ var previewImage = {
   }
 };
 
+const UUID_KEY = '__DC_STAT_UUID';
+let deviceId;
+function addUuid (result) {
+  deviceId = deviceId || wx.getStorageSync(UUID_KEY);
+  if (!deviceId) {
+    deviceId = Date.now() + '' + Math.floor(Math.random() * 1e7);
+    wx.setStorage({
+      key: UUID_KEY,
+      data: deviceId
+    });
+  }
+  result.deviceId = deviceId;
+}
+
 function addSafeAreaInsets (result) {
   if (result.safeArea) {
     const safeArea = result.safeArea;
@@ -408,17 +481,28 @@ function addSafeAreaInsets (result) {
     };
   }
 }
-const protocols = {
-  previewImage,
-  getSystemInfo: {
-    returnValue: addSafeAreaInsets
-  },
-  getSystemInfoSync: {
-    returnValue: addSafeAreaInsets
+
+var getSystemInfo = {
+  returnValue: function (result) {
+    addUuid(result);
+    addSafeAreaInsets(result);
   }
 };
+
+// import navigateTo from 'uni-helpers/navigate-to'
+
+const protocols = {
+  redirectTo,
+  // navigateTo,  // 由于在微信开发者工具的页面参数，会显示__id__参数，因此暂时关闭mp-weixin对于navigateTo的AOP
+  previewImage,
+  getSystemInfo,
+  getSystemInfoSync: getSystemInfo
+};
 const todos = [
-  'vibrate'
+  'vibrate',
+  'preloadPage',
+  'unPreloadPage',
+  'loadSubPackage'
 ];
 const canIUses = [];
 
@@ -436,21 +520,23 @@ function processArgs (methodName, fromArgs, argsOption = {}, returnValue = {}, k
     if (isFn(argsOption)) {
       argsOption = argsOption(fromArgs, toArgs) || {};
     }
-    for (let key in fromArgs) {
+    for (const key in fromArgs) {
       if (hasOwn(argsOption, key)) {
         let keyOption = argsOption[key];
         if (isFn(keyOption)) {
           keyOption = keyOption(fromArgs[key], fromArgs, toArgs);
         }
         if (!keyOption) { // 不支持的参数
-          console.warn(`微信小程序 ${methodName}暂不支持${key}`);
+          console.warn(`The '${methodName}' method of platform '微信小程序' does not support option '${key}'`);
         } else if (isStr(keyOption)) { // 重写参数 key
           toArgs[keyOption] = fromArgs[key];
         } else if (isPlainObject(keyOption)) { // {name:newName,value:value}可重新指定参数 key:value
           toArgs[keyOption.name ? keyOption.name : key] = keyOption.value;
         }
       } else if (CALLBACKS.indexOf(key) !== -1) {
-        toArgs[key] = processCallback(methodName, fromArgs[key], returnValue);
+        if (isFn(fromArgs[key])) {
+          toArgs[key] = processCallback(methodName, fromArgs[key], returnValue);
+        }
       } else {
         if (!keepFromArgs) {
           toArgs[key] = fromArgs[key];
@@ -479,7 +565,7 @@ function wrapper (methodName, method) {
     // 暂不支持的 api
     if (!protocol) {
       return function () {
-        console.error(`微信小程序 暂不支持${methodName}`);
+        console.error(`Platform '微信小程序' does not support '${methodName}'.`);
       }
     }
     return function (arg1, arg2) { // 目前 api 最多两个参数
@@ -495,7 +581,12 @@ function wrapper (methodName, method) {
       if (typeof arg2 !== 'undefined') {
         args.push(arg2);
       }
-      const returnValue = wx[options.name || methodName].apply(wx, args);
+      if (isFn(options.name)) {
+        methodName = options.name(arg1);
+      } else if (isStr(options.name)) {
+        methodName = options.name;
+      }
+      const returnValue = wx[methodName].apply(wx, args);
       if (isSyncApi(methodName)) { // 同步 api
         return processReturnValue(methodName, returnValue, options.returnValue, isContextApi(methodName))
       }
@@ -526,13 +617,16 @@ function createTodoApi (name) {
     complete
   }) {
     const res = {
-      errMsg: `${name}:fail:暂不支持 ${name} 方法`
+      errMsg: `${name}:fail method '${name}' not supported`
     };
     isFn(fail) && fail(res);
     isFn(complete) && complete(res);
   }
 }
 
+/**
+ * 遍历api
+ */
 TODOS.forEach(function (name) {
   todoApis[name] = createTodoApi(name);
 });
@@ -564,7 +658,7 @@ function getProvider ({
   } else {
     // 在服务提供者那里找不到这个服务
     res = {
-      errMsg: 'getProvider:fail:服务[' + service + ']不存在'
+      errMsg: 'getProvider:fail service not found'
     };
     isFn(fail) && fail(res);
   }
@@ -578,10 +672,6 @@ var extraApi = /*#__PURE__*/Object.freeze({
 
 // 单例，IIFE
 const getEmitter = (function () {
-  if (typeof getUniEmitter === 'function') {
-    /* eslint-disable no-undef */
-    return getUniEmitter
-  }
   let Emitter;
   return function getUniEmitter () {
     if (!Emitter) {
@@ -616,13 +706,10 @@ var eventApi = /*#__PURE__*/Object.freeze({
   $emit: $emit
 });
 
-
-
 var api = /*#__PURE__*/Object.freeze({
   __proto__: null
 });
 
-// 小程序中的全局变量
 const MPPage = Page;
 const MPComponent = Component;
 
@@ -657,20 +744,25 @@ function initHook (name, options) {
     };
   }
 }
+if (!MPPage.__$wrappered) {
+  MPPage.__$wrappered = true;
+  Page = function (options = {}) {
+    initHook('onLoad', options);
+    return MPPage(options)
+  };
+  Page.after = MPPage.after;
 
-Page = function (options = {}) {
-  initHook('onLoad', options);
-  return MPPage(options)
-};
-
-Component = function (options = {}) {
-  initHook('created', options);
-  return MPComponent(options)
-};
+  Component = function (options = {}) {
+    initHook('created', options);
+    return MPComponent(options)
+  };
+}
 
 const PAGE_EVENT_HOOKS = [
   'onPullDownRefresh',
   'onReachBottom',
+  'onAddToFavorites',
+  'onShareTimeline',
   'onShareAppMessage',
   'onPageScroll',
   'onResize',
@@ -733,10 +825,10 @@ function initVueComponent (Vue, vueOptions) {
   let VueComponent;
   if (isFn(vueOptions)) {
     VueComponent = vueOptions;
-    vueOptions = VueComponent.extendOptions;
   } else {
     VueComponent = Vue.extend(vueOptions);
   }
+  vueOptions = VueComponent.options;
   return [VueComponent, vueOptions]
 }
 
@@ -805,14 +897,14 @@ function createObserver (name) {
 }
 
 function initBehaviors (vueOptions, initBehavior) {
-  const vueBehaviors = vueOptions['behaviors'];
-  const vueExtends = vueOptions['extends'];
-  const vueMixins = vueOptions['mixins'];
+  const vueBehaviors = vueOptions.behaviors;
+  const vueExtends = vueOptions.extends;
+  const vueMixins = vueOptions.mixins;
 
-  let vueProps = vueOptions['props'];
+  let vueProps = vueOptions.props;
 
   if (!vueProps) {
-    vueOptions['props'] = vueProps = [];
+    vueOptions.props = vueProps = [];
   }
 
   const behaviors = [];
@@ -824,11 +916,11 @@ function initBehaviors (vueOptions, initBehavior) {
           vueProps.push('name');
           vueProps.push('value');
         } else {
-          vueProps['name'] = {
+          vueProps.name = {
             type: String,
             default: ''
           };
-          vueProps['value'] = {
+          vueProps.value = {
             type: [String, Number, Boolean, Array, Object, Date],
             default: ''
           };
@@ -872,6 +964,11 @@ function initProperties (props, isBehavior = false, file = '') {
       type: String,
       value: ''
     };
+    // 用于字节跳动小程序模拟抽象节点
+    properties.generic = {
+      type: Object,
+      value: null
+    };
     properties.vueSlots = { // 小程序不能直接定义 $slots 的 props，所以通过 vueSlots 转换到 $slots
       type: null,
       value: [],
@@ -897,7 +994,7 @@ function initProperties (props, isBehavior = false, file = '') {
     Object.keys(props).forEach(key => {
       const opts = props[key];
       if (isPlainObject(opts)) { // title:{type:String,default:''}
-        let value = opts['default'];
+        let value = opts.default;
         if (isFn(value)) {
           value = value();
         }
@@ -936,6 +1033,11 @@ function wrapper$1 (event) {
     event.detail = {};
   }
 
+  if (hasOwn(event, 'markerId')) {
+    event.detail = typeof event.detail === 'object' ? event.detail : {};
+    event.detail.markerId = event.markerId;
+  }
+
   if (isPlainObject(event.detail)) {
     event.target = Object.assign({}, event.target, event.detail);
   }
@@ -952,7 +1054,18 @@ function getExtraValue (vm, dataPathsArray) {
       const propPath = dataPathArray[1];
       const valuePath = dataPathArray[3];
 
-      const vFor = dataPath ? vm.__get_value(dataPath, context) : context;
+      let vFor;
+      if (Number.isInteger(dataPath)) {
+        vFor = dataPath;
+      } else if (!dataPath) {
+        vFor = context;
+      } else if (typeof dataPath === 'string' && dataPath) {
+        if (dataPath.indexOf('#s#') === 0) {
+          vFor = dataPath.substr(3);
+        } else {
+          vFor = vm.__get_value(dataPath, context);
+        }
+      }
 
       if (Number.isInteger(vFor)) {
         context = value;
@@ -1002,6 +1115,12 @@ function processEventExtra (vm, extra, event) {
         } else {
           if (dataPath === '$event') { // $event
             extraObj['$' + index] = event;
+          } else if (dataPath === 'arguments') {
+            if (event.detail && event.detail.__args__) {
+              extraObj['$' + index] = event.detail.__args__;
+            } else {
+              extraObj['$' + index] = [event];
+            }
           } else if (dataPath.indexOf('$event.') === 0) { // $event.target.value
             extraObj['$' + index] = vm.__get_value(dataPath.replace('$event.', ''), event);
           } else {
@@ -1082,17 +1201,26 @@ function isMatchEventType (eventType, optType) {
     )
 }
 
+function getContextVm (vm) {
+  let $parent = vm.$parent;
+  // 父组件是 scoped slots 或者其他自定义组件时继续查找
+  while ($parent && $parent.$parent && ($parent.$options.generic || $parent.$parent.$options.generic || $parent.$scope._$vuePid)) {
+    $parent = $parent.$parent;
+  }
+  return $parent && $parent.$parent
+}
+
 function handleEvent (event) {
   event = wrapper$1(event);
 
   // [['tap',[['handle',[1,2,a]],['handle1',[1,2,a]]]]]
   const dataset = (event.currentTarget || event.target).dataset;
   if (!dataset) {
-    return console.warn(`事件信息不存在`)
+    return console.warn('事件信息不存在')
   }
   const eventOpts = dataset.eventOpts || dataset['event-opts']; // 支付宝 web-view 组件 dataset 非驼峰
   if (!eventOpts) {
-    return console.warn(`事件信息不存在`)
+    return console.warn('事件信息不存在')
   }
 
   // [['handle',[1,2,a]],['handle1',[1,2,a]]]
@@ -1114,12 +1242,8 @@ function handleEvent (event) {
         const methodName = eventArray[0];
         if (methodName) {
           let handlerCtx = this.$vm;
-          if (
-            handlerCtx.$options.generic &&
-            handlerCtx.$parent &&
-            handlerCtx.$parent.$parent
-          ) { // mp-weixin,mp-toutiao 抽象节点模拟 scoped slots
-            handlerCtx = handlerCtx.$parent.$parent;
+          if (handlerCtx.$options.generic) { // mp-weixin,mp-toutiao 抽象节点模拟 scoped slots
+            handlerCtx = getContextVm(handlerCtx) || handlerCtx;
           }
           if (methodName === '$emit') {
             handlerCtx.$emit.apply(handlerCtx,
@@ -1143,14 +1267,21 @@ function handleEvent (event) {
             }
             handler.once = true;
           }
-          ret.push(handler.apply(handlerCtx, processEventArgs(
+          let params = processEventArgs(
             this.$vm,
             event,
             eventArray[1],
             eventArray[2],
             isCustom,
             methodName
-          )));
+          );
+          params = Array.isArray(params) ? params : [];
+          // 参数尾部增加原始事件对象用于复杂表达式内获取额外数据
+          if (/=\s*\S+\.eventParams\s*\|\|\s*\S+\[['"]event-params['"]\]/.test(handler.toString())) {
+            // eslint-disable-next-line no-sparse-arrays
+            params = params.concat([, , , , , , , , , , event]);
+          }
+          ret.push(handler.apply(handlerCtx, params));
         }
       });
     }
@@ -1165,25 +1296,56 @@ function handleEvent (event) {
   }
 }
 
+const eventChannels = {};
+
+const eventChannelStack = [];
+
+function getEventChannel (id) {
+  if (id) {
+    const eventChannel = eventChannels[id];
+    delete eventChannels[id];
+    return eventChannel
+  }
+  return eventChannelStack.shift()
+}
+
 const hooks = [
   'onShow',
   'onHide',
   'onError',
-  'onPageNotFound'
+  'onPageNotFound',
+  'onThemeChange',
+  'onUnhandledRejection'
 ];
+
+function initEventChannel () {
+  Vue.prototype.getOpenerEventChannel = function () {
+    // 微信小程序使用自身getOpenerEventChannel
+    {
+      return this.$scope.getOpenerEventChannel()
+    }
+  };
+  const callHook = Vue.prototype.__call_hook;
+  Vue.prototype.__call_hook = function (hook, args) {
+    if (hook === 'onLoad' && args && args.__id__) {
+      this.__eventChannel__ = getEventChannel(args.__id__);
+      delete args.__id__;
+    }
+    return callHook.call(this, hook, args)
+  };
+}
 
 function parseBaseApp (vm, {
   mocks,
   initRefs
 }) {
-  // 状态容器
+  initEventChannel();
   if (vm.$options.store) {
     Vue.prototype.$store = vm.$options.store;
   }
 
   Vue.prototype.mpHost = "mp-weixin";
 
-  // 混合全局
   Vue.mixin({
     beforeCreate () {
       if (!this.$options.mpType) {
@@ -1201,7 +1363,12 @@ function parseBaseApp (vm, {
 
       delete this.$options.mpType;
       delete this.$options.mpInstance;
-
+      if (this.mpType === 'page') { // hack vue-i18n
+        const app = getApp();
+        if (app.$vm && app.$vm.$i18n) {
+          this._i18n = app.$vm.$i18n;
+        }
+      }
       if (this.mpType !== 'app') {
         initRefs(this);
         initMocks(this, mocks);
@@ -1220,7 +1387,6 @@ function parseBaseApp (vm, {
         }
       }
 
-      // 组件实例
       this.$vm = vm;
 
       this.$vm.$mp = {
@@ -1253,7 +1419,7 @@ function parseBaseApp (vm, {
   return appOptions
 }
 
-// 
+//
 const mocks = ['__route__', '__wxExparserNodeId__', '__wxWebviewId__'];
 
 function findVmByVueId (vm, vuePid) {
@@ -1287,16 +1453,28 @@ function initRelation (detail) {
   this.triggerEvent('__l', detail);
 }
 
+function selectAllComponents (mpInstance, selector, $refs) {
+  const components = mpInstance.selectAllComponents(selector);
+  components.forEach(component => {
+    const ref = component.dataset.ref;
+    $refs[ref] = component.$vm || component;
+    {
+      if (component.dataset.vueGeneric === 'scoped') {
+        component.selectAllComponents('.scoped-ref').forEach(scopedComponent => {
+          selectAllComponents(scopedComponent, selector, $refs);
+        });
+      }
+    }
+  });
+}
+
 function initRefs (vm) {
   const mpInstance = vm.$scope;
   Object.defineProperty(vm, '$refs', {
     get () {
       const $refs = {};
-      const components = mpInstance.selectAllComponents('.vue-ref');
-      components.forEach(component => {
-        const ref = component.dataset.ref;
-        $refs[ref] = component.$vm || component;
-      });
+      selectAllComponents(mpInstance, '.vue-ref', $refs);
+      // TODO 暂不考虑 for 中的 scoped
       const forComponents = mpInstance.selectAllComponents('.vue-ref-in-for');
       forComponents.forEach(component => {
         const ref = component.dataset.ref;
@@ -1341,21 +1519,77 @@ function createApp (vm) {
   return vm
 }
 
+// 编码预留的规则
+const encodeReserveRE = /[!'()*]/g;
+// 编码预留的替换
+const encodeReserveReplacer = c => '%' + c.charCodeAt(0).toString(16);
+const commaRE = /%2C/g;
+
+// fixed encodeURIComponent which is more conformant to RFC3986:
+// - escapes [!'()*]
+// - preserve commas
+// 给字符串进行编码
+const encode = str => encodeURIComponent(str)
+  .replace(encodeReserveRE, encodeReserveReplacer)
+  .replace(commaRE, ',');
+
+// 序列化查询字符串
+function stringifyQuery (obj, encodeStr = encode) {
+  // 获取对象的key，进行遍历
+  const res = obj ? Object.keys(obj).map(key => {
+    const val = obj[key];
+    // 对象的属性不存在返回
+    if (val === undefined) {
+      return ''
+    }
+
+    // 对象的属性为null, 将key返回
+    if (val === null) {
+      return encodeStr(key)
+    }
+
+    // 值为数组
+    if (Array.isArray(val)) {
+      const result = [];
+      // 遍历数组
+      val.forEach(val2 => {
+        // 元素为空的返回
+        if (val2 === undefined) {
+          return
+        }
+        // 元素为null的进行编码，添加到数组中
+        if (val2 === null) {
+          result.push(encodeStr(key));
+        } else {
+          result.push(encodeStr(key) + '=' + encodeStr(val2));
+        }
+      });
+      // 将数组使用&符号进行连接
+      return result.join('&')
+    }
+    // 编码key 和value
+    return encodeStr(key) + '=' + encodeStr(val)
+    // 过滤掉长度为0 的编译过的
+  }).filter(x => x.length > 0).join('&') : null;
+  return res ? `?${res}` : ''
+}
+
 function parseBaseComponent (vueComponentOptions, {
   isPage,
   initRelation
 } = {}) {
-  let [VueComponent, vueOptions] = initVueComponent(Vue, vueComponentOptions);
+  const [VueComponent, vueOptions] = initVueComponent(Vue, vueComponentOptions);
 
   const options = {
     multipleSlots: true,
-    addGlobalClass: true
+    addGlobalClass: true,
+    ...(vueOptions.options || {})
   };
 
   {
     // 微信 multipleSlots 部分情况有 bug，导致内容顺序错乱 如 u-list，提供覆盖选项
-    if (vueOptions['mp-weixin'] && vueOptions['mp-weixin']['options']) {
-      Object.assign(options, vueOptions['mp-weixin']['options']);
+    if (vueOptions['mp-weixin'] && vueOptions['mp-weixin'].options) {
+      Object.assign(options, vueOptions['mp-weixin'].options);
     }
   }
 
@@ -1401,7 +1635,7 @@ function parseBaseComponent (vueComponentOptions, {
         }
       },
       detached () {
-        this.$vm.$destroy();
+        this.$vm && this.$vm.$destroy();
       }
     },
     pageLifetimes: {
@@ -1420,6 +1654,10 @@ function parseBaseComponent (vueComponentOptions, {
       __e: handleEvent
     }
   };
+  // externalClasses
+  if (vueOptions.externalClasses) {
+    componentOptions.externalClasses = vueOptions.externalClasses;
+  }
 
   if (Array.isArray(vueOptions.wxsCallMethods)) {
     vueOptions.wxsCallMethods.forEach(callMethod => {
@@ -1458,9 +1696,15 @@ function parseBasePage (vuePageOptions, {
 
   initHooks(pageOptions.methods, hooks$1, vuePageOptions);
 
-  pageOptions.methods.onLoad = function (args) {
-    this.$vm.$mp.query = args; // 兼容 mpvue
-    this.$vm.__call_hook('onLoad', args);
+  pageOptions.methods.onLoad = function (query) {
+    this.options = query;
+    const copyQuery = Object.assign({}, query);
+    delete copyQuery.__id__;
+    this.$page = {
+      fullPath: '/' + (this.route || this.is) + stringifyQuery(copyQuery)
+    };
+    this.$vm.$mp.query = query; // 兼容 mpvue
+    this.$vm.__call_hook('onLoad', query);
   };
 
   return pageOptions
@@ -1485,15 +1729,50 @@ function createComponent (vueOptions) {
   }
 }
 
+function createSubpackageApp (vm) {
+  const appOptions = parseApp(vm);
+  const app = getApp({
+    allowDefault: true
+  });
+  const globalData = app.globalData;
+  if (globalData) {
+    Object.keys(appOptions.globalData).forEach(name => {
+      if (!hasOwn(globalData, name)) {
+        globalData[name] = appOptions.globalData[name];
+      }
+    });
+  }
+  Object.keys(appOptions).forEach(name => {
+    if (!hasOwn(app, name)) {
+      app[name] = appOptions[name];
+    }
+  });
+  if (isFn(appOptions.onShow) && wx.onAppShow) {
+    wx.onAppShow((...args) => {
+      appOptions.onShow.apply(app, args);
+    });
+  }
+  if (isFn(appOptions.onHide) && wx.onAppHide) {
+    wx.onAppHide((...args) => {
+      appOptions.onHide.apply(app, args);
+    });
+  }
+  if (isFn(appOptions.onLaunch)) {
+    const args = wx.getLaunchOptionsSync && wx.getLaunchOptionsSync();
+    appOptions.onLaunch.call(app, args);
+  }
+  return vm
+}
+
+// 将todo api设置为false
 todos.forEach(todoApi => {
   protocols[todoApi] = false;
 });
 
-
 canIUses.forEach(canIUseApi => {
   const apiName = protocols[canIUseApi] && protocols[canIUseApi].name ? protocols[canIUseApi].name
     : canIUseApi;
-    // 全局没有这个api
+  // 不能使用的api就是
   if (!wx.canIUse(apiName)) {
     protocols[canIUseApi] = false;
   }
@@ -1502,9 +1781,12 @@ canIUses.forEach(canIUseApi => {
 let uni = {};
 
 if (typeof Proxy !== 'undefined' && "mp-weixin" !== 'app-plus') {
+  /**
+   * 将api代理到uni全局对象上
+   */
   uni = new Proxy({}, {
     get (target, name) {
-      if (target[name]) {
+      if (hasOwn(target, name)) {
         return target[name]
       }
       if (baseApi[name]) {
@@ -1535,6 +1817,9 @@ if (typeof Proxy !== 'undefined' && "mp-weixin" !== 'app-plus') {
     }
   });
 } else {
+  /**
+   * 将api添加到uni全局对象上
+   */
   Object.keys(baseApi).forEach(name => {
     uni[name] = baseApi[name];
   });
@@ -1548,6 +1833,9 @@ if (typeof Proxy !== 'undefined' && "mp-weixin" !== 'app-plus') {
     });
   }
 
+  /**
+   * 添加观察者模式的api
+   */
   Object.keys(eventApi).forEach(name => {
     uni[name] = eventApi[name];
   });
@@ -1563,11 +1851,13 @@ if (typeof Proxy !== 'undefined' && "mp-weixin" !== 'app-plus') {
   });
 }
 
+// wx
 wx.createApp = createApp;
 wx.createPage = createPage;
 wx.createComponent = createComponent;
+wx.createSubpackageApp = createSubpackageApp;
 
 var uni$1 = uni;
 
 export default uni$1;
-export { createApp, createComponent, createPage };
+export { createApp, createComponent, createPage, createSubpackageApp };

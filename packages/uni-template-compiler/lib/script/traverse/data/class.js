@@ -8,6 +8,9 @@ function processClassArrayExpressionElements (classArrayExpression) {
   let binaryExpression
 
   classArrayExpression.elements.forEach(expr => {
+    if (t.isArrayExpression(expr)) {
+      expr = processClassArrayExpressionElements(expr)
+    }
     if (!binaryExpression) {
       binaryExpression = t.parenthesizedExpression(expr)
     } else {
@@ -70,8 +73,8 @@ function processClassArrayExpression (classValuePath) {
 }
 
 module.exports = function processClass (paths, path, state) {
-  const classPath = paths['class']
-  const staticClassPath = paths['staticClass']
+  const classPath = paths.class
+  const staticClassPath = paths.staticClass
   if (classPath) {
     const classValuePath = classPath.get('value')
     if (classValuePath.isObjectExpression()) { // object

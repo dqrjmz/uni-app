@@ -1,7 +1,9 @@
+import {
+  hasOwn
+} from 'uni-shared'
 import createCallbacks from 'uni-helpers/callbacks'
 
 import {
-  invokeMethod,
   getCurrentPageId
 } from '../../platform'
 
@@ -9,17 +11,11 @@ import {
   invoke
 } from '../../bridge'
 
-const canvasEventCallbacks = createCallbacks('canvasEvent')
+import {
+  TEMP_PATH
+} from 'uni-platform/service/api/constants'
 
-UniServiceJSBridge.subscribe('onDrawCanvas', ({
-  callbackId,
-  data
-}) => {
-  const callback = canvasEventCallbacks.pop(callbackId)
-  if (callback) {
-    callback(data)
-  }
-})
+const canvasEventCallbacks = createCallbacks('canvasEvent')
 
 UniServiceJSBridge.subscribe('onCanvasMethodCallback', ({
   callbackId,
@@ -192,11 +188,13 @@ const predefinedColor = {
 }
 
 function checkColor (e) {
+  // 其他开发者适配的echarts会传入一个undefined到这里
+  e = e || '#000000'
   var t = null
   if ((t = /^#([0-9|A-F|a-f]{6})$/.exec(e)) != null) {
-    let n = parseInt(t[1].slice(0, 2), 16)
-    let o = parseInt(t[1].slice(2, 4), 16)
-    let r = parseInt(t[1].slice(4), 16)
+    const n = parseInt(t[1].slice(0, 2), 16)
+    const o = parseInt(t[1].slice(2, 4), 16)
+    const r = parseInt(t[1].slice(4), 16)
     return [n, o, r, 255]
   }
   if ((t = /^#([0-9|A-F|a-f]{3})$/.exec(e)) != null) {
@@ -219,18 +217,16 @@ function checkColor (e) {
     })
   }
   var i = e.toLowerCase()
-  if (predefinedColor.hasOwnProperty(i)) {
+  if (hasOwn(predefinedColor, i)) {
     t = /^#([0-9|A-F|a-f]{6,8})$/.exec(predefinedColor[i])
-    let n = parseInt(t[1].slice(0, 2), 16)
-    let o = parseInt(t[1].slice(2, 4), 16)
-    let r = parseInt(t[1].slice(4, 6), 16)
+    const n = parseInt(t[1].slice(0, 2), 16)
+    const o = parseInt(t[1].slice(2, 4), 16)
+    const r = parseInt(t[1].slice(4, 6), 16)
     let a = parseInt(t[1].slice(6, 8), 16)
     a = a >= 0 ? a : 255
     return [n, o, r, a]
   }
-  console.group('非法颜色: ' + e)
-  console.error('不支持颜色：' + e)
-  console.groupEnd()
+  console.error('unsupported color:' + e)
   return [0, 0, 0, 255]
 }
 
@@ -245,6 +241,7 @@ class CanvasGradient {
     this.data = data
     this.colorStop = []
   }
+
   addColorStop (position, color) {
     this.colorStop.push([position, checkColor(color)])
   }
@@ -258,14 +255,11 @@ var methods3 = ['setFillStyle', 'setTextAlign', 'setStrokeStyle', 'setGlobalAlph
   'setTextBaseline', 'setLineDash'
 ]
 
-var tempCanvas
-function getTempCanvas (width = 0, height = 0) {
-  if (!tempCanvas) {
-    tempCanvas = document.createElement('canvas')
-  }
-  tempCanvas.width = width
-  tempCanvas.height = height
-  return tempCanvas
+function measureText (text, font) {
+  const canvas = document.createElement('canvas')
+  const c2d = canvas.getContext('2d')
+  c2d.font = font
+  return c2d.measureText(text).width || 0
 }
 
 function TextMetrics (width) {
@@ -295,6 +289,7 @@ export class CanvasContext {
       fontFamily: 'sans-serif'
     }
   }
+
   draw (reserve = false, callback) {
     var actions = [...this.actions]
     this.actions = []
@@ -311,31 +306,40 @@ export class CanvasContext {
       callbackId
     })
   }
+
   createLinearGradient (x0, y0, x1, y1) {
     return new CanvasGradient('linear', [x0, y0, x1, y1])
   }
+
   createCircularGradient (x, y, r) {
     return new CanvasGradient('radial', [x, y, r])
   }
+
   createPattern (image, repetition) {
     if (undefined === repetition) {
       console.error("Failed to execute 'createPattern' on 'CanvasContext': 2 arguments required, but only 1 present.")
     } else if (['repeat', 'repeat-x', 'repeat-y', 'no-repeat'].indexOf(repetition) < 0) {
-      console.error("Failed to execute 'createPattern' on 'CanvasContext': The provided type ('" + repetition + "') is not one of 'repeat', 'no-repeat', 'repeat-x', or 'repeat-y'.")
+      console.error("Failed to execute 'createPattern' on 'CanvasContext': The provided type ('" + repetition +
+        "') is not one of 'repeat', 'no-repeat', 'repeat-x', or 'repeat-y'.")
     } else {
       return new Pattern(image, repetition)
     }
   }
-  // TODO
+
   measureText (text) {
-    if (typeof document === 'object') {
-      var c2d = getTempCanvas().getContext('2d')
-      c2d.font = this.state.font
-      return new TextMetrics(c2d.measureText(text).width || 0)
+    const font = this.state.font
+    let width = 0
+    if (__PLATFORM__ === 'h5') {
+      width = measureText(text, font)
     } else {
-      return new TextMetrics(0)
+      const webview = plus.webview.all().find(webview => webview.getURL().endsWith('www/__uniappview.html'))
+      if (webview) {
+        width = Number(webview.evalJSSync(`(${measureText.toString()})(${JSON.stringify(text)},${JSON.stringify(font)})`))
+      }
     }
+    return new TextMetrics(width)
   }
+
   save () {
     this.actions.push({
       method: 'save',
@@ -343,6 +347,7 @@ export class CanvasContext {
     })
     this.drawingState.push(this.state)
   }
+
   restore () {
     this.actions.push({
       method: 'restore',
@@ -361,10 +366,12 @@ export class CanvasContext {
       fontFamily: 'sans-serif'
     }
   }
+
   beginPath () {
     this.path = []
     this.subpath = []
   }
+
   moveTo (x, y) {
     this.path.push({
       method: 'moveTo',
@@ -374,6 +381,7 @@ export class CanvasContext {
       [x, y]
     ]
   }
+
   lineTo (x, y) {
     if (this.path.length === 0 && this.subpath.length === 0) {
       this.path.push({
@@ -388,6 +396,7 @@ export class CanvasContext {
     }
     this.subpath.push([x, y])
   }
+
   quadraticCurveTo (cpx, cpy, x, y) {
     this.path.push({
       method: 'quadraticCurveTo',
@@ -395,6 +404,7 @@ export class CanvasContext {
     })
     this.subpath.push([x, y])
   }
+
   bezierCurveTo (cp1x, cp1y, cp2x, cp2y, x, y) {
     this.path.push({
       method: 'bezierCurveTo',
@@ -402,6 +412,7 @@ export class CanvasContext {
     })
     this.subpath.push([x, y])
   }
+
   arc (x, y, r, sAngle, eAngle, counterclockwise = false) {
     this.path.push({
       method: 'arc',
@@ -409,6 +420,7 @@ export class CanvasContext {
     })
     this.subpath.push([x, y])
   }
+
   rect (x, y, width, height) {
     this.path.push({
       method: 'rect',
@@ -418,6 +430,7 @@ export class CanvasContext {
       [x, y]
     ]
   }
+
   arcTo (x1, y1, x2, y2, radius) {
     this.path.push({
       method: 'arcTo',
@@ -425,12 +438,14 @@ export class CanvasContext {
     })
     this.subpath.push([x2, y2])
   }
+
   clip () {
     this.actions.push({
       method: 'clip',
       data: [...this.path]
     })
   }
+
   closePath () {
     this.path.push({
       method: 'closePath',
@@ -440,52 +455,61 @@ export class CanvasContext {
       this.subpath = [this.subpath.shift()]
     }
   }
+
   clearActions () {
     this.actions = []
     this.path = []
     this.subpath = []
   }
+
   getActions () {
     var actions = [...this.actions]
     this.clearActions()
     return actions
   }
+
   set lineDashOffset (value) {
     this.actions.push({
       method: 'setLineDashOffset',
       data: [value]
     })
   }
+
   set globalCompositeOperation (type) {
     this.actions.push({
       method: 'setGlobalCompositeOperation',
       data: [type]
     })
   }
+
   set shadowBlur (level) {
     this.actions.push({
       method: 'setShadowBlur',
       data: [level]
     })
   }
+
   set shadowColor (color) {
     this.actions.push({
       method: 'setShadowColor',
       data: [color]
     })
   }
+
   set shadowOffsetX (x) {
     this.actions.push({
       method: 'setShadowOffsetX',
       data: [x]
     })
   }
+
   set shadowOffsetY (y) {
     this.actions.push({
       method: 'setShadowOffsetY',
       data: [y]
     })
   }
+
   set font (value) {
     var self = this
     this.state.font = value
@@ -534,6 +558,7 @@ export class CanvasContext {
     } else {
       console.warn("Failed to set 'font' on 'CanvasContext': invalid format.")
     }
+
     function pushAction () {
       actions.push({
         method: 'setFontWeight',
@@ -542,15 +567,19 @@ export class CanvasContext {
       self.state.fontWeight = 'normal'
     }
   }
+
   get font () {
     return this.state.font
   }
+
   set fillStyle (color) {
     this.setFillStyle(color)
   }
+
   set strokeStyle (color) {
     this.setStrokeStyle(color)
   }
+
   set globalAlpha (value) {
     value = Math.floor(255 * parseFloat(value))
     this.actions.push({
@@ -558,36 +587,42 @@ export class CanvasContext {
       data: [value]
     })
   }
+
   set textAlign (align) {
     this.actions.push({
       method: 'setTextAlign',
       data: [align]
     })
   }
+
   set lineCap (type) {
     this.actions.push({
       method: 'setLineCap',
       data: [type]
     })
   }
+
   set lineJoin (type) {
     this.actions.push({
       method: 'setLineJoin',
       data: [type]
     })
   }
+
   set lineWidth (value) {
     this.actions.push({
       method: 'setLineWidth',
       data: [value]
     })
   }
+
   set miterLimit (value) {
     this.actions.push({
       method: 'setMiterLimit',
       data: [value]
     })
   }
+
   set textBaseline (type) {
     this.actions.push({
       method: 'setTextBaseline',
@@ -652,10 +687,13 @@ export class CanvasContext {
             dHeight = undefined
           }
           var data
+
           function isNumber (e) {
             return typeof e === 'number'
           }
-          data = isNumber(dx) && isNumber(dy) && isNumber(dWidth) && isNumber(dHeight) ? [imageResource, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight] : isNumber(sWidth) && isNumber(
+          data = isNumber(dx) && isNumber(dy) && isNumber(dWidth) && isNumber(dHeight) ? [imageResource, sx, sy,
+            sWidth, sHeight, dx, dy, dWidth, dHeight
+          ] : isNumber(sWidth) && isNumber(
             sHeight) ? [imageResource, sx, sy, sWidth, sHeight] : [imageResource, sx, sy]
           this.actions.push({
             method,
@@ -761,16 +799,21 @@ export function canvasGetImageData ({
   width,
   height
 }, callbackId) {
-  var pageId = getCurrentPageId()
+  const pageId = getCurrentPageId()
   if (!pageId) {
     invoke(callbackId, {
       errMsg: 'canvasGetImageData:fail'
     })
     return
   }
-  var cId = canvasEventCallbacks.push(function (data) {
-    var imgData = data.data
+  const cId = canvasEventCallbacks.push(function (data) {
+    let imgData = data.data
     if (imgData && imgData.length) {
+      if (__PLATFORM__ === 'app-plus' && data.compressed) {
+        const pako = require('pako')
+        imgData = pako.inflateRaw(imgData)
+        delete data.compressed
+      }
       data.data = new Uint8ClampedArray(imgData)
     }
     invoke(callbackId, data)
@@ -802,12 +845,24 @@ export function canvasPutImageData ({
   var cId = canvasEventCallbacks.push(function (data) {
     invoke(callbackId, data)
   })
+  let compressed
+  // iOS真机非调试模式压缩太慢暂时排除
+  if (__PLATFORM__ === 'app-plus' && (plus.os.name !== 'iOS' || typeof __WEEX_DEVTOOL__ === 'boolean')) {
+    const pako = require('pako')
+    data = pako.deflateRaw(data, { to: 'string' })
+    compressed = true
+  } else {
+    // fix ...
+    data = Array.prototype.slice.call(data)
+  }
+
   operateCanvas(canvasId, pageId, 'putImageData', {
-    data: [...data],
+    data,
     x,
     y,
     width,
     height,
+    compressed,
     callbackId: cId
   })
 }
@@ -830,37 +885,20 @@ export function canvasToTempFilePath ({
     })
     return
   }
-  const cId = canvasEventCallbacks.push(function ({
-    base64
-  }) {
-    if (!base64 || !base64.length) {
-      invoke(callbackId, {
-        errMsg: 'canvasToTempFilePath:fail'
-      })
-    }
-    invokeMethod('base64ToTempFilePath', {
-      base64Data: base64,
-      x,
-      y,
-      width,
-      height,
-      destWidth,
-      destHeight,
-      canvasId,
-      fileType,
-      qualit
-    }, callbackId)
+  const cId = canvasEventCallbacks.push(function (res) {
+    invoke(callbackId, res)
   })
-  operateCanvas(canvasId, pageId, 'getDataUrl', {
+  const dirname = `${TEMP_PATH}/canvas`
+  operateCanvas(canvasId, pageId, 'toTempFilePath', {
     x,
     y,
     width,
     height,
     destWidth,
     destHeight,
-    hidpi: false,
     fileType,
     qualit,
+    dirname,
     callbackId: cId
   })
 }

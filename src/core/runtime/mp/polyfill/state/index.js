@@ -17,6 +17,7 @@ import {
 export function initState (vm) {
   const instanceData = JSON.parse(JSON.stringify(vm.$options.mpOptions.data || {}))
 
+  // vm__data__ 小程序的data对象
   vm[SOURCE_KEY] = instanceData
 
   const propertyDefinition = {
@@ -28,6 +29,7 @@ export function initState (vm) {
     }
   }
 
+  // 给组件实例定义
   Object.defineProperties(vm, {
     data: propertyDefinition,
     properties: propertyDefinition

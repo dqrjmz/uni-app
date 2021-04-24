@@ -2,36 +2,57 @@
   <transition name="uni-fade">
     <uni-modal
       v-show="visible"
-      @touchmove.prevent>
-      <div class="uni-mask"/>
+      @touchmove.prevent
+    >
+      <div class="uni-mask" />
       <div class="uni-modal">
         <div
           v-if="title"
-          class="uni-modal__hd">
-          <strong class="uni-modal__title">{{ title }}</strong>
+          class="uni-modal__hd"
+        >
+          <strong
+            class="uni-modal__title"
+            v-text="title"
+          />
         </div>
         <div
           class="uni-modal__bd"
-          @touchmove.stop>{{ content }}</div>
+          @touchmove.stop
+          v-text="content"
+        />
         <div class="uni-modal__ft">
           <div
             v-if="showCancel"
             :style="{color:cancelColor}"
             class="uni-modal__btn uni-modal__btn_default"
-            @click="_close('cancel')">{{ cancelText }}</div>
+            @click="_close('cancel')"
+          >
+            {{ cancelText }}
+          </div>
           <div
             :style="{color:confirmColor}"
             class="uni-modal__btn uni-modal__btn_primary"
-            @click="_close('confirm')">{{ confirmText }}</div>
+            @click="_close('confirm')"
+          >
+            {{ confirmText }}
+          </div>
         </div>
       </div>
+      <keypress
+        :disable="!visible"
+        @esc="_close('cancel')"
+        @enter="_close('confirm')"
+      />
     </uni-modal>
   </transition>
 </template>
 <script>
 import transition from './mixins/transition'
+import keypress from '../../../helpers/keypress'
+
 export default {
   name: 'Modal',
+  components: { keypress },
   mixins: [transition],
   props: {
     title: {
@@ -48,7 +69,7 @@ export default {
     },
     cancelText: {
       type: String,
-      default: '取消'
+      default: 'Cancel'
     },
     cancelColor: {
       type: String,
@@ -56,7 +77,7 @@ export default {
     },
     confirmText: {
       type: String,
-      default: '确定'
+      default: 'OK'
     },
     confirmColor: {
       type: String,
@@ -131,6 +152,7 @@ export default {
 		white-space: pre-wrap;
 		color: #999999;
 		max-height: 400px;
+		overflow-x: hidden;
 		overflow-y: auto;
 	}
 
@@ -161,6 +183,7 @@ export default {
 		text-decoration: none;
 		-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 		position: relative;
+		cursor: pointer;
 	}
 
 	uni-modal .uni-modal__btn:active {

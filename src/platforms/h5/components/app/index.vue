@@ -1,30 +1,44 @@
 <template>
-  <uni-app :class="{'uni-app--showtabbar':showTabBar}">
-    <!-- <transition :name="transitionName"> -->
-    <!-- TODO -->
-    <keep-alive :include="keepAliveInclude">
-      <router-view :key="key" />
-    </keep-alive>
-    <!-- </transition> -->
+  <uni-app :class="{'uni-app--showtabbar':showTabBar,'uni-app--maxwidth':showMaxWidth}">
+    <layout
+      ref="layout"
+      :router-key="key"
+      :keep-alive-include="keepAliveInclude"
+      @maxWidth="onMaxWidth"
+      @layout="onLayout"
+    />
     <tab-bar
       v-if="hasTabBar"
       v-show="showTabBar"
-      v-bind="tabBar" />
+      ref="tabBar"
+      v-bind="tabBarOptions"
+    />
     <toast
       v-if="$options.components.Toast"
-      v-bind="showToast"/>
+      v-bind="showToast"
+    />
     <action-sheet
       v-if="$options.components.ActionSheet"
       v-bind="showActionSheet"
-      @close="_onActionSheetClose" />
+      @close="_onActionSheetClose"
+    />
     <modal
       v-if="$options.components.Modal"
       v-bind="showModal"
-      @close="_onModalClose" />
+      @close="_onModalClose"
+    />
+    <template v-if="sysComponents&&sysComponents.length">
+      <component
+        :is="item"
+        v-for="(item, index) in sysComponents"
+        :key="index"
+      />
+    </template>
   </uni-app>
 </template>
 <script>
 import {
+  hasOwn,
   isPlainObject
 } from 'uni-shared'
 
@@ -35,6 +49,10 @@ import {
 import components from './components'
 
 import mixins from 'uni-h5-app-mixins'
+
+import {
+  tabBar
+} from './observable'
 
 export default {
   name: 'App',
@@ -52,18 +70,28 @@ export default {
     return {
       transitionName: 'fade',
       hideTabBar: false,
-      tabBar: __uniConfig.tabBar || {}
+      sysComponents: this.$sysComponents,
+      showLayout: false,
+      showMaxWidth: false,
+      tabBarMediaQuery: false
     }
   },
   computed: {
     key () {
       return this.$route.meta.name + '-' + this.$route.params.__id__ + '-' + (__uniConfig.reLaunch || 1)
     },
+    tabBarOptions () {
+      return tabBar
+    },
     hasTabBar () {
-      return __uniConfig.tabBar && __uniConfig.tabBar.list && __uniConfig.tabBar.list.length
+      return tabBar.list && tabBar.list.length
     },
     showTabBar () {
-      return this.$route.meta.isTabBar && !this.hideTabBar
+      return !this.hideTabBar &&
+          (
+            this.$route.meta.isTabBar ||
+            this.tabBarMediaQuery
+          )
     }
   },
   watch: {
@@ -75,7 +103,8 @@ export default {
       if (uni.canIUse('css.var')) {
         const windowBottomValue = !newVal ? (TABBAR_HEIGHT) : 0
         const envMethod = uni.canIUse('css.env') ? 'env' : (uni.canIUse('css.constant') ? 'constant' : '')
-        const windowBottom = windowBottomValue && envMethod ? `calc(${windowBottomValue}px + ${envMethod}(safe-area-inset-bottom))` : `${windowBottomValue}px`
+        const windowBottom = windowBottomValue && envMethod
+          ? `calc(${windowBottomValue}px + ${envMethod}(safe-area-inset-bottom))` : `${windowBottomValue}px`
         document.documentElement.style.setProperty('--window-bottom', windowBottom)
         console.debug(`uni.${windowBottom ? 'showTabBar' : 'hideTabBar'}：--window-bottom=${windowBottom}`)
       }
@@ -87,6 +116,7 @@ export default {
     if (uni.canIUse('css.var')) {
       document.documentElement.style.setProperty('--status-bar-height', '0px')
     }
+    this.initMediaQuery()
   },
   mounted () {
     window.addEventListener('message', function (evt) {
@@ -101,16 +131,38 @@ export default {
         UniServiceJSBridge.emit('onAppEnterBackground')
       }
     })
+  },
+  methods: {
+    onLayout (showLayout) {
+      this.showLayout = showLayout
+    },
+    onMaxWidth (showMaxWidth) {
+      this.showMaxWidth = showMaxWidth
+    },
+    initMediaQuery () {
+      if (
+        window.matchMedia &&
+          tabBar.matchMedia &&
+          hasOwn(tabBar.matchMedia, 'minWidth')
+      ) {
+        const mediaQueryList = window.matchMedia('(min-width: ' + tabBar.matchMedia.minWidth + 'px)')
+        mediaQueryList.addListener((e) => {
+          this.tabBarMediaQuery = e.matches
+        })
+        this.tabBarMediaQuery = mediaQueryList.matches
+      }
+    }
   }
 }
 </script>
 
 <style>
   @import "~uni-core/view/index.css";
-	uni-app {
-		display: block;
-		box-sizing: border-box;
-		width: 100%;
-		height: 100%;
-	}
+
+  uni-app {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+  }
 </style>

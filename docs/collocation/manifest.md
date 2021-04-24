@@ -1,4 +1,4 @@
-`manifest.json` 文件是应用的配置文件，用于指定应用的名称、图标、权限等。
+`manifest.json` 文件是应用的配置文件，用于指定应用的名称、图标、权限等。HBuilderX 创建的工程此文件在根目录，CLI 创建的工程此文件在 src 目录。
 
 ### 配置项列表
 
@@ -6,6 +6,7 @@
 |:-|:-|:-|:-|:-|
 |name|String||应用名称||
 |appid|String|新建 uni-app 项目时，DCloud 云端分配。用途[详见](https://ask.dcloud.net.cn/article/35907)|应用标识|| 
+|screenOrientation|Array||重力感应、横竖屏配置，可取值："portrait-primary"：竖屏正方向；"portrait-secondary"：竖屏反方向；"landscape-primary"：横屏正方向；"landscape-secondary"：横屏反方向。||
 |description|String||应用描述||
 |versionName|String||版本名称，例如：1.0.0。详见下方Tips说明||
 |versionCode|String||版本号，例如：36||
@@ -19,7 +20,7 @@
 |mp-weixin|Object||[微信小程序特有配置](/collocation/manifest?id=mp-weixin)||
 |mp-alipay|Object||[支付宝小程序未提供可配置项](/collocation/manifest?id=mp-alipay)|
 |mp-baidu|Object||[百度小程序特有配置](/collocation/manifest?id=mp-baidu)||
-|mp-toutiao|Object||[头条小程序特有配置](/collocation/manifest?id=mp-toutiao)|1.6.0|
+|mp-toutiao|Object||[字节跳动小程序特有配置](/collocation/manifest?id=mp-toutiao)|1.6.0|
 |mp-qq|Object||[qq 小程序特有配置](/collocation/manifest?id=mp-qq)|2.1.0|
 **Tips**
 
@@ -58,6 +59,7 @@ uni 统计配置项
 |distribute|Object|App 发布信息，[详见](/collocation/manifest?id=distribute)||
 |usingComponents|Boolean|是否启用自定义组件模式，默认为false，[编译模式区别详情](https://ask.dcloud.net.cn/article/35843)|1.9.0+|
 |nvueCompiler|String|切换 nvue 编译模式，可选值，`weex` ：老编译模式，`uni-app`： 新编译模式，默认为 `weex` 。[编译模式区别详情](http://ask.dcloud.net.cn/article/36074)|2.0.3+|
+|nvueStyleCompiler|String|切换 nvue 样式编译模式，可选值，`weex` ：老编译模式，`uni-app`： 新编译模式，默认为 `weex` 。[编译模式区别详情](https://ask.dcloud.net.cn/article/38751)|3.1.1+|
 |renderer|String|可不加载基于 webview 的运行框架，减少包体积、提升启动速度。可选值 `native`| App-nvue 2.2.0+|
 |compilerVersion|Number|编译器版本，可选值：2、3 默认 2 [详见](https://ask.dcloud.net.cn/article/36599)|HBuilderX alpha 2.4.4+或HBuilderX 2.5.0+|
 |nvueLaunchMode|Number|Nvue 首页启动模式，在 compilerVersion 值为 3 时生效，可选值：normal、fast 默认 normal（HBuilderX alpha 2.4.4-2.4.9 固定为 fast） [详见](https://ask.dcloud.net.cn/article/36749)|2.5.0+|
@@ -125,7 +127,7 @@ splash（启动封面）是App必然存在的、不可取消的。
 |android|Object|Android 应用配置，详见: [完整 manifest.json](/collocation/manifest?id=完整-manifestjson)|
 |ios|Object|iOS 应用配置，详见: [完整 manifest.json](/collocation/manifest?id=完整-manifestjson)|
 |sdkConfigs|Object|SDK配置，仅打包生效 [详见](/collocation/manifest?id=sdkConfigs)|
-|orientation|Array|重力感应、横竖屏配置，可取值："portrait-primary"：竖屏正方向；"portrait-secondary"：竖屏反方向；"landscape-primary"：横屏正方向；"landscape-secondary"：横屏反方向。|
+|orientation|Array|同 screenOrientation 配置，仅打包生效，推荐使用 screenOrientation|
 
 ##### App SdkConfigs@sdkConfigs
 
@@ -140,6 +142,36 @@ splash（启动封面）是App必然存在的、不可取消的。
 |statics|Object|统计配置，目前仅支付友盟统计，[详见](http://ask.dcloud.net.cn/article/74)，在uni-app中只用 [plus.statistic](http://www.html5plus.org/doc/zh_cn/statistic.html) 进行调用。|
 |speech|Object|语音识别配置，支持讯飞语音、百度语音，[详见](http://ask.dcloud.net.cn/article/35059)，在uni-app中只用 [plus.speech](http://www.html5plus.org/doc/zh_cn/speech.html) 进行调用。|
 |maps|Object|原生地图配置，目前仅支持 [高德地图](http://lbs.amap.com/)，申请方式可参考：[地图插件配置](http://ask.dcloud.net.cn/article/29)。|
+
+#### optimization@app-vue-optimization
+
+小程序的分包，除了联网分段下载外，还可以减轻启动时加载的js数量，可以提升启动速度。
+
+从uni-app 2.7.12+ 开始，App-vue平台也兼容了小程序的分包配置，但默认并不开启。
+
+在manifest配置以下节点，可以在App端启动分包。
+
+|属性|类型|说明|
+|:-|:-|:-|
+|subPackages|Boolean|是否开启分包优化|
+
+```
+"app-plus": {
+  "optimization": {
+    "subPackages": true
+  },
+  "runmode" : "liberate" // 开启分包优化后，必须配置资源释放模式
+}
+```
+
+在manifest中启动分包后，需要在pages.json中配置具体的分包规则，与小程序的配置相同，详见：[https://uniapp.dcloud.io/collocation/pages?id=subpackages](https://uniapp.dcloud.io/collocation/pages?id=subpackages)
+
+也就是一旦在pages.json里配置分包，小程序一定生效，而app是否生效，取决于manifest里是否开启。
+
+注意: 
+* App开启分包后，每个分包单独编译成一个js文件(都包含在app内，不会联网下载)，当App首页是vue时，可减小启动加载文件大小，提升启动速度。
+* 首页是nvue时，分包不会提升启动速度，nvue本身启动速度就快于vue，也快于开启分包后的首页为vue的应用。如果追求极致启动速度，还是应该使用nvue做首页并在manifest开启fast模式。
+* App页面较少时，分包对启动速度的优化不明显。
 
 
 #### nvue@nvue
@@ -177,14 +209,17 @@ splash（启动封面）是App必然存在的、不可取消的。
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
 		<title>
 			<%= htmlWebpackPlugin.options.title %>
 		</title>
+		<!-- Open Graph data -->
+		<!-- <meta property="og:title" content="Title Here" /> -->
+		<!-- <meta property="og:url" content="http://www.example.com/" /> -->
+		<!-- <meta property="og:image" content="http://example.com/image.jpg" /> -->
+		<!-- <meta property="og:description" content="Description Here" /> -->
 		<script>
-			document.addEventListener('DOMContentLoaded', function() {
-				document.documentElement.style.fontSize = document.documentElement.clientWidth / 20 + 'px'
-			})
+			var coverSupport = 'CSS' in window && typeof CSS.supports === 'function' && (CSS.supports('top: env(a)') || CSS.supports('top: constant(a)'))
+			document.write('<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0' + (coverSupport ? ', viewport-fit=cover' : '') + '" />')
 		</script>
 		<link rel="stylesheet" href="<%= BASE_URL %>static/index.<%= VUE_APP_INDEX_CSS_HASH %>.css" />
 	</head>
@@ -210,7 +245,7 @@ H5平台是SPA单页应用，普通的SEO信息即加meta字段只能在，自�
 |属性|类型|默认值|说明|
 |:-|:-|:-|:-|
 |mode|String|hash|路由跳转模式，支持 hash、history|
-|base|String|/|应用基础路径，例如，如果整个单页应用服务在 /app/ 下，然后 base 就应该设为 "/app/"|
+|base|String|/|应用基础路径，例如，如果整个单页应用服务在 /app/ 下，然后 base 就应该设为 "/app/"，支持设置为相对路径 "./"|
 
 **注意：**
 
@@ -223,7 +258,7 @@ H5平台是SPA单页应用，普通的SEO信息即加meta字段只能在，自�
 |loading|String|AsyncLoading|页面 js 加载时使用的组件（需注册为全局组件）|
 |error|String|AsyncError|页面 js 加载失败时使用的组件（需注册为全局组件）|
 |delay|Number|200|展示 loading 加载组件的延时时间（页面 js 若在 delay 时间内加载完成，则不会显示 loading 组件）|
-|timeout|Number|3000|页面 js 加载超时时间（超时后展示 error 对应的组件）|
+|timeout|Number|60000|页面 js 加载超时时间（超时后展示 error 对应的组件）|
 
 #### devServer
 |属性|类型|默认值|说明|
@@ -235,6 +270,8 @@ Tips：`uni-app` 中 `manifest.json->h5->devServer` 实际上对应 `webpack` �
 
 #### publicPath
 配置 publicPath 为 cdn 资源地址前缀，这样编译出来的 html 文件，引用的 js，css 路径会自动变成 cdn 上的地址。
+
+注意：如果想对图片生效，image组件的图片地址需要使用相对路径
 
 **示例**
 
@@ -266,8 +303,8 @@ Tips：`uni-app` 中 `manifest.json->h5->devServer` 实际上对应 `webpack` �
 	"sdkConfigs": {
 		"maps": {
 			"qqmap": {
-				//腾讯地图秘钥（key）
-				"key": "XVXBZ-NDMC4-JOGUS-XGIEE-QVHDZ-AMFV2"
+				// 腾讯地图秘钥（key）https://lbs.qq.com/dev/console/key/manage
+				"key": ""
 			}
 		}
 	}
@@ -407,13 +444,13 @@ Tips：关于摇树优化（treeShaking）原理及优化结果，参考：[http
 
 |属性|类型|说明|
 |:-|:-|:-|
-|appid|String|头条小程序的 AppID，登录 [https://developer.toutiao.com/](https://developer.toutiao.com/) 申请|
-|setting|Object|头条小程序项目设置，参考[头条小程序项目设置](/collocation/manifest?id=mp-toutiao-setting)|
+|appid|String|字节跳动小程序的 AppID，登录 [https://developer.toutiao.com/](https://developer.toutiao.com/) 申请|
+|setting|Object|字节跳动小程序项目设置，参考[字节跳动小程序项目设置](/collocation/manifest?id=mp-toutiao-setting)|
 |usingComponents|Boolean| 是否启用自定义组件模式，`v2.0+`，默认为false，[编译模式区别详情](https://ask.dcloud.net.cn/article/35843)|
 |navigateToMiniProgramAppIdList	|Array|需要跳转的小程序列表，[详见](https://developer.toutiao.com/dev/cn/mini-app/develop/framework/basic-reference/general-configuration)	|
-|uniStatistics|Object|[头条小程序是否开启 uni 统计，配置方法同全局配置](/collocation/manifest?id=uniStatistics)|
+|uniStatistics|Object|[字节跳动小程序是否开启 uni 统计，配置方法同全局配置](/collocation/manifest?id=uniStatistics)|
 
-#### 头条小程序项目设置@mp-toutiao-setting
+#### 字节跳动小程序项目设置@mp-toutiao-setting
 
 |属性|类型|说明|
 |:-|:-|:-|
@@ -448,7 +485,7 @@ mp-qq只支持自定义组件模式，不存在usingComponents配置
 ### 关于分包优化的说明
 
 - 在对应平台的配置下添加`"optimization":{"subPackages":true}`开启分包优化
-- 目前只支持`mp-weixin`、`mp-qq`、`mp-baidu`的分包优化
+- 目前只支持`mp-weixin`、`mp-qq`、`mp-baidu`、`mp-toutiao`的分包优化
 - 分包优化具体逻辑：
   + 静态文件：分包下支持 static 等静态资源拷贝，即分包目录内放置的静态资源不会被打包到主包中，也不可在主包中使用
   + js文件：当某个 js 仅被一个分包引用时，该 js 会被打包到该分包内，否则仍打到主包（即被主包引用，或被超过 1 个分包引用）
@@ -467,6 +504,33 @@ mp-qq只支持自定义组件模式，不存在usingComponents配置
 
 以上面的分包为例，放在每个分包root对应目录下的静态文件会被打包到此分包内。
 
+### 快应用@quickapp-webview
+
+|属性							 |类型			|说明|
+|:-								 |:-			|:-|
+|icon							 |String	|应用图标，华为推荐 192x192|
+|package					 |String	|应用包名|
+|minPlatformVersion|Number	|最小平台运行支持(华为最低 1070，vivo 1063)|
+|versionName			 |String	|版本名称|
+|versionCode			 |Number	|版本号|
+
+
+**manifest.json配置**
+```
+"quickapp-webview": {// 快应用通用配置
+  "icon": "/static/logo.png",
+  "package": "com.example.demo",
+  "versionName": "1.0.0",
+  "versionCode": 100
+},
+"quickapp-webview-union": {// 快应用联盟，目前仅支持 vivo、oppo
+  "minPlatformVersion": 1063 //最小平台支持
+},
+"quickapp-webview-huawei": {// 快应用华为
+  "minPlatformVersion": 1070 //最小平台支持
+}
+```
+
 ### 完整 manifest.json
 
 ```javascript
@@ -483,6 +547,16 @@ mp-qq只支持自定义组件模式，不存在usingComponents配置
 	// app-plus 节点是 App 特有配置，推荐在 HBuilderX 的 manifest.json 可视化界面操作完成配置。
 	"app-plus": {
 		// HBuilderX->manifest.json->模块权限配置
+    "optimization": {
+      "subPackages": true // HBuilderX 2.7.12+ 支持
+    },
+    // 屏幕方向
+    "screenOrientation": [
+      "portrait-primary",
+      "landscape-primary",
+      "portrait-secondary",
+      "landscape-secondary"
+    ],
 		"modules": {
 			"Contacts": {},
 			"Fingerprint": {},
@@ -523,22 +597,12 @@ mp-qq只支持自定义组件模式，不存在usingComponents配置
 				"password": "iOS应用打包个人证书导入密码",
 				"p12": "iOS应用打包个人证书，打包配置文件关联的个人证书",
 				"devices": "iOS应用支持的设备类型，可取值iphone/ipad/universal",
-				"urltypes": [{
-						"urlschemes": [
-							"hbuilder",
-							"必选，程序所支持的自定义协议名称"
-						],
-						"id": "可选，自定义协议的标识",
-						"icon": "可选，打开程序时显示的图标"
-					},
+				"urltypes": [
 					{
+            "urlidentifier": "com.xxx.test",
 						"urlschemes": [
-							"http",
-							"https",
-							"必选，程序所支持的自定义协议名称，大小写无关，推荐使用小写"
-						],
-						"id": "可选，自定义协议的标识",
-						"icon": "可选，打开程序时显示的图标"
+							"hbuilder"// 必选，程序所支持的自定义协议名称
+						]
 					}
 				],
 				"frameworks": ["使用native.js调用API要引用的库文件名称，如CoreLocation.framework", "QuartzCore.framework"],
@@ -629,13 +693,6 @@ mp-qq只支持自定义组件模式，不存在usingComponents配置
 					}
 				}
 			},
-			// 屏幕方向 需要云打包/本地打包/自定义基座生效
-			"orientation": [
-				"portrait-primary",
-				"landscape-primary",
-				"portrait-secondary",
-				"landscape-secondary"
-			],
 			// HBuilderX->manifest.json->图标配置
 			"icons": {
 				"ios": {
@@ -708,8 +765,7 @@ mp-qq只支持自定义组件模式，不存在usingComponents配置
 		// HBuilderX->manifest.json->启动图配置->启动界面选项
 		"splashscreen": {
 			"waiting": true,
-			"autoclose": true,
-			"delay": 0
+			"autoclose": true
 		},
 		"error": {
 			"url": "页面加载错误时打开的页面地址，可以是网络地址，也可以是本地地址"
@@ -768,9 +824,9 @@ mp-qq只支持自定义组件模式，不存在usingComponents配置
 	"mp-baidu": {
 		"appid": "百度小程序appid"
 	},
-	// 头条小程序特有配置
+	// 字节跳动小程序特有配置
 	"mp-toutiao": {
-		"appid": "头条小程序appid"
+		"appid": "字节跳动小程序appid"
 	},
 	"h5": {
 		"title": "演示", //页面标题，默认使用 manifest.json 的 name

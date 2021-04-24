@@ -1,4 +1,3 @@
-const fs = require('fs')
 const path = require('path')
 
 const {
@@ -14,12 +13,44 @@ require('./lib/check-update')()
 const initBuildCommand = require('./commands/build')
 const initServeCommand = require('./commands/serve')
 
+/**
+ * 
+ * @param {*} api PluginApi 
+ * @param {*} options vue.config.js
+ */
 module.exports = (api, options) => {
+  // 初始化命令
   initServeCommand(api, options)
 
   initBuildCommand(api, options)
 
-  const platformOptions = require('./lib/' + process.env.UNI_PLATFORM)
+  if (process.env.UNI_PLATFORM === 'quickapp-native') {
+    process.env.UNI_OUTPUT_DIR = path.resolve(process.env.UNI_OUTPUT_DIR, 'build')
+    Object.assign(options, {
+      assetsDir,
+      parallel: false,
+      outputDir: process.env.UNI_OUTPUT_DIR
+    })
+    require('./lib/options')(options)
+    const platformOptions = {
+      webpackConfig: {},
+      chainWebpack () {}
+    }
+    const manifestPlatformOptions = {}
+    api.configureWebpack(require('./lib/configure-webpack')(platformOptions, manifestPlatformOptions, options, api))
+    api.chainWebpack(require('./lib/chain-webpack')(platformOptions, options, api))
+
+    const vueConfig = require('@dcloudio/uni-quickapp-native/lib/vue.config.js')
+    api.configureWebpack(vueConfig.configureWebpack)
+    api.chainWebpack(vueConfig.chainWebpack)
+    return
+  }
+
+  const type = ['app-plus', 'h5'].includes(process.env.UNI_PLATFORM)
+    ? process.env.UNI_PLATFORM
+    : 'mp'
+
+  const platformOptions = require('./lib/' + type)
 
   let vueConfig = platformOptions.vueConfig
 
@@ -27,31 +58,35 @@ module.exports = (api, options) => {
     vueConfig = vueConfig(options, api)
   }
 
+  if (options.pages) {
+    // h5平台 允许 vue.config.js pages 覆盖，其他平台移除 pages 配置
+    if (process.env.UNI_PLATFORM === 'h5') {
+      delete vueConfig.pages
+    } else {
+      delete options.pages
+    }
+  }
+
   Object.assign(options, { // TODO 考虑非 HBuilderX 运行时，可以支持自定义输出目录
     outputDir: process.env.UNI_OUTPUT_TMP_DIR || process.env.UNI_OUTPUT_DIR,
     assetsDir
-  }, vueConfig)
+  }, vueConfig) // 注意，此处目前是覆盖关系，后续考虑改为webpack merge逻辑
 
   require('./lib/options')(options)
 
   api.configureWebpack(require('./lib/configure-webpack')(platformOptions, manifestPlatformOptions, options, api))
   api.chainWebpack(require('./lib/chain-webpack')(platformOptions, options, api))
 
-  if (
-    process.env.UNI_PLATFORM === 'h5' ||
-    (
-      process.env.UNI_PLATFORM === 'app-plus' &&
-      process.env.UNI_USING_V3
-    )
-  ) {
-    const migrate = require('@dcloudio/uni-migration')
-    const wxcomponents = path.resolve(process.env.UNI_INPUT_DIR, 'wxcomponents')
-    if (fs.existsSync(wxcomponents)) { // 转换 mp-weixin 小程序组件
-      migrate(wxcomponents, false, {
-        silent: true // 不输出日志
-      })
-    }
-  }
+  global.uniPlugin.configureWebpack.forEach(configureWebpack => {
+    api.configureWebpack(function (webpackConfig) {
+      return configureWebpack(webpackConfig, options)
+    })
+  })
+  global.uniPlugin.chainWebpack.forEach(chainWebpack => {
+    api.chainWebpack(function (webpackConfig) {
+      return chainWebpack(webpackConfig, options)
+    })
+  })
 }
 
 module.exports.defaultModes = {

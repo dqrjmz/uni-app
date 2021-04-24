@@ -1,19 +1,29 @@
 const {
   tags
 } = require('@dcloudio/uni-cli-shared')
+const parser = require('@babel/parser')
+const t = require('@babel/types')
 
 const simplePathRE = /^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*|\['[^']*?']|\["[^"]*?"]|\[\d+]|\[[A-Za-z_$][\w$]*])*$/
 
+function isFunction (expr) {
+  try {
+    const body = parser.parse(`(${expr})`).program.body[0]
+    const expression = body.expression
+    return t.isFunctionDeclaration(body) || t.isArrowFunctionExpression(expression) || t.isFunctionExpression(expression)
+  } catch (error) { }
+}
+
 function processEvent (expr, filterModules) {
   const isMethodPath = simplePathRE.test(expr)
-  if (isMethodPath) {
+  if (isMethodPath || isFunction(expr)) {
     if (filterModules.find(name => expr.indexOf(name + '.') === 0)) {
       return `
 $event = $handleWxsEvent($event);
-${expr}($event, $getComponentDescriptor())
+(${expr})($event, $getComponentDescriptor())
 `
     } else {
-      expr = expr + '(...arguments)'
+      expr = `(${expr})(...arguments)`
     }
   }
   return `
@@ -28,8 +38,8 @@ function hasOwn (obj, key) {
 
 const deprecated = {
   events: {
-    'tap': 'click',
-    'longtap': 'longpress'
+    tap: 'click',
+    longtap: 'longpress'
   }
 }
 
@@ -40,31 +50,10 @@ function addTag (tag) {
   process.UNI_TAGS.add(tag)
 }
 
-const dirRE = /^v-|^@|^:/
-/**
- * 兼容小程序Boolean属性的怪异行为(<custom loading/>为true,<custom loading=""/>为false)
- * @param {Object} el
- */
-function fixBooleanAttribute (el) {
-  if (!el.attrsList) {
-    return
-  }
-  el.attrsList.forEach(attr => {
-    if (attr.bool) { // <custom loading/> => <custom :loading="true"/>
-      if (!dirRE.test(attr.name) && attr.name !== 'inline-template') {
-        delete el.attrsMap[attr.name]
-        attr.name = ':' + attr.name
-        attr.value = 'true'
-        el.attrsMap[attr.name] = attr.value
-      }
-    }
-  })
-}
-
 module.exports = {
+  h5: true,
   modules: [require('../format-text'), {
     preTransformNode (el, options) {
-      fixBooleanAttribute(el)
       if (el.tag.indexOf('v-uni-') === 0) {
         addTag(el.tag.replace('v-uni-', ''))
       } else if (hasOwn(tags, el.tag)) {

@@ -1,12 +1,15 @@
 <template>
   <uni-checkbox
+    :disabled="disabled"
     v-on="$listeners"
-    @click="_onClick">
+    @click="_onClick"
+  >
     <div class="uni-checkbox-wrapper">
       <div
         :class="[checkboxChecked ? 'uni-checkbox-input-checked' : '']"
         :style="{color:color}"
-        class="uni-checkbox-input" />
+        class="uni-checkbox-input"
+      />
       <slot />
     </div>
   </uni-checkbox>
@@ -97,10 +100,15 @@ export default {
 	uni-checkbox {
 		-webkit-tap-highlight-color: transparent;
 		display: inline-block;
+    cursor: pointer;
 	}
 
 	uni-checkbox[hidden] {
 		display: none;
+	}
+
+	uni-checkbox[disabled] {
+		cursor: not-allowed;
 	}
 
 	uni-checkbox .uni-checkbox-wrapper {
@@ -122,6 +130,10 @@ export default {
 		width: 22px;
 		height: 22px;
 		position: relative;
+	}
+
+	uni-checkbox:not([disabled]) .uni-checkbox-input:hover {
+		border-color: #007aff;
 	}
 
 	uni-checkbox .uni-checkbox-input.uni-checkbox-input-checked {

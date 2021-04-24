@@ -1,39 +1,67 @@
 import {
-  guid
-} from 'uni-shared'
-
-import {
   VD_SYNC,
   UI_EVENT
 } from '../../../constants'
 
+import {
+  generateId
+} from '../../../helpers/util'
+
+function findParent (vm) {
+  let parent = vm.$parent
+  while (parent) {
+    if (parent._$id) {
+      return parent
+    }
+    parent = parent.$parent
+  }
+}
+
 export class VDomSync {
-  constructor (pageId) {
+  constructor (pageId, options = {}) {
     this.pageId = pageId
-    this.addBatchVData = []
+    this.addBatchVData = Object.create(null)
     this.updateBatchVData = []
     this.vms = Object.create(null)
+
+    this.version = options.version
   }
 
   addVData (cid, data = {}, options = {}) {
-    this.addBatchVData.push([cid, data, options])
+    this.addBatchVData[cid] = [data, options]
   }
 
   updateVData (cid, data = {}) {
     this.updateBatchVData.push([cid, data])
   }
 
-  initVm (vm) {
-    const [cid, data, options] = this.addBatchVData.shift()
-    if (!cid) {
-      vm._$id = guid()
-      console.error('cid unmatched', vm)
-    } else {
-      vm._$id = cid
+  addVm (vm) {
+    const id = vm._$id
+    const oldVm = this.vms[id]
+    if (oldVm) {
+      const newId = generateId(oldVm, findParent(oldVm), this.version)
+      oldVm._$id = newId
+      this.vms[newId] = oldVm
     }
+    this.vms[id] = vm
+  }
+
+  initVm (vm) {
+    vm._$id = generateId(vm, findParent(vm), this.version)
+    let vData = this.addBatchVData[vm._$id]
+    if (!vData) {
+      console.error('cid unmatched', vm)
+      vData = {
+        data: {},
+        options: {}
+      }
+    } else {
+      delete this.addBatchVData[vm._$id]
+    }
+    const [data, options] = vData
     Object.assign(vm.$options, options)
     vm.$r = data || Object.create(null)
-    this.vms[vm._$id] = vm
+    this.addVm(vm)
   }
 
   sendUIEvent (cid, nid, event) {
@@ -50,7 +78,12 @@ export class VDomSync {
   }
 
   clearAddBatchVData () {
-    this.addBatchVData.length = 0
+    if (process.env.NODE_ENV !== 'production') {
+      if (Object.keys(this.addBatchVData).length) {
+        console.error('this.addBatchVData...=' + JSON.stringify(this.addBatchVData))
+      }
+    }
+    this.addBatchVData = Object.create(null)
   }
 
   flush () {

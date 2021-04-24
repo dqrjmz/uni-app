@@ -15,6 +15,7 @@ export default {
         location
       })
       this.getWeather()
+      console.log('test');
     },
     async getLocation() {
       return await new Promise((resolve, reject) => {

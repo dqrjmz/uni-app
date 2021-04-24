@@ -1,6 +1,7 @@
 const {
   parse
 } = require('mustache')
+const recast = require('recast')
 
 const TAGS = [
   'ad',
@@ -43,7 +44,7 @@ const TAGS = [
   'textarea',
   'video',
   'view',
-  'web-view'
+  'web-view',
 ]
 
 const EVENTS = {
@@ -127,7 +128,7 @@ function transformFor(attribs) {
   if (vKey) {
     if (vKey === '*this') {
       vKey = vItem
-    } else if (vKey !== vItem && vKey.indexOf('.')===-1) {// wx:for-key="{{item.value}}"
+    } else if (vKey !== vItem && vKey.indexOf('.') === -1) { // wx:for-key="{{item.value}}"
       vKey = vItem + '.' + vKey
     }
     attribs[':key'] = vKey
@@ -163,7 +164,15 @@ function transformEvent(name, value, attribs, state) {
     event = transformEventName(name.replace(captureCatchRE, ''), state) + '.stop.prevent.capture'
   }
   if (event !== name) {
-    attribs[event] = parseMustache(value, true)
+    // 模板 <template name> 中用到的方法在其父组件
+    let newValue = parseMustache(value, !state.isTemplate)
+    if (state.isTemplate) {
+      // TODO 改为运行时判断
+      newValue = `_$self.$parent${process.env.UNI_PLATFORM === 'h5' ? '.$parent' : ''}[(${newValue})]($event)`
+    } else if (newValue !== value) {
+      newValue = `_$self[(${newValue})||'_$noop']($event)`
+    }
+    attribs[event] = newValue
     return true
   }
 }
@@ -197,9 +206,11 @@ function transformAttrs(node, state) {
   }
   transformFor(attribs)
   const isComponent = !TAGS.includes(node.name)
+  const isTemplate = state.templates.length
   Object.keys(attribs).forEach(name => {
     transformAttr(name, attribs[name], attribs, {
-      isComponent
+      isComponent,
+      isTemplate
     })
   })
 }
@@ -208,7 +219,40 @@ function transformChildren(node, state) {
   node.children = node.children.filter(childNode => transformNode(childNode, state))
 }
 
+function transformTemplate(node, state) {
+  const attribs = node.attribs
+  if (attribs.name) {
+    const name = attribs.name
+    // 用于处理一个 wxml 文件内包含多个 template
+    attribs['v-if'] = `wxTemplateName === '${name}'`
+    delete attribs.name
+    state.templates.push(name)
+  } else if (attribs.is) {
+    const name = attribs.is
+    delete attribs.is
+    node.name = name
+    attribs['wx-template-name'] = name
+    const data = attribs.data
+    if (data && data.indexOf('{{') !== -1) {
+      const object = `{${parseMustache(data)}}`
+      attribs['v-bind'] = object
+      const ast = recast.parse(`const object = ${object}`)
+      const props = state.props[name] || ['wxTemplateName']
+      ast.program.body[0].declarations[0].init.properties.forEach(property => props.push(property.key.name))
+      state.props[name] = [...new Set(props)]
+      delete attribs.data
+    }
+  }
+}
+
 function transformNode(node, state) {
+  if (node.name === 'import') {
+    state.components.push(node)
+    return false
+  }
+  if (node.name === 'template') {
+    transformTemplate(node, state)
+  }
   if (node.name === 'wxs') {
     state.wxs.push(node)
     return false

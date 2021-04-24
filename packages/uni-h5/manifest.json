@@ -105,6 +105,10 @@
         "/platforms/h5/service/api/network/socket.js",
         []
     ],
+    "getUpdateManager": [
+        "/core/service/api/network/update.js",
+        []
+    ],
     "navigateTo": [
         "/platforms/h5/service/api/route/route.js",
         [
@@ -156,7 +160,7 @@
         true
     ],
     "setStorage": [
-        "/core/service/api/storage/storage.js",
+        "/platforms/h5/service/api/storage/storage.js",
         [
             [
                 "/core/helpers/protocol/storage/storage.js",
@@ -165,7 +169,7 @@
         ]
     ],
     "setStorageSync": [
-        "/core/service/api/storage/storage.js",
+        "/platforms/h5/service/api/storage/storage.js",
         [
             [
                 "/core/helpers/protocol/storage/storage.js",
@@ -174,7 +178,7 @@
         ]
     ],
     "getStorage": [
-        "/core/service/api/storage/storage.js",
+        "/platforms/h5/service/api/storage/storage.js",
         [
             [
                 "/core/helpers/protocol/storage/storage.js",
@@ -183,7 +187,7 @@
         ]
     ],
     "getStorageSync": [
-        "/core/service/api/storage/storage.js",
+        "/platforms/h5/service/api/storage/storage.js",
         [
             [
                 "/core/helpers/protocol/storage/storage.js",
@@ -192,15 +196,15 @@
         ]
     ],
     "getStorageInfo": [
-        "/core/service/api/storage/storage.js",
+        "/platforms/h5/service/api/storage/storage.js",
         []
     ],
     "getStorageInfoSync": [
-        "/core/service/api/storage/storage.js",
+        "/platforms/h5/service/api/storage/storage.js",
         []
     ],
     "removeStorage": [
-        "/core/service/api/storage/storage.js",
+        "/platforms/h5/service/api/storage/storage.js",
         [
             [
                 "/core/helpers/protocol/storage/storage.js",
@@ -209,7 +213,7 @@
         ]
     ],
     "removeStorageSync": [
-        "/core/service/api/storage/storage.js",
+        "/platforms/h5/service/api/storage/storage.js",
         [
             [
                 "/core/helpers/protocol/storage/storage.js",
@@ -218,11 +222,11 @@
         ]
     ],
     "clearStorage": [
-        "/core/service/api/storage/storage.js",
+        "/platforms/h5/service/api/storage/storage.js",
         []
     ],
     "clearStorageSync": [
-        "/core/service/api/storage/storage.js",
+        "/platforms/h5/service/api/storage/storage.js",
         []
     ],
     "getLocation": [
@@ -240,6 +244,22 @@
             [
                 "/core/helpers/protocol/location/choose-location.js",
                 "chooseLocation"
+            ],
+            [
+                "/platforms/h5/view/components/map/index.vue",
+                "Map"
+            ],
+            [
+                "/core/view/components/input/index.vue",
+                "Input"
+            ],
+            [
+                "/core/view/components/scroll-view/index.vue",
+                "ScrollView"
+            ],
+            [
+                "/platforms/h5/service/api/location/get-location.js",
+                "getLocation"
             ],
             [
                 "/platforms/h5/components/system-routes/choose-location/index.vue",
@@ -282,6 +302,15 @@
             ]
         ]
     ],
+    "chooseFile": [
+        "/platforms/h5/service/api/media/choose-file.js",
+        [
+            [
+                "/core/helpers/protocol/media/choose-file.js",
+                "chooseFile"
+            ]
+        ]
+    ],
     "previewImage": [
         "/platforms/h5/service/api/media/preview-image.js",
         [
@@ -298,6 +327,14 @@
                 "SwiperItem"
             ],
             [
+                "/core/view/components/movable-area/index.vue",
+                "MovableArea"
+            ],
+            [
+                "/core/view/components/movable-view/index.vue",
+                "MovableView"
+            ],
+            [
                 "/platforms/h5/components/system-routes/preview-image/index.vue",
                 "PreviewImage"
             ]
@@ -309,6 +346,15 @@
             [
                 "/core/helpers/protocol/media/get-image-info.js",
                 "getImageInfo"
+            ]
+        ]
+    ],
+    "createAudioContext": [
+        "/core/service/api/context/audio.js",
+        [
+            [
+                "/core/helpers/protocol/context/context.js",
+                "createAudioContext"
             ]
         ]
     ],
@@ -366,34 +412,31 @@
         "/platforms/h5/service/api/device/network-info.js",
         []
     ],
+    "offNetworkStatusChange": [
+        "/platforms/h5/service/api/device/network-info.js",
+        []
+    ],
     "onAccelerometerChange": [
-        "/core/service/api/device/accelerometer.js",
-        [
-            [
-                "/platforms/h5/service/api/device/accelerometer.js",
-                "enableAccelerometer"
-            ]
-        ]
+        "/platforms/h5/service/api/device/accelerometer.js",
+        []
+    ],
+    "offAccelerometerChange": [
+        "/platforms/h5/service/api/device/accelerometer.js",
+        []
     ],
     "startAccelerometer": [
-        "/core/service/api/device/accelerometer.js",
-        [
-            [
-                "/platforms/h5/service/api/device/accelerometer.js",
-                "enableAccelerometer"
-            ]
-        ]
+        "/platforms/h5/service/api/device/accelerometer.js",
+        []
     ],
     "stopAccelerometer": [
-        "/core/service/api/device/accelerometer.js",
-        [
-            [
-                "/platforms/h5/service/api/device/accelerometer.js",
-                "enableAccelerometer"
-            ]
-        ]
+        "/platforms/h5/service/api/device/accelerometer.js",
+        []
     ],
     "onCompassChange": [
+        "/platforms/h5/service/api/device/compass.js",
+        []
+    ],
+    "offCompassChange": [
         "/platforms/h5/service/api/device/compass.js",
         []
     ],
@@ -422,28 +465,28 @@
         "/platforms/h5/service/api/device/vibrate.js",
         []
     ],
-    "onBluetoothDeviceFound": [
-        "/core/service/api/device/bluetooth.js",
+    "onThemeChange": [
+        "/core/service/api/device/theme.js",
         []
     ],
-    "onBluetoothAdapterStateChange": [
-        "/core/service/api/device/bluetooth.js",
-        []
-    ],
-    "onBLEConnectionStateChange": [
-        "/core/service/api/device/bluetooth.js",
-        []
-    ],
-    "onBLECharacteristicValueChange": [
-        "/core/service/api/device/bluetooth.js",
+    "onUIStyleChange": [
+        "/core/service/api/device/theme.js",
         []
     ],
     "hideKeyboard": [
-        "/platforms/h5/service/api/device/hide-keyboard.js",
+        "/platforms/h5/service/api/keyboard/keyboard.js",
         []
     ],
     "onKeyboardHeightChange": [
-        "/core/service/api/ui/keyboard.js",
+        "/core/service/api/keyboard/keyboard.js",
+        []
+    ],
+    "offKeyboardHeightChange": [
+        "/core/service/api/keyboard/keyboard.js",
+        []
+    ],
+    "getSelectedTextRange": [
+        "/core/service/api/keyboard/get-selected-text-range.js",
         []
     ],
     "showToast": [
@@ -711,6 +754,67 @@
             ]
         ]
     ],
+    "createMediaQueryObserver": [
+        "/core/service/api/ui/create-media-query-observer.js",
+        [
+            [
+                "/core/view/bridge/subscribe/api/request-media-query-observer.js",
+                "requestMediaQueryObserver"
+            ],
+            [
+                "/core/view/bridge/subscribe/api/request-media-query-observer.js",
+                "destroyMediaQueryObserver"
+            ]
+        ]
+    ],
+    "showTopWindow": [
+        "/platforms/h5/service/api/ui/windows.js",
+        []
+    ],
+    "showLeftWindow": [
+        "/platforms/h5/service/api/ui/windows.js",
+        []
+    ],
+    "showRightWindow": [
+        "/platforms/h5/service/api/ui/windows.js",
+        []
+    ],
+    "hideTopWindow": [
+        "/platforms/h5/service/api/ui/windows.js",
+        []
+    ],
+    "hideLeftWindow": [
+        "/platforms/h5/service/api/ui/windows.js",
+        []
+    ],
+    "hideRightWindow": [
+        "/platforms/h5/service/api/ui/windows.js",
+        []
+    ],
+    "getTopWindowStyle": [
+        "/platforms/h5/service/api/ui/windows.js",
+        []
+    ],
+    "getLeftWindowStyle": [
+        "/platforms/h5/service/api/ui/windows.js",
+        []
+    ],
+    "getRightWindowStyle": [
+        "/platforms/h5/service/api/ui/windows.js",
+        []
+    ],
+    "setTopWindowStyle": [
+        "/platforms/h5/service/api/ui/windows.js",
+        []
+    ],
+    "setLeftWindowStyle": [
+        "/platforms/h5/service/api/ui/windows.js",
+        []
+    ],
+    "setRightWindowStyle": [
+        "/platforms/h5/service/api/ui/windows.js",
+        []
+    ],
     "$emit": [
         "/platforms/h5/service/api/base/event-bus.js",
         [
@@ -747,6 +851,15 @@
             ]
         ]
     ],
+    "getFileInfo": [
+        "/platforms/h5/service/api/file/file.js",
+        [
+            [
+                "/core/helpers/protocol/file/file.js",
+                "getFileInfo"
+            ]
+        ]
+    ],
     "openDocument": [
         "/platforms/h5/service/api/file/open-document.js",
         [
@@ -760,10 +873,6 @@
         "/core/service/api/context/canvas.js",
         [
             [
-                "/platforms/h5/service/api/context/canvas.js",
-                "base64ToTempFilePath"
-            ],
-            [
                 "/core/helpers/protocol/context/context.js",
                 "createCanvasContext"
             ]
@@ -772,10 +881,6 @@
     "canvasToTempFilePath": [
         "/core/service/api/context/canvas.js",
         [
-            [
-                "/platforms/h5/service/api/context/canvas.js",
-                "base64ToTempFilePath"
-            ],
             [
                 "/core/helpers/protocol/context/canvas.js",
                 "canvasToTempFilePath"
@@ -786,10 +891,6 @@
         "/core/service/api/context/canvas.js",
         [
             [
-                "/platforms/h5/service/api/context/canvas.js",
-                "base64ToTempFilePath"
-            ],
-            [
                 "/core/helpers/protocol/context/canvas.js",
                 "canvasPutImageData"
             ]
@@ -798,10 +899,6 @@
     "canvasGetImageData": [
         "/core/service/api/context/canvas.js",
         [
-            [
-                "/platforms/h5/service/api/context/canvas.js",
-                "base64ToTempFilePath"
-            ],
             [
                 "/core/helpers/protocol/context/canvas.js",
                 "canvasGetImageData"
@@ -830,5 +927,14 @@
     "setPageMeta": [
         "/core/service/api/ui/set-page-meta.js",
         []
+    ],
+    "preloadPage": [
+        "/platforms/h5/service/api/route/route.js",
+        [
+            [
+                "/core/helpers/protocol/route/route.js",
+                "preloadPage"
+            ]
+        ]
     ]
 }

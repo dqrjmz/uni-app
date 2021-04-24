@@ -13,15 +13,15 @@ const {
 } = require('../util')
 
 const pagesJson2AppJson = {
-  'globalStyle': function (name, value, json) {
-    json['window'] = parseStyle(value)
-    if (json['window'].usingComponents) {
-      json['usingComponents'] = json['window'].usingComponents
-      delete json['window']['usingComponents']
+  globalStyle: function (name, value, json) {
+    json.window = parseStyle(value)
+    if (json.window.usingComponents) {
+      json.usingComponents = json.window.usingComponents
+      delete json.window.usingComponents
     }
   },
-  'tabBar': function (name, value, json) {
-    json['tabBar'] = parseTabBar(value)
+  tabBar: function (name, value, json) {
+    json.tabBar = parseTabBar(value)
   }
 }
 
@@ -64,12 +64,18 @@ module.exports = function (pagesJson, manifestJson) {
 
   copyToJson(app, pagesJson, pagesJson2AppJson)
 
+  const platformJson = manifestJson['mp-alipay'] || {}
+  if (hasOwn(platformJson, 'plugins')) {
+    app.plugins = platformJson.plugins
+  }
+
   if (app.usingComponents) {
     updateAppJsonUsingComponents(app.usingComponents)
   }
 
   const project = Object.assign({}, manifestJson['mp-alipay'] || {})
   delete project.usingComponents
+  delete project.plugins
 
   return [{
     name: 'app',

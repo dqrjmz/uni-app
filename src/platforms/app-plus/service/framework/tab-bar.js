@@ -7,8 +7,6 @@ import {
   requireNativePlugin
 } from '../bridge'
 
-import safeAreaInsets from './safe-area-insets'
-
 const TABBAR_HEIGHT = 50
 const isIOS = plus.os.name === 'iOS'
 let config
@@ -94,6 +92,8 @@ function showTabBar (animation) {
   })
 }
 
+const maskClickCallback = []
+
 export default {
   id: '0',
   init (options, clickCallback) {
@@ -105,6 +105,11 @@ export default {
     } catch (error) {
       console.log(`uni.requireNativePlugin("uni-tabview") error ${error}`)
     }
+    tabBar.onMaskClick(() => {
+      maskClickCallback.forEach((callback) => {
+        callback()
+      })
+    })
     tabBar && tabBar.onClick(({ index }) => {
       clickCallback(config.list[index], index)
     })
@@ -157,13 +162,12 @@ export default {
     return visible
   },
   get height () {
-    return (config && config.height ? parseFloat(config.height) : TABBAR_HEIGHT) + safeAreaInsets.bottom
+    return (config && config.height ? parseFloat(config.height) : TABBAR_HEIGHT) + plus.navigator.getSafeAreaInsets().deviceBottom
   },
   // tabBar是否遮挡内容区域
   get cover () {
     const array = ['extralight', 'light', 'dark']
-    // 设置背景颜色会失效
-    return isIOS && array.indexOf(config.blurEffect) >= 0 && !config.backgroundColor
+    return isIOS && array.indexOf(config.blurEffect) >= 0
   },
   setStyle ({ mask }) {
     tabBar.setMask({
@@ -171,6 +175,10 @@ export default {
     })
   },
   addEventListener (name, callback) {
-    tabBar.onMaskClick(callback)
+    maskClickCallback.push(callback)
+  },
+  removeEventListener (name, callback) {
+    const callbackIndex = maskClickCallback.indexOf(callback)
+    maskClickCallback.splice(callbackIndex, 1)
   }
 }

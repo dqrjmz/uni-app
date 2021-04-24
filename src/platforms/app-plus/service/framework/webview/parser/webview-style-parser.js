@@ -28,7 +28,9 @@ const WEBVIEW_STYLE_BLACKLIST = [
 ]
 
 export function parseWebviewStyle (id, path, routeOptions = {}) {
-  const webviewStyle = Object.create(null)
+  const webviewStyle = {
+    bounce: 'vertical'
+  }
 
   // 合并
   routeOptions.window = parseStyleUnit(Object.assign(
@@ -41,6 +43,16 @@ export function parseWebviewStyle (id, path, routeOptions = {}) {
       webviewStyle[name] = routeOptions.window[name]
     }
   })
+
+  const backgroundColor = routeOptions.window.backgroundColor
+  if (/^#[a-z0-9]{6}$/i.test(backgroundColor) || backgroundColor === 'transparent') {
+    if (!webviewStyle.background) {
+      webviewStyle.background = backgroundColor
+    }
+    if (!webviewStyle.backgroundColorTop) {
+      webviewStyle.backgroundColorTop = backgroundColor
+    }
+  }
 
   const titleNView = parseTitleNView(routeOptions)
   if (titleNView) {
@@ -65,6 +77,10 @@ export function parseWebviewStyle (id, path, routeOptions = {}) {
   // 不支持 hide
   if (webviewStyle.popGesture === 'hide') {
     delete webviewStyle.popGesture
+  }
+
+  if (routeOptions.meta.isQuit) { // 退出
+    webviewStyle.popGesture = plus.os.name === 'iOS' ? 'appback' : 'none'
   }
 
   // TODO 下拉刷新

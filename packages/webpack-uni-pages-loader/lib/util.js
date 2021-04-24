@@ -8,40 +8,53 @@ const {
 const PLATFORMS = getPlatforms()
 
 const alipayWindowMap = {
-  'defaultTitle': 'navigationBarTitleText',
-  'pullRefresh': 'enablePullDownRefresh',
-  'allowsBounceVertical': 'allowsBounceVertical',
-  'titleBarColor': 'navigationBarBackgroundColor',
-  'optionMenu': 'optionMenu',
-  'backgroundColor': 'backgroundColor',
-  'usingComponents': 'usingComponents',
-  'navigationBarShadow': 'navigationBarShadow',
-  'titleImage': 'titleImage',
-  'transparentTitle': 'transparentTitle',
-  'titlePenetrate': 'titlePenetrate'
+  defaultTitle: 'navigationBarTitleText',
+  pullRefresh: 'enablePullDownRefresh',
+  allowsBounceVertical: 'allowsBounceVertical',
+  titleBarColor: 'navigationBarBackgroundColor',
+  optionMenu: 'optionMenu',
+  backgroundColor: 'backgroundColor',
+  usingComponents: 'usingComponents',
+  navigationBarShadow: 'navigationBarShadow',
+  titleImage: 'titleImage',
+  transparentTitle: 'transparentTitle',
+  titlePenetrate: 'titlePenetrate'
 }
 
 const alipayTabBarMap = {
-  'textColor': 'color',
-  'selectedColor': 'selectedColor',
-  'backgroundColor': 'backgroundColor',
-  'items': 'list'
+  textColor: 'color',
+  selectedColor: 'selectedColor',
+  backgroundColor: 'backgroundColor',
+  items: 'list'
 }
 
 const alipayTabBarItemMap = {
-  'pagePath': 'pagePath',
-  'name': 'text',
-  'icon': 'iconPath',
-  'activeIcon': 'selectedIconPath'
+  pagePath: 'pagePath',
+  name: 'text',
+  icon: 'iconPath',
+  activeIcon: 'selectedIconPath'
 }
 
+const _hasOwnProperty = Object.prototype.hasOwnProperty
+
 function hasOwn (obj, key) {
-  return hasOwnProperty.call(obj, key)
+  return _hasOwnProperty.call(obj, key)
+}
+
+function trimMPJson (json) {
+  delete json.maxWidth
+  delete json.topWindow
+  delete json.leftWindow
+  delete json.rightWindow
+  if (json.tabBar) {
+    delete json.tabBar.matchMedia
+  }
+  return json
 }
 
 function parseStyle (style = {}, root = '') {
   // TODO pages.json 触发了两次，需要排查
-  style = JSON.parse(JSON.stringify(style))
+  style = trimMPJson(JSON.parse(JSON.stringify(style)))
 
   let platformStyle = {}
 
@@ -72,7 +85,13 @@ function parseStyle (style = {}, root = '') {
     return Object.assign(windowOptions, platformStyle)
   }
 
-  if (style.navigationBarTextStyle && style.navigationBarTextStyle !== 'black') {
+  if (
+    style.navigationBarTextStyle &&
+    (
+      style.navigationBarTextStyle !== 'black' &&
+      style.navigationBarTextStyle.indexOf('@') !== 0
+    )
+  ) {
     style.navigationBarTextStyle = 'white'
   }
 
@@ -109,5 +128,6 @@ function parseTabBar (style = {}) {
 module.exports = {
   hasOwn,
   parseStyle,
-  parseTabBar
+  parseTabBar,
+  trimMPJson
 }

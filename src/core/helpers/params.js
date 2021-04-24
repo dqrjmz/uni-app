@@ -5,6 +5,12 @@ import {
   isPlainObject
 } from 'uni-shared'
 
+/**
+ * 验证参数
+ * @param {*} key
+ * @param {*} paramTypes
+ * @param {*} paramsData
+ */
 export default function validateParam (key, paramTypes, paramsData) {
   const paramOptions = paramTypes[key]
   const absent = !hasOwn(paramsData, key)
@@ -18,7 +24,7 @@ export default function validateParam (key, paramTypes, paramsData) {
   }
   if (value === undefined) {
     if (hasOwn(paramOptions, 'default')) {
-      const paramDefault = paramOptions['default']
+      const paramDefault = paramOptions.default
       value = isFn(paramDefault) ? paramDefault() : paramDefault
       paramsData[key] = value // 默认值
     }
@@ -80,12 +86,15 @@ function assertType (value, type) {
     if (!valid && t === 'object') {
       valid = value instanceof type
     }
+  } else if (value.byteLength >= 0) {
+    valid = true
   } else if (expectedType === 'Object') {
     valid = isPlainObject(value)
   } else if (expectedType === 'Array') {
     valid = Array.isArray(value)
   } else {
-    valid = value instanceof type
+    // TODO 页面传入的ArrayBuffer使用instanceof ArrayBuffer返回false，暂做此修改
+    valid = value instanceof type || toRawType(value) === getType(type)
   }
   return {
     valid,

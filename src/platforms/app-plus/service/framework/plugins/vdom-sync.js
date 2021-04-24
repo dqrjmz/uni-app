@@ -4,13 +4,22 @@ import {
 } from 'uni-shared'
 
 import {
+  wrapperMPEvent
+} from 'uni-helpers/patch'
+
+import {
   VD_SYNC,
   UI_EVENT,
   PAGE_CREATE,
   PAGE_CREATED,
   MOUNTED_DATA,
-  UPDATED_DATA
+  UPDATED_DATA,
+  VD_SYNC_VERSION
 } from '../../../constants'
+
+import {
+  generateId
+} from '../../../helpers/util'
 
 import {
   removeVdSync,
@@ -27,38 +36,10 @@ import {
 
 import parseComponentCreateOptions from './parse-component-create-options'
 
-// TODO 临时通过序列化,反序列化传递dataset,后续可以全部保留在service,不做传递
-function parseDataset (dataset) {
-  const ret = Object.create(null)
-  Object.keys(dataset).forEach(name => {
-    try {
-      ret[name] = JSON.parse(dataset[name])
-    } catch (e) { // dataset 存在两种,一种是被JSON.stringify的,一种是原始的
-      ret[name] = dataset[name]
-    }
-  })
-  return ret
-}
-
-function parseTargets (event) {
-  const targetDataset = event.target && event.target.dataset
-  if (targetDataset) {
-    event.target.dataset = parseDataset(targetDataset)
-  }
-  const currentTargetDataset = event.currentTarget && event.currentTarget.dataset
-  if (currentTargetDataset) {
-    event.currentTarget.dataset = parseDataset(currentTargetDataset)
-  }
-}
-
 function wrapperEvent (event) {
-  parseTargets(event)
   event.preventDefault = noop
   event.stopPropagation = noop
-  event.mp = event
-  return Object.assign({
-    mp: event // mpvue
-  }, event)
+  return wrapperMPEvent(event)
 }
 
 const handleVdData = {
@@ -67,7 +48,10 @@ const handleVdData = {
       nid = String(nid)
       const target = vd.elements.find(target => target.cid === cid && target.nid === nid)
       if (!target) {
-        return console.error(`event handler[${cid}][${nid}] not found`)
+        if (process.env.NODE_ENV !== 'production') {
+          console.error(`event handler[${cid}][${nid}] not found`)
+        }
+        return
       }
       const type = event.type
       const mpEvent = wrapperEvent(event)
@@ -89,9 +73,10 @@ function onVdSync (vdBatchData, vd) {
 }
 
 export class VDomSync {
-  constructor (pageId, pagePath, pageVm) {
+  constructor (pageId, pagePath, pageQuery, pageVm) {
     this.pageId = pageId
     this.pagePath = pagePath
+    this.pageQuery = pageQuery
     this.pageVm = pageVm
     this.batchData = []
     this.vms = Object.create(null)
@@ -133,14 +118,28 @@ export class VDomSync {
   }
 
   addVm (vm) {
-    this.vms[vm._$id] = vm
+    const id = vm._$id
+    const oldVm = this.vms[id]
+    if (oldVm) {
+      const newId = generateId(oldVm, oldVm.$parent, VD_SYNC_VERSION)
+      oldVm._$id = newId
+      this.vms[newId] = oldVm
+      this.elements.forEach(element => {
+        const cid = element.cid
+        element.cid = cid === id ? newId : cid
+      })
+    }
+    this.vms[id] = vm
   }
 
   removeVm (vm) {
     const cid = vm._$id
-    // 移除尚未同步的data
-    this.batchData = this.batchData.filter(data => data[1][0] !== cid)
-    delete this.vms[cid]
+    if (vm === this.vms[cid]) { // 仅相同vm的才移除，否则保留
+      // 目前同一位置的vm，cid均一样
+      // 移除尚未同步的data
+      this.batchData = this.batchData.filter(data => data[1][0] !== cid)
+      delete this.vms[cid]
+    }
   }
 
   addElement (elm) {
@@ -150,7 +149,10 @@ export class VDomSync {
   removeElement (elm) {
     const elmIndex = this.elements.indexOf(elm)
     if (elmIndex === -1) {
-      return console.error(`removeElement[${elm.cid}][${elm.nid}] not found`)
+      if (process.env.NODE_ENV !== 'production') {
+        console.error(`removeElement[${elm.cid}][${elm.nid}] not found`)
+      }
+      return
     }
     this.elements.splice(elmIndex, 1)
   }
@@ -182,7 +184,7 @@ export class VDomSync {
   flush () {
     if (!this.initialized) {
       this.initialized = true
-      this.batchData.push([PAGE_CREATED, [this.pageId, this.pagePath]])
+      this.batchData.push([PAGE_CREATED, [this.pageId, this.pagePath, this.pageQuery]])
     }
     const batchData = this.batchData.filter(data => {
       if (data[0] === UPDATED_DATA && !Object.keys(data[1][1]).length) {
@@ -217,7 +219,7 @@ export class VDomSync {
   }
 
   restorePageCreated () {
-    this.batchData.push([PAGE_CREATED, [this.pageId, this.pagePath]])
+    this.batchData.push([PAGE_CREATED, [this.pageId, this.pagePath, this.pageQuery]])
   }
 
   restore () {

@@ -8,12 +8,15 @@
 |属性名|类型|说明|平台差异说明|
 |:-|:-|:-|:-|
 |report-submit|Boolean|是否返回 formId 用于发送[模板消息](https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/template-message.html)|微信小程序、支付宝小程序|
+|report-submit-timeout|number|等待一段时间（毫秒数）以确认 formId 是否生效。如果未指定这个参数，formId 有很小的概率是无效的（如遇到网络失败的情况）。指定这个参数将可以检测 formId 是否有效，以这个参数的时间作为这项检测的超时时间。如果失败，将返回 requestFormId:fail 开头的 formId|微信小程序2.6.2|
 |@submit|EventHandle|携带 form 中的数据触发 submit 事件，event.detail = {value : {'name': 'value'} , formId: ''}，report-submit 为 true 时才会返回 formId||
 |@reset|EventHandle|表单重置时会触发 reset 事件|&nbsp;|
 
-**示例** [查看演示](https://uniapp.dcloud.io/h5/pages/component/form/form)
+**示例** [查看演示](https://hellouniapp.dcloud.net.cn/pages/component/form/form)
  
+以下示例代码，来自于[hello uni-app项目](https://github.com/dcloudio/hello-uniapp)，推荐使用HBuilderX，新建uni-app项目，选择hello uni-app模板，可直接体验完整示例。
 ```html
+<!-- 本示例未包含完整css，获取外链css请参考上文，在hello uni-app项目中查看 -->
 <template>
 	<view>
 		<view>
@@ -92,7 +95,90 @@
 
 ```
  
-![uniapp](https://img-cdn-qiniu.dcloud.net.cn/uniapp/doc/img/form.png?t=201857)
+![uniapp](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/f5e29b40-4f32-11eb-bdc1-8bd33eb6adaa.png)
 
-**tips**
-- [插件市场](http://ext.dcloud.net.cn/search?q=%E8%A1%A8%E5%8D%95%E6%A0%A1%E9%AA%8C)有表单校验插件
+
+**使用内置 behaviors**
+
+小程序端在`form`内的自定义组件内有`input`表单控件时，或者用普通标签实现表单控件，例如``评分``等，无法在`form`的`submit`事件内获取组件内表单控件值，此时可以使用`behaviors`。
+
+对于 form 组件，目前可以自动识别下列内置 behaviors:
+
+uni://form-field
+
+> 目前仅支持 微信小程序、QQ小程序、百度小程序、h5。
+
+**uni://form-field**
+
+使自定义组件有类似于表单控件的行为。 form 组件可以识别这些自定义组件，并在 submit 事件中返回组件的字段名及其对应字段值。这将为它添加以下两个属性。
+
+|属性名|类型|描述|
+|:-|:-|:-|
+|name|String|在表单中的字段名|
+|value|任意|在表单中的字段值|
+
+示例如下：
+
+```html
+<!-- /pages/index/index.vue -->
+<template>  
+    <view class="content">  
+        <form @submit="onSubmit">  
+            <comp-input name="test" v-model="testValue"></comp-input>  
+            <button form-type="submit">Submit</button>  
+        </form>  
+    </view>  
+</template>  
+
+<script>  
+    export default {  
+        data() {  
+            return {  
+                testValue: 'Hello'  
+            }  
+        },  
+        methods: {  
+            onSubmit(e) {  
+                console.log(e)  
+            }  
+        }  
+    }  
+</script>  
+
+<style>  
+
+</style>
+```
+
+```html
+<!-- /components/compInput/compInput.vue -->
+<template>  
+    <view>  
+        <input name="test" style="border: solid 1px #999999;height: 80px;" type="text" @input="onInput" :value="value" />  
+    </view>  
+</template>  
+
+<script>  
+    export default {  
+        name: 'compInput',  
+        behaviors: ['uni://form-field'],
+        methods: {  
+            onInput(e) {  
+                this.$emit('input', e.detail.value)  
+            }  
+        }  
+    }  
+</script>  
+
+<style>  
+
+</style>  
+```
+
+
+**增强的uni-forms组件**
+- 为方便做表单验证，uni ui提供了`<uni-forms>`组件，参考：[https://ext.dcloud.net.cn/plugin?id=2773](https://ext.dcloud.net.cn/plugin?id=2773)
+- 如果使用uniCloud，其数据库提供了`DB Schema`，在schema中配置字段的格式，前端表单校验和服务器入参校验将可以复用该规则，无需在前端后端重复开发表单校验。[详见](https://uniapp.dcloud.io/uniCloud/schema)
+- 有很多表单自助生成辅助工具
+  * 如果使用uniCloud的`DB Schema`可以自动生成全套表单，包括界面、校验逻辑、提交入库，[详见](https://uniapp.dcloud.io/uniCloud/schema?id=autocode).
+  * 不使用uniCloud的话，插件市场有可视化拖拽表单插件：[详见](https://ext.dcloud.net.cn/search?q=%E5%8F%AF%E8%A7%86%E5%8C%96)。这类插件只生成界面，没有逻辑。

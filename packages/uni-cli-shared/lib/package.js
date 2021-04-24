@@ -15,8 +15,8 @@ module.exports = {
 
     let scriptOptions = false
 
-    if (uniAppOptions && uniAppOptions['scripts']) {
-      scriptOptions = uniAppOptions['scripts'][name]
+    if (uniAppOptions && uniAppOptions.scripts) {
+      scriptOptions = uniAppOptions.scripts[name]
     }
 
     if (!scriptOptions) {
@@ -30,12 +30,13 @@ module.exports = {
     }
 
     if (PLATFORMS.indexOf(scriptOptions.env.UNI_PLATFORM) === -1) {
-      console.error(`UNI_PLATFORM 支持一下平台 ${JSON.stringify(PLATFORMS)}`)
+      console.error(`UNI_PLATFORM 支持以下平台 ${JSON.stringify(PLATFORMS)}`)
       process.exit(0)
     }
 
     process.env.UNI_PLATFORM = scriptOptions.env.UNI_PLATFORM
 
+    process.env.UNI_SCRIPT = name
     process.UNI_SCRIPT_ENV = scriptOptions.env || {}
     process.UNI_SCRIPT_DEFINE = scriptOptions.define || {}
 

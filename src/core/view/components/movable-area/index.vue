@@ -1,7 +1,11 @@
 <script>
 import {
-  disableScrollBounce
+  deepClone
 } from 'uni-shared'
+import {
+  initScrollBounce,
+  disableScrollBounce
+} from 'uni-platform/helpers/scroll'
 
 function calc (e) {
   return Math.sqrt(e.x * e.x + e.y * e.y)
@@ -31,6 +35,7 @@ export default {
   },
   mounted: function () {
     this._resize()
+    initScrollBounce()
   },
   methods: {
     _resize () {
@@ -142,8 +147,9 @@ export default {
   },
   render (createElement) {
     var items = []
-    if (this.$slots.default) {
-      this.$slots.default.forEach(vnode => {
+    const $slots = this.$slots.default && deepClone(this.$slots.default, createElement)
+    if ($slots) {
+      $slots.forEach(vnode => {
         if (vnode.componentOptions && vnode.componentOptions.tag === 'v-uni-movable-view') {
           items.push(vnode)
         }
@@ -163,7 +169,7 @@ export default {
       on: {
         resize: this._resize
       }
-    }), this.$slots.default])
+    }), $slots])
   }
 }
 </script>

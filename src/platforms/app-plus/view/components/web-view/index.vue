@@ -1,11 +1,15 @@
 <template>
-  <uni-web-view v-on="$listeners"/>
+  <uni-web-view v-on="$listeners" />
 </template>
 <script>
 import {
   WEBVIEW_INSERTED,
-  WEBVIEW_REMOVED
+  WEBVIEW_REMOVED,
+  WEBVIEW_ID_PREFIX
 } from '../../../constants'
+
+import { NAVBAR_HEIGHT } from 'uni-helpers/constants'
+
 let webview = false
 const insertHTMLWebView = ({
   htmlId
@@ -13,24 +17,26 @@ const insertHTMLWebView = ({
   const parentWebview = plus.webview.currentWebview()
   // fixed by hxy web-view 组件所在的 webview 不注入 uni-app 框架
   const styles = {
-    'uni-app': 'none'
+    'uni-app': 'none',
+    isUniH5: true
   }
   const parentTitleNView = parentWebview.getTitleNView()
   if (parentTitleNView) {
     if (plus.navigator.isImmersedStatusbar()) {
-      styles.top = 44 + plus.navigator.getStatusbarHeight()
+      styles.top = NAVBAR_HEIGHT + plus.navigator.getStatusbarHeight()
     } else {
-      styles.top = 44
+      styles.top = NAVBAR_HEIGHT
     }
     styles.bottom = 0
   }
   webview = plus.webview.create('', htmlId, styles)
   if (parentTitleNView) {
     webview.addEventListener('titleUpdate', function () {
-      let title = webview.getTitle()
+      const title = webview.getTitle()
       parentWebview.setStyle({
         titleNView: {
-          titleText: (!title || title === 'null') ? '' : title
+          // iOS titleText 为空字符串时 按钮会隐藏
+          titleText: (!title || title === 'null') ? ' ' : title
         }
       })
     })
@@ -87,7 +93,7 @@ export default {
     }
   },
   mounted () {
-    this.htmlId = 'webviewId' + this.$page.id
+    this.htmlId = WEBVIEW_ID_PREFIX + this.$page.id
     insertHTMLWebView({
       htmlId: this.htmlId
     })

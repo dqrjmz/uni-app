@@ -10,6 +10,8 @@ import {
 export const PAGE_EVENT_HOOKS = [
   'onPullDownRefresh',
   'onReachBottom',
+  'onAddToFavorites',
+  'onShareTimeline',
   'onShareAppMessage',
   'onPageScroll',
   'onResize',
@@ -72,10 +74,10 @@ export function initVueComponent (Vue, vueOptions) {
   let VueComponent
   if (isFn(vueOptions)) {
     VueComponent = vueOptions
-    vueOptions = VueComponent.extendOptions
   } else {
     VueComponent = Vue.extend(vueOptions)
   }
+  vueOptions = VueComponent.options
   return [VueComponent, vueOptions]
 }
 
@@ -144,14 +146,14 @@ function createObserver (name) {
 }
 
 export function initBehaviors (vueOptions, initBehavior) {
-  const vueBehaviors = vueOptions['behaviors']
-  const vueExtends = vueOptions['extends']
-  const vueMixins = vueOptions['mixins']
+  const vueBehaviors = vueOptions.behaviors
+  const vueExtends = vueOptions.extends
+  const vueMixins = vueOptions.mixins
 
-  let vueProps = vueOptions['props']
+  let vueProps = vueOptions.props
 
   if (!vueProps) {
-    vueOptions['props'] = vueProps = []
+    vueOptions.props = vueProps = []
   }
 
   const behaviors = []
@@ -163,17 +165,20 @@ export function initBehaviors (vueOptions, initBehavior) {
           vueProps.push('name')
           vueProps.push('value')
         } else {
-          vueProps['name'] = {
+          vueProps.name = {
             type: String,
             default: ''
           }
-          vueProps['value'] = {
+          vueProps.value = {
             type: [String, Number, Boolean, Array, Object, Date],
             default: ''
           }
         }
       }
     })
+  }
+  if (__PLATFORM__ === 'mp-alipay') { // alipay 重复定义props会报错,下边的代码对于其他平台也没有意义，保险起见，仅对alipay做处理
+    return
   }
   if (isPlainObject(vueExtends) && vueExtends.props) {
     behaviors.push(
@@ -227,6 +232,11 @@ export function initProperties (props, isBehavior = false, file = '') {
       type: String,
       value: ''
     }
+    // 用于字节跳动小程序模拟抽象节点
+    properties.generic = {
+      type: Object,
+      value: null
+    }
     properties.vueSlots = { // 小程序不能直接定义 $slots 的 props，所以通过 vueSlots 转换到 $slots
       type: null,
       value: [],
@@ -252,7 +262,7 @@ export function initProperties (props, isBehavior = false, file = '') {
     Object.keys(props).forEach(key => {
       const opts = props[key]
       if (isPlainObject(opts)) { // title:{type:String,default:''}
-        let value = opts['default']
+        let value = opts.default
         if (isFn(value)) {
           value = value()
         }
@@ -291,6 +301,11 @@ function wrapper (event) {
     event.detail = {}
   }
 
+  if (hasOwn(event, 'markerId')) {
+    event.detail = typeof event.detail === 'object' ? event.detail : {}
+    event.detail.markerId = event.markerId
+  }
+
   if (__PLATFORM__ === 'mp-baidu') { // mp-baidu，checked=>value
     if (
       isPlainObject(event.detail) &&
@@ -317,7 +332,18 @@ function getExtraValue (vm, dataPathsArray) {
       const propPath = dataPathArray[1]
       const valuePath = dataPathArray[3]
 
-      const vFor = dataPath ? vm.__get_value(dataPath, context) : context
+      let vFor
+      if (Number.isInteger(dataPath)) {
+        vFor = dataPath
+      } else if (!dataPath) {
+        vFor = context
+      } else if (typeof dataPath === 'string' && dataPath) {
+        if (dataPath.indexOf('#s#') === 0) {
+          vFor = dataPath.substr(3)
+        } else {
+          vFor = vm.__get_value(dataPath, context)
+        }
+      }
 
       if (Number.isInteger(vFor)) {
         context = value
@@ -367,6 +393,12 @@ function processEventExtra (vm, extra, event) {
         } else {
           if (dataPath === '$event') { // $event
             extraObj['$' + index] = event
+          } else if (dataPath === 'arguments') {
+            if (event.detail && event.detail.__args__) {
+              extraObj['$' + index] = event.detail.__args__
+            } else {
+              extraObj['$' + index] = [event]
+            }
           } else if (dataPath.indexOf('$event.') === 0) { // $event.target.value
             extraObj['$' + index] = vm.__get_value(dataPath.replace('$event.', ''), event)
           } else {
@@ -447,17 +479,26 @@ function isMatchEventType (eventType, optType) {
     )
 }
 
+function getContextVm (vm) {
+  let $parent = vm.$parent
+  // 父组件是 scoped slots 或者其他自定义组件时继续查找
+  while ($parent && $parent.$parent && ($parent.$options.generic || $parent.$parent.$options.generic || $parent.$scope._$vuePid)) {
+    $parent = $parent.$parent
+  }
+  return $parent && $parent.$parent
+}
+
 export function handleEvent (event) {
   event = wrapper(event)
 
   // [['tap',[['handle',[1,2,a]],['handle1',[1,2,a]]]]]
   const dataset = (event.currentTarget || event.target).dataset
   if (!dataset) {
-    return console.warn(`事件信息不存在`)
+    return console.warn('事件信息不存在')
   }
   const eventOpts = dataset.eventOpts || dataset['event-opts'] // 支付宝 web-view 组件 dataset 非驼峰
   if (!eventOpts) {
-    return console.warn(`事件信息不存在`)
+    return console.warn('事件信息不存在')
   }
 
   // [['handle',[1,2,a]],['handle1',[1,2,a]]]
@@ -479,12 +520,8 @@ export function handleEvent (event) {
         const methodName = eventArray[0]
         if (methodName) {
           let handlerCtx = this.$vm
-          if (
-            handlerCtx.$options.generic &&
-            handlerCtx.$parent &&
-            handlerCtx.$parent.$parent
-          ) { // mp-weixin,mp-toutiao 抽象节点模拟 scoped slots
-            handlerCtx = handlerCtx.$parent.$parent
+          if (handlerCtx.$options.generic) { // mp-weixin,mp-toutiao 抽象节点模拟 scoped slots
+            handlerCtx = getContextVm(handlerCtx) || handlerCtx
           }
           if (methodName === '$emit') {
             handlerCtx.$emit.apply(handlerCtx,
@@ -508,14 +545,21 @@ export function handleEvent (event) {
             }
             handler.once = true
           }
-          ret.push(handler.apply(handlerCtx, processEventArgs(
+          let params = processEventArgs(
             this.$vm,
             event,
             eventArray[1],
             eventArray[2],
             isCustom,
             methodName
-          )))
+          )
+          params = Array.isArray(params) ? params : []
+          // 参数尾部增加原始事件对象用于复杂表达式内获取额外数据
+          if (/=\s*\S+\.eventParams\s*\|\|\s*\S+\[['"]event-params['"]\]/.test(handler.toString())) {
+            // eslint-disable-next-line no-sparse-arrays
+            params = params.concat([, , , , , , , , , , event])
+          }
+          ret.push(handler.apply(handlerCtx, params))
         }
       })
     }

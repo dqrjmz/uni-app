@@ -1,4 +1,5 @@
 import getWindowOffset from 'uni-platform/helpers/get-window-offset'
+import deviceId from 'uni-platform/helpers/uuid'
 import safeAreaInsets from 'safe-area-insets'
 
 const ua = navigator.userAgent
@@ -16,9 +17,12 @@ const isIOS = /iphone|ipad|ipod/i.test(ua)
 export function getSystemInfoSync () {
   var screen = window.screen
   var pixelRatio = window.devicePixelRatio
-  var screenWidth = screen.width
-  var screenHeight = screen.height
-  var windowWidth = Math.min(window.innerWidth, document.documentElement.clientWidth, screenWidth)
+  // 横屏时 iOS 获取的屏幕宽高颠倒，进行纠正
+  const screenFix = /^Apple/.test(navigator.vendor) && typeof window.orientation === 'number'
+  const landscape = screenFix && Math.abs(window.orientation) === 90
+  var screenWidth = screenFix ? Math[landscape ? 'max' : 'min'](screen.width, screen.height) : screen.width
+  var screenHeight = screenFix ? Math[landscape ? 'min' : 'max'](screen.height, screen.width) : screen.height
+  var windowWidth = Math.min(window.innerWidth, document.documentElement.clientWidth, screenWidth) || screenWidth
   var windowHeight = window.innerHeight
   var language = navigator.language
   var statusBarHeight = safeAreaInsets.top
@@ -28,23 +32,23 @@ export function getSystemInfoSync () {
 
   if (isIOS) {
     osname = 'iOS'
-    let osversionFind = ua.match(/OS\s([\w_]+)\slike/)
+    const osversionFind = ua.match(/OS\s([\w_]+)\slike/)
     if (osversionFind) {
       osversion = osversionFind[1].replace(/_/g, '.')
     }
-    let modelFind = ua.match(/\(([a-zA-Z]+);/)
+    const modelFind = ua.match(/\(([a-zA-Z]+);/)
     if (modelFind) {
       model = modelFind[1]
     }
   } else if (isAndroid) {
     osname = 'Android'
     // eslint-disable-next-line no-useless-escape
-    let osversionFind = ua.match(/Android[\s/]([\w\.]+)[;\s]/)
+    const osversionFind = ua.match(/Android[\s/]([\w\.]+)[;\s]/)
     if (osversionFind) {
       osversion = osversionFind[1]
     }
-    let infoFind = ua.match(/\((.+?)\)/)
-    let infos = infoFind ? infoFind[1].split(';') : ua.split(' ')
+    const infoFind = ua.match(/\((.+?)\)/)
+    const infos = infoFind ? infoFind[1].split(';') : ua.split(' ')
     // eslint-disable-next-line no-useless-escape
     const otherInfo = [/\bAndroid\b/i, /\bLinux\b/i, /\bU\b/i, /^\s?[a-z][a-z]$/i, /^\s?[a-z][a-z]-[a-z][a-z]$/i, /\bwv\b/i, /\/[\d\.,]+$/, /^\s?[\d\.,]+$/, /\bBrowser\b/i, /\bMobile\b/i]
     for (let i = 0; i < infos.length; i++) {
@@ -108,7 +112,8 @@ export function getSystemInfoSync () {
       right: safeAreaInsets.right,
       bottom: safeAreaInsets.bottom,
       left: safeAreaInsets.left
-    }
+    },
+    deviceId: deviceId()
   }
 }
 /**

@@ -52,15 +52,28 @@ export default {
       return createComponentDescriptor(vm || this, isOwnerInstance)
     }
 
+    Object.defineProperty(Vue.prototype, '$ownerInstance', {
+      get () {
+        return this.$getComponentDescriptor(this)
+      }
+    })
+
     Vue.prototype.$handleWxsEvent = function ($event) {
       if ($event instanceof Event) { // 未处理的 event 对象 需要对 target 校正及包装
         const currentTarget = $event.currentTarget
         const instance = currentTarget &&
           currentTarget.__vue__ &&
           currentTarget.__vue__.$getComponentDescriptor(currentTarget.__vue__, false)
-        $event = processEvent.call(this, $event.type, $event, {}, findUniTarget($event, this.$el) || $event.target,
-          $event.currentTarget)
+        const $origEvent = $event
+        $event = processEvent.call(this, $origEvent.type, $origEvent, {}, findUniTarget($origEvent, this.$el) || $origEvent.target,
+          $origEvent.currentTarget)
         $event.instance = instance
+        $event.preventDefault = function () {
+          return $origEvent.preventDefault()
+        }
+        $event.stopPropagation = function () {
+          return $origEvent.stopPropagation()
+        }
       }
       return $event
     }
@@ -80,12 +93,11 @@ export default {
           initBehaviors(options, this)
         }
 
-        if (isPage(this)) {
+        if (__PLATFORM__ === 'h5' && isPage(this)) {
           options.mounted = options.mounted ? [].concat(pageMounted, options.mounted) : [pageMounted]
         }
       }
     })
-    // TODO 跨平台时，View 层需要注入$page属性
   }
 
 }

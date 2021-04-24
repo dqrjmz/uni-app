@@ -3,19 +3,18 @@
 
 为提升开发效率，HBuilderX将 ```uni-app``` 常用代码封装成了以 ```u``` 开头的代码块，如在 ```template``` 标签内输入 ```ulist``` 回车，会自动生成如下代码：
 
+```html
+<uni-list>
+	<uni-list-item title="" note=""></uni-list-item>
+	<uni-list-item title="" note=""></uni-list-item>
+</uni-list>
 ```
-<view class="uni-list">
-	<view class="uni-list-cell">
-		<view class="uni-list-cell-navigate uni-navigate-right" v-for="(item,index) in list" :key="index">
-			{{item.value}}
-		</view>
-	</view>
-</view>
-```
+注意需保障uni-list组件在项目的components目录下。比较简单的方式，是新建项目时，选 uni ui项目模板，在里面即可随便敲所有u开头的代码块。如果不是 uni ui项目模板，那么需要去插件市场手动把[uni ui组件](https://ext.dcloud.net.cn/plugin?id=55)下载到工程里。
+
 
 代码块分为Tag代码块、JS代码块，如在 ```script``` 标签内输入 ```uShowToast``` 回车，会自动生成如下代码：
 
-```
+```js
 uni.showToast({
 	title: '',
 	mask: false
@@ -88,19 +87,24 @@ uni.showToast({
 
 预置代码块不满足需求的话，可以自定义代码块，教程参考[https://ask.dcloud.net.cn/article/35924](https://ask.dcloud.net.cn/article/35924)
 
-### 使用 Chrome 调试 H5
+### 使用HBuilderX内置浏览器调试H5
 
-进入 ``uni-app`` 项目，`点击工具栏的运行 -> 运行到浏览器 -> 选择 Chrome`，即可将 `uni-app`运行到 浏览器，可参考 [运行uni-app](/quickstart?id=运行uni-app)，运行到浏览器后，就能和普通 `web` 项目一样进行预览和调试了。
+打开 ``uni-app`` 项目的页面，点HBuilderX右上角的预览按钮，可以在内置浏览器里打开H5运行结果，也可以点右键打开控制台调试。
 
-点 `Chrome` 控制台的 `Sources` 栏，可以给 js 打断点调试。
+修改保存工程源码时，右边的浏览器内容可以自动刷新。
+
+在HBuilderX控制台里，可以直接看到内置浏览器打印的日志。
+
+打开内置浏览器的控制台的 `Sources` 栏，可以给 js 打断点调试。
 
 在 `Page` 下找到 `webpack` 里的工程目录，可直接找到对应的`vue`页面进行断点调试；或按 `Ctrl+P`搜文件名，进入页面调试；也可点击控制台的 `log` 信息，进入对应的页面进行调试。
 
-![](https://img-cdn-qiniu.dcloud.net.cn/uniapp/doc/chrome-debug1.png)
+![](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/56abde90-4f34-11eb-8a36-ebb87efcf8c0.png)
 
-![](https://img-cdn-qiniu.dcloud.net.cn/uniapp/doc/chrome-debug2.png)
+![](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/5762ab70-4f34-11eb-bdc1-8bd33eb6adaa.png)
 
-点击HBuilderX的右上角的预览按钮，可以在内置浏览器里打开H5运行结果，也可以点右键打开控制台调试，方法同上。
+
+`点击工具栏的运行 -> 运行到浏览器 -> 选择 Chrome`，也可将 `uni-app`运行到 浏览器，可参考 [运行uni-app](/quickstart?id=运行uni-app)。
 
 ### 使用各家小程序开发工具调试
 
@@ -108,11 +112,11 @@ uni.showToast({
 
 页面样式调试和一般的`web`项目一样，通过调试的箭头选中元素即可查看相应的节点和样式，如下图：
 
-![uni-app](//img-cdn-qiniu.dcloud.net.cn/uniapp/doc/debug1.png)
+![uni-app](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/51d2b830-4f34-11eb-a16f-5b3e54966275.png)
 
 调试 `js` 时需要切换到 `Sources` 栏，根据sourcemap，找到 `webpack` 里正确的目录，选中想要调试的那个页面的`js`，进行调试（如果`js`代码是压缩过的，点击右下角的{}可格式化代码），如下图：
 
-![uni-app](//img-cdn-qiniu.dcloud.net.cn/uniapp/doc/debug2.png)
+![uni-app](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/52889ab0-4f34-11eb-b680-7980c8a877b8.png)
 
 ### 关于 App 的调试debug
 
@@ -123,15 +127,15 @@ uni.showToast({
 #### 打开调试窗口
 在 `HBuilderX` 中，正确运行项目： `运行 --> 运行到手机或模拟器 --> 选择设备`，项目启动后，在下方的控制台选择 `debug` 图标。
 
-![debug](//img-cdn-qiniu.dcloud.net.cn/uniapp/doc/debug-icon.png)
+![debug](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/55245430-4f34-11eb-97b7-0dc4655d6e68.png)
 
 正确打开调试窗口后，显示如下：
-![debug](//img-cdn-qiniu.dcloud.net.cn/uniapp/doc/csdndebug-window.png)
+![debug](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/50f7e890-4f34-11eb-b680-7980c8a877b8.png)
 
 #### Elements
 
 根据上一步，启动完成`debug`窗口后，可以看到`Elements`。`Elements` 主要显示当前页面的组织结构，目前`Elements`只支持`nvue`。
-![debug](//img-cdn-qiniu.dcloud.net.cn/uniapp/doc/debug-elements.png)
+![debug](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/5433b2a0-4f34-11eb-8a36-ebb87efcf8c0.png)
 
 #### console.log打日志
 `console.log`是我们日常开发最常用的调试方法，`HBuilderX`中当然也不能少。
@@ -141,7 +145,7 @@ uni.showToast({
 
 `debug`窗口中看`console.log`的方法如下图：
 
-![debug](//img-cdn-qiniu.dcloud.net.cn/uniapp/doc/debug-console-new.jpg)
+![debug](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/53673ae0-4f34-11eb-a16f-5b3e54966275.jpg)
 
 
 
@@ -150,18 +154,18 @@ uni.showToast({
 
 在 `uniapp`（图中指示2）下找到需要调试的页面，单击打开 ，在右侧可以看到我们需要调试的内容（图中指示3）。在需要调试的代码行号的位置，点击打上断点（图中指示4）。
 
-![debug](//img-cdn-qiniu.dcloud.net.cn/uniapp/doc/csdndebug-log.png)
+![debug](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/58f09e70-4f34-11eb-8a36-ebb87efcf8c0.png)
 
 之后，在设备上进行操作，进入断点位置，可以方便我们跟踪调试代码。
 
-![debug](//img-cdn-qiniu.dcloud.net.cn/uniapp/doc/csdndebug-breakpoint.png)
+![debug](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/5839d190-4f34-11eb-8a36-ebb87efcf8c0.png)
 
 #### 同步断点到调试器
 在控制台众多代码中寻找要调试的代码是比较麻烦的一件事，`HBuilderX`的调试还提供一个便利的功能，可直接在编辑器中打断点，断点会自动同步到调试工具中。
 
 操作步骤：在HBuilderX编辑器中对目标行的行号处点右键，在右键菜单中选择“同步断点到调试器”，然后调试控制台会自动打开对应的代码并在指定行处标记断点。演示如下：
 
-![debug](//img-cdn-qiniu.dcloud.net.cn/uniapp/doc/debug-console-light.gif)
+![debug](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/55de5560-4f34-11eb-8a36-ebb87efcf8c0.gif)
 
 
 Tip 
@@ -173,7 +177,7 @@ Tip
 - 常用的开发模式就是`pc`上使用内置浏览器预览调dom，运行到真机上看`console.log`。如果是很复杂的问题才使用`debug`。
 - vue页面也可以在微信开发者工具里调试，除了plus API，其他是一样的，微信开发者工具的查看`Dom`和网络和存储等调试工具相对而言更完善些。
 注意：即使不发布微信小程序、只发布`App`，也需要安装微信开发者工具。
-- uni-app的App端没有App那种webkit remote debug，因为uni-app的js不是运行在webview里，而是独立的jscore里。
+- uni-app的App端的webkit remote debug，只能调试视图层，不能调试逻辑层。因为uni-app的js不是运行在webview里，而是独立的jscore里。
 - 部分manifest配置，如三方sdk配置，需要打包后生效的，可以打包一个自定义运行基座。打包自定义基座后运行这个自定义基座，同样可以真机运行和debug。打包正式包将无法真机运行和debug。
 
 
@@ -181,8 +185,8 @@ Tip
 
 很多公司的开发人员提交代码后，需要自动打包或持续集成。
 
-此时需要在服务器安装uni-app的cli版本来发布小程序和H5版。
+此时需要在服务器安装uni-app的cli版本来发布。
 
 HBuilderX版与cli版互转指南参考：[https://ask.dcloud.net.cn/article/35750](https://ask.dcloud.net.cn/article/35750)
 
-如果是发布App，则需要使用[离线打包](https://ask.dcloud.net.cn/docs/#//ask.dcloud.net.cn/article/508)，配置原生环境，来实现持续集成。（目前HBuilderX还不支持命令行生成wgt资源和云打包，欢迎到需求墙投票：[https://dev.dcloud.net.cn/wish/](https://dev.dcloud.net.cn/wish/)）
+如果是发布App，还需要使用[离线打包](https://ask.dcloud.net.cn/docs/#//ask.dcloud.net.cn/article/508)，配置原生环境，来实现持续集成。

@@ -45,6 +45,11 @@ module.exports = function generateApp (compilation) {
     }
   }
 
+  // 框架预设样式 用于隐藏自定义组件
+  // TODO 分平台 import 不同 css
+  const platforms = ['mp-weixin', 'mp-qq', 'mp-toutiao']
+  const presetStyle = platforms.includes(process.env.UNI_PLATFORM) ? '[data-custom-hidden="true"],[bind-data-custom-hidden="true"]{display: none !important;}' : ''
+
   if (compilation.assets[`common/main${ext}`]) { // 是否存在 main.css
     importMainCss = `@import './common/main${ext}';`
   }
@@ -55,24 +60,23 @@ module.exports = function generateApp (compilation) {
 
   const runtimeJsPath = 'common/runtime.js'
 
+  const asset = compilation.assets[runtimeJsPath]
   if ( // app 和 baidu 不需要
     process.env.UNI_PLATFORM !== 'app-plus' &&
     process.env.UNI_PLATFORM !== 'mp-baidu' &&
-    compilation.assets[runtimeJsPath]
+    asset &&
+    !asset.source.__$wrappered
   ) {
     const source =
       `
   !function(){try{var a=Function("return this")();a&&!a.Math&&(Object.assign(a,{isFinite:isFinite,Array:Array,Date:Date,Error:Error,Function:Function,Math:Math,Object:Object,RegExp:RegExp,String:String,TypeError:TypeError,setTimeout:setTimeout,clearTimeout:clearTimeout,setInterval:setInterval,clearInterval:clearInterval}),"undefined"!=typeof Reflect&&(a.Reflect=Reflect))}catch(a){}}();
-  ${compilation.assets[runtimeJsPath].source()}
+  ${asset.source()}
   `
-    compilation.assets[runtimeJsPath] = {
-      size () {
-        return Buffer.byteLength(source, 'utf8')
-      },
-      source () {
-        return source
-      }
+    const newSource = function () {
+      return source
     }
+    newSource.__$wrappered = true
+    compilation.assets[runtimeJsPath].source = newSource
   }
 
   const specialMethods = getSpecialMethods()
@@ -91,6 +95,7 @@ require('./common/main.js')`
   }, {
     file: 'app' + ext,
     source: `${importMainCss}
-${importVendorCss}`
+${importVendorCss}
+${presetStyle}`
   }]
 }

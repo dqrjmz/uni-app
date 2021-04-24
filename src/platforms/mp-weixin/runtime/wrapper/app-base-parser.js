@@ -5,25 +5,53 @@ import {
   initMocks
 } from 'uni-wrapper/util'
 
+import EventChannel from 'uni-helpers/EventChannel'
+
+import {
+  getEventChannel
+} from 'uni-helpers/navigate-to'
+
 const hooks = [
   'onShow',
   'onHide',
   'onError',
-  'onPageNotFound'
+  'onPageNotFound',
+  'onThemeChange',
+  'onUnhandledRejection'
 ]
+
+function initEventChannel () {
+  Vue.prototype.getOpenerEventChannel = function () {
+    // 微信小程序使用自身getOpenerEventChannel
+    if (__PLATFORM__ === 'mp-weixin') {
+      return this.$scope.getOpenerEventChannel()
+    }
+    if (!this.__eventChannel__) {
+      this.__eventChannel__ = new EventChannel()
+    }
+    return this.__eventChannel__
+  }
+  const callHook = Vue.prototype.__call_hook
+  Vue.prototype.__call_hook = function (hook, args) {
+    if (hook === 'onLoad' && args && args.__id__) {
+      this.__eventChannel__ = getEventChannel(args.__id__)
+      delete args.__id__
+    }
+    return callHook.call(this, hook, args)
+  }
+}
 
 export default function parseBaseApp (vm, {
   mocks,
   initRefs
 }) {
-  // 状态容器
+  initEventChannel()
   if (vm.$options.store) {
     Vue.prototype.$store = vm.$options.store
   }
 
   Vue.prototype.mpHost = __PLATFORM__
 
-  // 混合全局
   Vue.mixin({
     beforeCreate () {
       if (!this.$options.mpType) {
@@ -41,7 +69,12 @@ export default function parseBaseApp (vm, {
 
       delete this.$options.mpType
       delete this.$options.mpInstance
-
+      if (this.mpType === 'page') { // hack vue-i18n
+        const app = getApp()
+        if (app.$vm && app.$vm.$i18n) {
+          this._i18n = app.$vm.$i18n
+        }
+      }
       if (this.mpType !== 'app') {
         initRefs(this)
         initMocks(this, mocks)
@@ -60,7 +93,6 @@ export default function parseBaseApp (vm, {
         }
       }
 
-      // 组件实例
       this.$vm = vm
 
       this.$vm.$mp = {

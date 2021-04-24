@@ -18,33 +18,40 @@ UniServiceJSBridge.subscribe('onMapMethodCallback', ({
   callback.invoke(callbackId, data)
 })
 
-const methods = ['getCenterLocation', 'translateMarker', 'getScale', 'getRegion']
+const methods = ['getCenterLocation',
+  'moveToLocation',
+  'getScale',
+  'getRegion',
+  'includePoints',
+  'translateMarker',
+  'addCustomLayer',
+  'removeCustomLayer',
+  'addGroundOverlay',
+  'removeGroundOverlay',
+  'updateGroundOverlay',
+  'initMarkerCluster',
+  'addMarkers',
+  'removeMarkers',
+  'moveAlong',
+  'openMapApp']
 
 export class MapContext {
   constructor (id, pageVm) {
     this.id = id
     this.pageVm = pageVm
   }
-
-  moveToLocation () {
-    operateMapPlayer(this.id, this.pageVm, 'moveToLocation')
-  }
-
-  includePoints (args) {
-    operateMapPlayer(this.id, this.pageVm, 'includePoints', args)
-  }
 }
 
 MapContext.prototype.$getAppMap = function () {
-  return plus.maps.getMapById(this.pageVm.$page.id + '-map-' + this.id)
+  if (__PLATFORM__ === 'app-plus') {
+    return plus.maps.getMapById(this.pageVm.$page.id + '-map-' + this.id)
+  }
 }
 
 methods.forEach(function (method) {
   MapContext.prototype[method] = callback.warp(function (options, callbackId) {
-    operateMapPlayer(this.id, this.pageVm, method, {
-      options,
-      callbackId
-    })
+    options.callbackId = callbackId
+    operateMapPlayer(this.id, this.pageVm, method, options)
   })
 })
 

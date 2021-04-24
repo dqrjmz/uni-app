@@ -125,12 +125,19 @@ class ComponentDescriptor {
     return this.$el && this.$el.classList.contains(cls)
   }
 
+  getComputedStyle () {
+    if (this.$el) {
+      return window.getComputedStyle(this.$el)
+    }
+    return {}
+  }
+
   getDataset () {
     return this.$el && this.$el.dataset
   }
 
   callMethod (funcName, args = {}) {
-    if (this.$vm[funcName]) {
+    if (funcName in this.$vm) {
       this.$vm[funcName](JSON.parse(JSON.stringify(args)))
     } else if (this.$vm._$id) {
       UniViewJSBridge.publishHandler('onWxsInvokeCallMethod', {
@@ -160,10 +167,11 @@ export function createComponentDescriptor (vm, isOwnerInstance = true) {
     // ownerInstance 内置组件需要使用父 vm
     vm = vm.$parent
   }
-  if (vm && vm.$el) {
-    if (!vm.$el.__wxsComponentDescriptor) {
-      vm.$el.__wxsComponentDescriptor = new ComponentDescriptor(vm)
+  // 改为挂载到 vm 实例，不同 vm 实例的 $el 可能重复
+  if (vm) {
+    if (!('__wxsComponentDescriptor' in vm)) {
+      vm.__wxsComponentDescriptor = new ComponentDescriptor(vm)
     }
-    return vm.$el.__wxsComponentDescriptor
+    return vm.__wxsComponentDescriptor
   }
 }

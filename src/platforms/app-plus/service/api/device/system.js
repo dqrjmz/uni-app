@@ -2,15 +2,16 @@ import {
   callApiSync,
   isTabBarPage,
   getLastWebview,
-  getStatusbarHeight,
   getScreenInfo
 } from '../util'
 
-import {
-  TITLEBAR_HEIGHT
-} from '../../constants'
+import { NAVBAR_HEIGHT } from 'uni-helpers/constants'
 
 import tabBar from '../../framework/tab-bar'
+
+import { getStatusbarHeight } from 'uni-platform/helpers/status-bar'
+
+import deviceId from 'uni-platform/helpers/uuid'
 
 export function getSystemInfoSync () {
   return callApiSync(getSystemInfo, Object.create(null), 'getSystemInfo', 'getSystemInfoSync')
@@ -35,7 +36,7 @@ export function getSystemInfo () {
     let style = webview.getStyle()
     style = style && style.titleNView
     if (style && style.type && style.type !== 'none') {
-      titleNView.height = style.type === 'transparent' ? 0 : (statusBarHeight + TITLEBAR_HEIGHT)
+      titleNView.height = style.type === 'transparent' ? 0 : (statusBarHeight + NAVBAR_HEIGHT)
       titleNView.cover = style.type === 'transparent' || style.type === 'float'
     }
     safeAreaInsets = webview.getSafeAreaInsets()
@@ -52,9 +53,13 @@ export function getSystemInfo () {
   }
   const windowTop = titleNView.cover ? titleNView.height : 0
   const windowBottom = tabBarView.cover ? tabBarView.height : 0
-  const windowHeight = screenHeight - titleNView.height - tabBarView.height
-  const windowHeightReal = screenHeight - (titleNView.cover ? 0 : titleNView.height) - (tabBarView.cover ? 0 : tabBarView.height)
+  let windowHeight = screenHeight - titleNView.height - tabBarView.height
+  let windowHeightReal = screenHeight - (titleNView.cover ? 0 : titleNView.height) - (tabBarView.cover ? 0 : tabBarView.height)
   const windowWidth = screenWidth
+  if ((!tabBarView.height || tabBarView.cover) && !safeAreaInsets.bottom && safeAreaInsets.deviceBottom) {
+    windowHeight -= safeAreaInsets.deviceBottom
+    windowHeightReal -= safeAreaInsets.deviceBottom
+  }
   safeAreaInsets = ios ? safeAreaInsets : {
     left: 0,
     right: 0,
@@ -94,6 +99,7 @@ export function getSystemInfo () {
       right: safeAreaInsets.right,
       bottom: safeAreaInsets.bottom,
       left: safeAreaInsets.left
-    }
+    },
+    deviceId: deviceId()
   }
 }

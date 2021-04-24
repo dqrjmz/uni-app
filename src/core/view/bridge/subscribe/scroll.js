@@ -2,7 +2,12 @@ import {
   publishHandler
 } from 'uni-platform/view/bridge'
 
+/**
+ * 不能滚动
+ * @param {*} evt
+ */
 export function disableScroll (evt) {
+  // 阻止默认事件
   evt.preventDefault()
 }
 
@@ -10,13 +15,15 @@ export function pageScrollTo ({
   scrollTop,
   duration
 }) {
+  // 获取文档对象
   const documentElement = document.documentElement
 
   const {
-    clientHeight,
-    scrollHeight
+    clientHeight, // 文档窗口的高度
+    scrollHeight // 文档窗口的滚动高度
   } = documentElement
 
+  // 滚动高度， 元素高度-可视窗口高度
   scrollTop = Math.min(scrollTop, scrollHeight - clientHeight)
 
   if (duration === 0) {
@@ -25,16 +32,20 @@ export function pageScrollTo ({
     return
   }
 
+  // 滚动高度和窗口 Y轴高度一致
   if (window.scrollY === scrollTop) {
     return
   }
 
   function scrollTo (duration) {
     if (duration <= 0) {
+      // 调用滚动方法
       window.scrollTo(0, scrollTop)
       return
     }
+    // 滚动高度
     const distaince = scrollTop - window.scrollY
+    // 帧动画
     requestAnimationFrame(function () {
       window.scrollTo(0, window.scrollY + distaince / duration * 10)
       scrollTo(duration - 10)
@@ -80,7 +91,7 @@ export function createScrollListener (pageId, {
     // 部分浏览器窗口高度变化后document.documentelement.clientheight不会变化，采用window.innerHeight
     const windowHeight = window.innerHeight
     const scrollY = window.scrollY
-    let isBottom = scrollY > 0 && scrollHeight > windowHeight && (scrollY + windowHeight + onReachBottomDistance) >= scrollHeight
+    const isBottom = scrollY > 0 && scrollHeight > windowHeight && (scrollY + windowHeight + onReachBottomDistance) >= scrollHeight
     // 兼容部分浏览器滚动时scroll事件不触发
     const heightChanged = Math.abs(scrollHeight - lastScrollHeight) > onReachBottomDistance
     if (isBottom && (!hasReachBottom || heightChanged)) {

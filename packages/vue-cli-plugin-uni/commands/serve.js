@@ -10,21 +10,30 @@ const defaults = {
   https: false
 }
 
+/**
+ * 添加并初始化，vue-cli-service 的 uni-serve命令
+ * @param {*} api PluginApi
+ * @param {*} options vue.config.js 配置参数
+ */
 module.exports = (api, options) => {
   api.registerCommand('uni-serve', {
     description: 'start development server',
     usage: 'vue-cli-service uni-serve [options] [entry]',
     options: {
-      '--open': `open browser on server start`,
-      '--copy': `copy url to clipboard on server start`,
-      '--mode': `specify env mode (default: development)`,
+      '--open': 'open browser on server start',
+      '--copy': 'copy url to clipboard on server start',
+      '--mode': 'specify env mode (default: development)',
       '--host': `specify host (default: ${defaults.host})`,
       '--port': `specify port (default: ${defaults.port})`,
       '--https': `use https (default: ${defaults.https})`,
-      '--public': `specify the public network URL for the HMR client`
+      '--public': 'specify the public network URL for the HMR client',
+      '--auto-host': 'specify automator host',
+      '--auto-port': 'specify automator port'
     }
   }, async function serve (args) {
     info('Starting development server...')
+
+    require('./util').initAutomator(args)
 
     // although this is primarily a dev server, it is possible that we
     // are running it in a mode with a production env, e.g. in E2E tests.
@@ -44,6 +53,7 @@ module.exports = (api, options) => {
     const isAbsoluteUrl = require('@vue/cli-service/lib/util/isAbsoluteUrl')
 
     // resolve webpack config
+    // 解析webpack 配置
     const webpackConfig = api.resolveWebpackConfig()
 
     // check for common config errors
@@ -101,14 +111,14 @@ module.exports = (api, options) => {
     // inject dev & hot-reload middleware entries
     if (!isProduction) {
       const sockjsUrl = publicUrl
-      // explicitly configured via devServer.public
+        // explicitly configured via devServer.public
         ? `?${publicUrl}/sockjs-node`
         : isInContainer
         // can't infer public netowrk url if inside a container...
         // use client-side inference (note this would break with non-root publicPath)
-          ? ``
+          ? ''
         // otherwise infer the url
-          : `?` + url.format({
+          : '?' + url.format({
             protocol,
             port,
             hostname: urls.lanUrlForConfig || 'localhost',
@@ -116,7 +126,7 @@ module.exports = (api, options) => {
           })
       const devClients = [
         // dev server client
-        require.resolve(`webpack-dev-server/client`) + sockjsUrl,
+        require.resolve('webpack-dev-server/client') + sockjsUrl,
         // hmr client
         require.resolve(projectDevServerOptions.hotOnly
           ? 'webpack/hot/only-dev-server'
@@ -125,7 +135,7 @@ module.exports = (api, options) => {
         // `@vue/cli-overlay/dist/client`
       ]
       if (process.env.APPVEYOR) {
-        devClients.push(`webpack/hot/poll?500`)
+        devClients.push('webpack/hot/poll?500')
       }
       // inject dev/hot client
       addDevClientToEntry(webpackConfig, devClients)
@@ -162,8 +172,8 @@ module.exports = (api, options) => {
         // launch editor support.
         // this works with vue-devtools & @vue/cli-overlay
         app.use('/__open-in-editor', launchEditorMiddleware(() => console.log(
-          `To specify an editor, sepcify the EDITOR env variable or ` +
-                    `add "editor" field to your Vue project config.\n`
+          'To specify an editor, sepcify the EDITOR env variable or ' +
+          'add "editor" field to your Vue project config.\n'
         )))
         // allow other plugins to register middlewares, e.g. PWA
         api.service.devServerConfigFns.forEach(fn => fn(app, server))
@@ -173,7 +183,7 @@ module.exports = (api, options) => {
       }
     }))
 
-        ;
+    ;
     ['SIGINT', 'SIGTERM'].forEach(signal => {
       process.on(signal, () => {
         server.close(() => {
@@ -196,6 +206,9 @@ module.exports = (api, options) => {
     }
 
     return new Promise((resolve, reject) => {
+      const {
+        runByHBuilderX
+      } = require('@dcloudio/uni-cli-shared')
       // log instructions & open browser on first compilation complete
       let isFirstCompile = true
       compiler.hooks.done.tap('vue-cli-service uni-serve', stats => {
@@ -212,29 +225,32 @@ module.exports = (api, options) => {
         const networkUrl = publicUrl
           ? publicUrl.replace(/([^/])$/, '$1/')
           : urls.lanUrlForTerminal
-
-        console.log()
-        console.log(`  App running at:`)
-        console.log(
+        const printRunningAt = !runByHBuilderX || (runByHBuilderX && isFirstCompile)
+        printRunningAt && console.log()
+        printRunningAt && console.log('  App running at:')
+        printRunningAt && console.log(
           `  - Local:   ${chalk.cyan(urls.localUrlForTerminal)} ${copied}`
         )
+        if (!printRunningAt) {
+          console.log('Build complete. Watching for changes...')
+        }
         if (!isInContainer) {
-          console.log(`  - Network: ${chalk.cyan(networkUrl)}`)
+          printRunningAt && console.log(`  - Network: ${chalk.cyan(networkUrl)}`)
         } else {
           console.log()
           console.log(chalk.yellow(
-            `  It seems you are running Vue CLI inside a container.`
+            '  It seems you are running Vue CLI inside a container.'
           ))
           if (!publicUrl && options.publicPath && options.publicPath !== '/') {
             console.log()
             console.log(chalk.yellow(
-              `  Since you are using a non-root publicPath, the hot-reload socket`
+              '  Since you are using a non-root publicPath, the hot-reload socket'
             ))
             console.log(chalk.yellow(
-              `  will not be able to infer the correct URL to connect. You should`
+              '  will not be able to infer the correct URL to connect. You should'
             ))
             console.log(chalk.yellow(
-              `  explicitly specify the URL via ${chalk.blue(`devServer.public`)}.`
+              `  explicitly specify the URL via ${chalk.blue('devServer.public')}.`
             ))
             console.log()
           }
@@ -250,12 +266,17 @@ module.exports = (api, options) => {
           isFirstCompile = false
 
           if (!isProduction) {
+            if (process.UNI_CLOUD) {
+              console.warn(
+                '当前项目使用了uniCloud，为避免云函数调用跨域问题，建议在HBuilderX内置浏览器里调试，如使用外部浏览器需处理跨域，详见：https://uniapp.dcloud.io/uniCloud/quickstart?id=useinh5'
+              )
+            }
             // const buildCommand = hasProjectYarn(api.getCwd()) ? `yarn build` : `npm run build`
             // console.log(`  Note that the development build is not optimized.`)
             // console.log(`  To create a production build, run ${chalk.cyan(buildCommand)}.`)
           } else {
-            console.log(`  App is served in production mode.`)
-            console.log(`  Note this is for preview or E2E testing only.`)
+            console.log('  App is served in production mode.')
+            console.log('  Note this is for preview or E2E testing only.')
           }
           console.log()
 
@@ -289,6 +310,10 @@ module.exports = (api, options) => {
         }
       })
 
+      if (server.showStatus) {
+        server.showStatus = function () {}
+      }
+
       server.listen(port, host, err => {
         if (err) {
           reject(err)
@@ -316,8 +341,8 @@ function addDevClientToEntry (config, devClient) {
 // https://stackoverflow.com/a/20012536
 function checkInContainer () {
   const fs = require('fs')
-  if (fs.existsSync(`/proc/1/cgroup`)) {
-    const content = fs.readFileSync(`/proc/1/cgroup`, 'utf-8')
+  if (fs.existsSync('/proc/1/cgroup')) {
+    const content = fs.readFileSync('/proc/1/cgroup', 'utf-8')
     return /:\/(lxc|docker|kubepods)\//.test(content)
   }
 }

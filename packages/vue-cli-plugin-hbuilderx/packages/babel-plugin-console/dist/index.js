@@ -1,18 +1,20 @@
+const isWin = /^win/.test(process.platform)
+const normalizePath = path => (isWin ? (path.split(':')[1] || path).replace(/\\/g, '/') : path)
+
 const METHODS = ['error', 'warn', 'info', 'log', 'debug']
 const FORMAT_LOG = '__f__'
-module.exports = function({
+module.exports = function ({
   types: t
 }) {
-
   return {
     visitor: {
-      CallExpression(path, state) {
+      CallExpression (path, state) {
         const opts = state.opts
 
         if (path.node.callee.object &&
           path.node.callee.object.name === 'console' &&
           METHODS.includes(path.node.callee.property.name)) {
-          if (path.node.callee.property.name === 'debug') { //console.debug=>console.log
+          if (path.node.callee.property.name === 'debug') { // console.debug=>console.log
             path.node.callee.property.name = 'log'
           }
 
@@ -33,7 +35,7 @@ module.exports = function({
               }
               args.push({
                 type: 'StringLiteral',
-                value: ` at ${file}:${path.node.loc.start.line}`
+                value: ` at ${normalizePath(file)}:${path.node.loc.start.line}`
               })
               args.unshift(t.stringLiteral(path.node.callee.property.name))
               path.replaceWith(t.callExpression(t.identifier(FORMAT_LOG), args))
@@ -46,7 +48,6 @@ module.exports = function({
             }
           }
         }
-
       }
     }
   }

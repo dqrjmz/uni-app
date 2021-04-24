@@ -55,6 +55,7 @@
   "title": "媒体",
   "apiList": {
     "uni.chooseImage": true,
+    "uni.chooseFile": true,
     "uni.previewImage": true,
     "uni.getImageInfo": true,
     "uni.saveImageToPhotosAlbum": true,
@@ -66,7 +67,8 @@
     "uni.saveVideoToPhotosAlbum": true,
     "uni.createVideoContext": true,
     "uni.createCameraContext": true,
-    "uni.createLivePlayerContext": true
+    "uni.createLivePlayerContext": true,
+    "uni.createLivePusherContext": true
   }
 }, {
   "name": "device",
@@ -75,10 +77,12 @@
     "uni.onMemoryWarning": true,
     "uni.getNetworkType": true,
     "uni.onNetworkStatusChange": true,
+    "uni.offNetworkStatusChange": true,
     "uni.onAccelerometerChange": true,
     "uni.startAccelerometer": true,
     "uni.stopAccelerometer": true,
     "uni.onCompassChange": true,
+    "uni.offCompassChange": true,
     "uni.startCompass": true,
     "uni.stopCompass": true,
     "uni.onGyroscopeChange": true,
@@ -113,11 +117,15 @@
     "uni.getBLEDeviceCharacteristics": true,
     "uni.createBLEConnection": true,
     "uni.closeBLEConnection": true,
+    "uni.setBLEMTU": true,
+    "uni.getBLEDeviceRSSI": true,
     "uni.onBeaconServiceChange": true,
     "uni.onBeaconUpdate": true,
     "uni.getBeacons": true,
     "uni.startBeaconDiscovery": true,
-    "uni.stopBeaconDiscovery": true
+    "uni.stopBeaconDiscovery": true,
+    "uni.onThemeChange": true,
+    "uni.onUIStyleChange": true
   }
 }, {
   "name": "ui",
@@ -152,8 +160,10 @@
     "uni.stopPullDownRefresh": true,
     "uni.createSelectorQuery": true,
     "uni.createIntersectionObserver": true,
+    "uni.createMediaQueryObserver": true,
     "uni.hideKeyboard": true,
-	"uni.onKeyboardHeightChange": true
+    "uni.onKeyboardHeightChange": true,
+    "uni.offKeyboardHeightChange": true
   }
 }, {
   "name": "event",
@@ -205,5 +215,12 @@
     "uni.requireNativePlugin": true,
     "uni.base64ToArrayBuffer": true,
     "uni.arrayBufferToBase64": true
+  }
+}, {
+  "name": "ad",
+  "title": "广告",
+  "apiList": {
+    "uni.createRewardedVideoAd": true,
+    "uni.createFullScreenVideoAd": true
   }
 }]

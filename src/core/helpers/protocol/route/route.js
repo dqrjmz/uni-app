@@ -60,8 +60,12 @@ function createValidator (type) {
       }
     }
 
-    // tabBar不允许传递参数
-    if (routeOptions.meta.isTabBar) {
+    // switchTab不允许传递参数,reLaunch到一个tabBar页面是可以的
+    if (
+      (type === 'switchTab' || type === 'preloadPage') &&
+      routeOptions.meta.isTabBar &&
+      params.openType !== 'appLaunch'
+    ) {
       url = pagePath
     }
 
@@ -72,8 +76,37 @@ function createValidator (type) {
 
     // 参数格式化
     params.url = encodeQueryString(url)
+    if (type === 'unPreloadPage') {
+      return
+    } else if (type === 'preloadPage') {
+      if (__PLATFORM__ === 'app-plus') {
+        if (!routeOptions.meta.isNVue) {
+          return 'can not preload vue page'
+        }
+      }
+      if (routeOptions.meta.isTabBar) {
+        const pages = getCurrentPages(true)
+        const tabBarPagePath = (routeOptions.alias || routeOptions.path).substr(1)
+        if (pages.find(page => page.route === tabBarPagePath)) {
+          return 'tabBar page `' + tabBarPagePath + '` already exists'
+        }
+      }
+      return
+    }
+
+    // 主要拦截目标为用户快速点击时触发的多次跳转，该情况，通常前后 url 是一样的
+    if (navigatorLock === url && params.openType !== 'appLaunch') {
+      return `${navigatorLock} locked`
+    }
+    // 至少 onLaunch 之后，再启用lock逻辑（onLaunch之前可能开发者手动调用路由API，来提前跳转）
+    // enableNavigatorLock 临时开关（不对外开放），避免该功能上线后，有部分情况异常，可以让开发者临时关闭 lock 功能
+    if (__uniConfig.ready && __uniConfig.enableNavigatorLock !== false) {
+      navigatorLock = url
+    }
   }
 }
+
+let navigatorLock
 
 function createProtocol (type, extras = {}) {
   return Object.assign({
@@ -81,6 +114,9 @@ function createProtocol (type, extras = {}) {
       type: String,
       required: true,
       validator: createValidator(type)
+    },
+    beforeAll () {
+      navigatorLock = ''
     }
   }, extras)
 }
@@ -143,3 +179,19 @@ export const navigateBack = Object.assign({
     'none'
   ]
 ))
+
+export const preloadPage = {
+  url: {
+    type: String,
+    required: true,
+    validator: createValidator('preloadPage')
+  }
+}
+
+export const unPreloadPage = {
+  url: {
+    type: String,
+    required: true,
+    validator: createValidator('unPreloadPage')
+  }
+}

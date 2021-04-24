@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const shellExec = require('shell-exec')
 
-const pkgs = fs.readdirSync(path.resolve(__dirname, 'packages'))
+const pkgs = fs.readdirSync(path.resolve(__dirname, 'packages')).filter(pkg => pkg.indexOf('.') !== 0)
 
 const version = process.argv[2]
 if (!version) {
@@ -12,6 +12,7 @@ if (!version) {
 (async function() {
   for (let i = 0; i < pkgs.length; i++) {
     console.log(`npm dist-tag add @dcloudio/${pkgs[i]}@${version} latest`);
+    // 修改包发布的tag
     await shellExec(`npm dist-tag add @dcloudio/${pkgs[i]}@${version} latest`)
   }
 })();

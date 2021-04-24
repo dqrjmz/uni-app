@@ -1,8 +1,11 @@
 import {
   PAGE_PVER_TIME,
-  APP_PVER_TIME
+  APP_PVER_TIME,
+  STAT_URL,
+  STAT_VERSION,
+  DIFF_TIME
 } from './config';
-
+const statConfig = require('uni-stat-config').default || require('uni-stat-config');
 const UUID_KEY = '__DC_STAT_UUID';
 const UUID_VALUE = '__DC_UUID_VALUE';
 
@@ -65,14 +68,17 @@ export const getTime = () => {
 }
 
 export const getPlatformName = () => {
+  const aliArr = ['y', 'a', 'p', 'mp-ali']
   const platformList = {
     'app-plus': 'n',
     'h5': 'h5',
     'mp-weixin': 'wx',
-    'mp-alipay': 'ali',
+    [aliArr.reverse().join('')]: 'ali',
     'mp-baidu': 'bd',
     'mp-toutiao': 'tt',
-    'mp-qq': 'qq'
+    'mp-qq': 'qq',
+    'quickapp-native': 'qn',
+    'mp-kuaishou': 'ks'
   }
   return platformList[process.env.VUE_APP_PLATFORM];
 }
@@ -81,7 +87,7 @@ export const getPackName = () => {
   let packName = ''
   if (getPlatformName() === 'wx' || getPlatformName() === 'qq') {
     // 兼容微信小程序低版本基础库
-    if(uni.canIUse('getAccountInfoSync')){
+    if (uni.canIUse('getAccountInfoSync')) {
       packName = uni.getAccountInfoSync().miniProgram.appId || '';
     }
   }
@@ -234,6 +240,7 @@ export const getResidenceTime = (type) => {
 export const getRoute = () => {
   var pages = getCurrentPages();
   var page = pages[pages.length - 1];
+  if (!page) return ''
   let _self = page.$vm
 
   if (getPlatformName() === 'bd') {
@@ -246,6 +253,7 @@ export const getRoute = () => {
 export const getPageRoute = (self) => {
   var pages = getCurrentPages();
   var page = pages[pages.length - 1];
+  if (!page) return ''
   let _self = page.$vm
   let query = self._query;
   let str = query && JSON.stringify(query) !== '{}' ? '?' + JSON.stringify(query) : '';
@@ -254,7 +262,7 @@ export const getPageRoute = (self) => {
   if (getPlatformName() === 'bd') {
     return _self.$mp && _self.$mp.page.is + str;
   } else {
-    return (_self.$scope && _self.$scope.route + str )|| (_self.$mp && _self.$mp.page.route + str);
+    return (_self.$scope && _self.$scope.route + str) || (_self.$mp && _self.$mp.page.route + str);
   }
 };
 
@@ -267,7 +275,7 @@ export const getPageTypes = (self) => {
 
 export const calibration = (eventName, options) => {
   //  login 、 share 、pay_success 、pay_fail 、register 、title
-  if(!eventName){
+  if (!eventName) {
     console.error(`uni.report 缺少 [eventName] 参数`);
     return true
   }
@@ -294,4 +302,92 @@ export const calibration = (eventName, options) => {
     console.error('uni.report [eventName] 参数为 title 时，[options] 参数只能为 String 类型');
     return true
   }
+}
+
+const Report_Data_Time = 'Report_Data_Time'
+const Report_Status = 'Report_Status'
+export const isReportData = () => {
+  return new Promise((resolve, reject) => {
+    let start_time = ''
+    let end_time = new Date().getTime()
+    let diff_time = DIFF_TIME
+    let report_status = 1
+    try {
+      start_time = uni.getStorageSync(Report_Data_Time)
+      report_status = uni.getStorageSync(Report_Status)
+    } catch (e) {
+      start_time = ''
+      report_status = 1
+    }
+
+    if (report_status === '') {
+      requestData(({
+        enable
+      }) => {
+        uni.setStorageSync(Report_Data_Time, end_time);
+        uni.setStorageSync(Report_Status, enable);
+        if (enable === 1) {
+          resolve();
+        }
+      });
+      return
+    }
+
+    if (report_status === 1) {
+      resolve();
+    }
+
+    if (!start_time) {
+      uni.setStorageSync(Report_Data_Time, end_time)
+      start_time = end_time
+    }
+
+    if ((end_time - start_time) > diff_time) {
+      requestData(({
+        enable
+      }) => {
+        uni.setStorageSync(Report_Data_Time, end_time)
+        uni.setStorageSync(Report_Status, enable)
+      });
+    }
+
+  })
+}
+
+const requestData = (done) => {
+  let formData = {
+    usv: STAT_VERSION,
+    conf: JSON.stringify({
+      ak: statConfig.appid
+    })
+  }
+  uni.request({
+    url: STAT_URL,
+    method: 'GET',
+    data: formData,
+    success: (res) => {
+      const {
+        data
+      } = res
+      if (data.ret === 0) {
+        typeof done === 'function' && done({
+          enable: data.enable
+        })
+      }
+    },
+    fail: (e) => {
+      let report_status_code = 1
+      try {
+        report_status_code = uni.getStorageSync(Report_Status)
+      } catch (e) {
+        report_status_code = 1
+      }
+      if (report_status_code === '') {
+        report_status_code = 1
+      }
+      typeof done === 'function' && done({
+        enable: report_status_code
+      })
+    }
+  });
 }

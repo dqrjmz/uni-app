@@ -60,10 +60,24 @@ export default {
   install (Vue, {
     routes
   } = {}) {
+    if (
+      __PLATFORM__ === 'h5' &&
+      Vue.config.devtools &&
+      typeof window !== 'undefined' &&
+      window.navigator.userAgent.toLowerCase().indexOf('hbuilderx') !== -1
+    ) {
+      // HBuilderX 内置浏览器禁用 devtools 提示
+      Vue.config.devtools = false
+    }
+
     initPolyfill(Vue)
 
     lifecycleMixin(Vue)
 
+    /* eslint-disable no-undef */
+    if (typeof __UNI_ROUTER_BASE__ !== 'undefined') {
+      __uniConfig.router.base = __UNI_ROUTER_BASE__
+    }
     const minId = getMinId(routes)
     const router = new VueRouter({
       id: minId,
@@ -97,6 +111,7 @@ export default {
     // 需跨平台，根据用户配置 hash 或 history 来调用
     const entryRoute = router.match(__uniConfig.router.mode === 'history' ? getLocation(__uniConfig.router.base)
       : getHash())
+
     if (entryRoute.meta.name) {
       if (entryRoute.meta.id) {
         keepAliveInclude.push(entryRoute.meta.name + '-' + entryRoute.meta.id)
@@ -147,9 +162,15 @@ export default {
           const pageMixin = createPageMixin()
           // mixin page hooks
           Object.keys(pageMixin).forEach(hook => {
-            options[hook] = options[hook] ? [].concat(pageMixin[hook], options[hook]) : [
-              pageMixin[hook]
-            ]
+            if (options.mpOptions) { // 小程序适配出来的 vue 组件（保证先调用小程序适配里的 created，再触发 onLoad）
+              options[hook] = options[hook] ? [].concat(options[hook], pageMixin[hook]) : [
+                pageMixin[hook]
+              ]
+            } else {
+              options[hook] = options[hook] ? [].concat(pageMixin[hook], options[hook]) : [
+                pageMixin[hook]
+              ]
+            }
           })
         } else {
           if (this.$parent && this.$parent.__page__) {
@@ -171,6 +192,10 @@ export default {
 
     Vue.prototype.createIntersectionObserver = function createIntersectionObserver (args) {
       return uni.createIntersectionObserver(this, args)
+    }
+
+    Vue.prototype.createMediaQueryObserver = function createMediaQueryObserver (args) {
+      return uni.createMediaQueryObserver(this, args)
     }
 
     Vue.use(VueRouter)

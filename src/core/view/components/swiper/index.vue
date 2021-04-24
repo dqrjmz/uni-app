@@ -1,6 +1,7 @@
 
 <script>
 import touchtrack from 'uni-mixins/touchtrack'
+import { deepClone } from 'uni-shared'
 
 export default {
   name: 'Swiper',
@@ -133,8 +134,8 @@ export default {
     current (val) {
       this._currentCheck()
     },
-    currentSync (val) {
-      this._currentChanged(val)
+    currentSync (val, oldVal) {
+      this._currentChanged(val, oldVal)
       this.$emit('update:current', val)
     },
     currentItemId (val) {
@@ -187,7 +188,7 @@ export default {
       var current = -1
       if (this.currentItemId) {
         for (let i = 0, items = this.items; i < items.length; i++) {
-          let componentInstance = items[i].componentInstance
+          const componentInstance = items[i].componentInstance
           if (componentInstance && componentInstance.itemId === this.currentItemId) {
             current = i
             break
@@ -214,11 +215,12 @@ export default {
     /**
      * 当前页面变更
      */
-    _currentChanged (current) {
+    _currentChanged (current, history) {
       var source = this.currentChangeSource
       this.currentChangeSource = ''
       if (!source) {
-        this._animateViewport(current, '', 0)
+        const length = this.items.length
+        this._animateViewport(current, '', this.circularEnabled && history + (length - current) % length > length / 2 ? 1 : 0)
       }
       var item = this.items[current]
       if (item) {
@@ -587,21 +589,26 @@ export default {
     var slidesDots = []
     var swiperItems = []
     if (this.$slots.default) {
-      this.$slots.default.forEach(vnode => {
+      deepClone(this.$slots.default, createElement).forEach(vnode => {
         if (vnode.componentOptions && vnode.componentOptions.tag === 'v-uni-swiper-item') {
           swiperItems.push(vnode)
         }
       })
     }
     for (let index = 0, length = swiperItems.length; index < length; index++) {
-      let currentSync = this.currentSync
+      const currentSync = this.currentSync
       slidesDots.push(createElement('div', {
+        on: {
+          click: () => {
+            this._animateViewport(this.currentSync = index, this.currentChangeSource = 'click', this.circularEnabled ? 1 : 0)
+          }
+        },
         class: {
           'uni-swiper-dot': true,
           'uni-swiper-dot-active': (index < currentSync + this.displayMultipleItemsNumber && index >= currentSync) || (index < currentSync + this.displayMultipleItemsNumber - length)
         },
         style: {
-          'background': index === currentSync ? this.indicatorActiveColor : this.indicatorColor
+          background: index === currentSync ? this.indicatorActiveColor : this.indicatorColor
         }
       }))
     }
@@ -609,7 +616,7 @@ export default {
     var slidesWrapperChild = [createElement('div', {
       ref: 'slides',
       style: this.slidesStyle,
-      'class': 'uni-swiper-slides'
+      class: 'uni-swiper-slides'
     }, [
       createElement('div', {
         ref: 'slideFrame',
@@ -620,7 +627,7 @@ export default {
     if (this.indicatorDots) {
       slidesWrapperChild.push(createElement('div', {
         ref: 'slidesDots',
-        'class': ['uni-swiper-dots', this.vertical ? 'uni-swiper-dots-vertical' : 'uni-swiper-dots-horizontal']
+        class: ['uni-swiper-dots', this.vertical ? 'uni-swiper-dots-vertical' : 'uni-swiper-dots-horizontal']
       }, slidesDots))
     }
 
@@ -629,7 +636,7 @@ export default {
         on: this.$listeners
       }, [createElement('div', {
         ref: 'slidesWrapper',
-        'class': 'uni-swiper-wrapper'
+        class: 'uni-swiper-wrapper'
       }, slidesWrapperChild)]
     )
   }

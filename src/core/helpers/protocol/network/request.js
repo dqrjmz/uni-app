@@ -1,4 +1,5 @@
 import {
+  hasOwn,
   isPlainObject
 } from 'uni-shared'
 
@@ -34,13 +35,15 @@ function stringifyQuery (url, data) {
     item = item.split('=')
     query[item[0]] = item[1]
   })
-  for (let key in data) {
-    if (data.hasOwnProperty(key)) {
-      if (isPlainObject(data[key])) {
-        query[encode(key)] = encode(JSON.stringify(data[key]))
-      } else {
-        query[encode(key)] = encode(data[key])
+  for (const key in data) {
+    if (hasOwn(data, key)) {
+      let v = data[key]
+      if (typeof v === 'undefined' || v === null) {
+        v = ''
+      } else if (isPlainObject(v)) {
+        v = JSON.stringify(v)
       }
+      query[encode(key)] = encode(v)
     }
   }
   query = Object.keys(query).map(item => `${item}=${query[item]}`).join('&')
@@ -56,7 +59,7 @@ export const request = {
     }
   },
   data: {
-    type: [Object, String, ArrayBuffer],
+    type: [Object, String, Array, ArrayBuffer],
     validator (value, params) {
       params.data = value || ''
     }
@@ -97,5 +100,11 @@ export const request = {
       value = (value || '').toLowerCase()
       params.responseType = Object.values(responseType).indexOf(value) < 0 ? responseType.TEXT : value
     }
+  },
+  withCredentials: {
+    type: Boolean
+  },
+  timeout: {
+    type: Number
   }
 }

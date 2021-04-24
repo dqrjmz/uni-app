@@ -33,6 +33,7 @@ const handleData = {
   [PAGE_CREATE]: function onPageCreate (data) {
     const [pageId, pagePath, pageOptions] = data
     document.title = `${pagePath}[${pageId}]`
+
     // 设置当前页面伪对象，方便其他地方使用 getCurrentPages 获取当前页面 id，route
     setCurrentPage(pageId, pagePath)
     // 通知页面创建，根据当前页面配置信息，初始化部分事件
@@ -40,7 +41,9 @@ const handleData = {
     // 初始化当前页面 VueComponent（生成页面样式代码）
     PageVueComponent = getPageVueComponent(pagePath)
     // 生成当前页面 vd
-    vd = new VDomSync(pageId)
+    vd = new VDomSync(pageId, {
+      version: pageOptions.version
+    })
   },
   [MOUNTED_DATA]: function onMounted (data) {
     vd.addVData.apply(vd, data)
@@ -49,12 +52,14 @@ const handleData = {
     vd.updateVData.apply(vd, data)
   },
   [PAGE_CREATED]: function onPageCreated (data) {
-    const [pageId, pagePath] = data
+    const [pageId, pagePath, pageQuery] = data
     const page = getCurrentPages()[0]
+    page.options = pageQuery || {}
     page.$vm = new PageVueComponent({
       mpType: 'page',
       pageId,
-      pagePath
+      pagePath,
+      pageQuery
     }).$mount('#app')
   }
 }
@@ -81,7 +86,10 @@ function updateView () {
   )
 }
 
-window.addEventListener('resize', updateView)
+window.addEventListener('resize', () => {
+  updateView()
+})
+
 window.addEventListener('updateview', updateView)
 
 function vdSync ({
@@ -108,7 +116,7 @@ function getData (id, name) {
   try {
     return this.$r[id][name]
   } catch (e) {
-    console.error(this.$options.__file + `:[${this._$id}]$r[${id}][${name}] is undefined`)
+    // console.error(this.$options.__file + `:[${this._$id}]$r[${id}][${name}] is undefined`)
   }
 }
 /**
@@ -124,7 +132,7 @@ function getChangeData (id, name) {
     this.$set(this.wxsProps, wxsPropName, value)
     return value
   } catch (e) {
-    console.error(this.$options.__file + `:[${this._$id}]$r[${id}][${name}] is undefined`)
+    // console.error(this.$options.__file + `:[${this._$id}]$r[${id}][${name}] is undefined`)
   }
 }
 

@@ -7,9 +7,9 @@
 
 **平台差异说明**
 
-|App|H5|微信小程序|支付宝小程序|百度小程序|头条小程序|QQ小程序|
-|:-|:-|:-|:-|:-|:-|:-|
-|√|x|√|√|√|√|√|
+|App|H5|微信小程序|企业微信小程序|支付宝小程序|百度小程序|字节跳动小程序|QQ小程序|
+|:-|:-|:-|:-|:-|:-|:-|:-|
+|√|x|√|x|√|√|√|√|
 
 **OBJECT 参数说明**
 
@@ -46,7 +46,8 @@
 ||qq|QQ登录||
 ||sinaweibo|新浪微博登录||
 ||xiaomi|小米登录||
-||apple|[Apple登录](https://ask.dcloud.net.cn/article/36651)|仅iOS13支持，HBuilderX 2.4.7+|
+||univerify|[一键登录](/univerify)|App 3.0.0+|
+||apple|[Apple登录](https://ask.dcloud.net.cn/article/36651)|仅iOS13支持，App 2.4.7+|
 |share|sinaweibo|新浪微博分享||
 ||qq|分享到QQ好友||
 ||weixin|分享微信消息、朋友圈及微信小程序||

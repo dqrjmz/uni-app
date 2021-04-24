@@ -26,7 +26,18 @@ const postcssLoader = {
     sourceMap: false,
     parser: require('postcss-comment'),
     plugins: [
-      require('postcss-import'),
+      require('postcss-import')({
+        resolve (id, basedir, importOptions) {
+          if (id.startsWith('~@/')) {
+            return path.resolve(process.env.UNI_INPUT_DIR, id.substr(3))
+          } else if (id.startsWith('@/')) {
+            return path.resolve(process.env.UNI_INPUT_DIR, id.substr(2))
+          } else if (id.startsWith('/') && !id.startsWith('//')) {
+            return path.resolve(process.env.UNI_INPUT_DIR, id.substr(1))
+          }
+          return id
+        }
+      }),
       require('@dcloudio/vue-cli-plugin-uni/packages/postcss')
     ]
   }
@@ -38,7 +49,7 @@ const isScss = fs.existsSync(path.resolve(process.env.UNI_INPUT_DIR, 'uni.scss')
 let sassData = isSass ? getPlatformSass() : getPlatformScss()
 
 if (isSass) {
-  sassData = `@import "@/uni.sass"`
+  sassData = '@import "@/uni.sass"'
 } else if (isScss) {
   sassData = `${sassData}
   @import "@/uni.scss";`
@@ -60,12 +71,21 @@ const sassLoader = {
 
 if (sassLoaderVersion < 8) {
   scssLoader.options.data = sassData
+  scssLoader.options.outputStyle = 'expanded'
+
   sassLoader.options.data = sassData
+  sassLoader.options.outputStyle = 'expanded'
   sassLoader.options.indentedSyntax = true
 } else {
-  scssLoader.options.prependData = sassData
-  sassLoader.options.prependData = sassData
+  const name = sassLoaderVersion >= 9 ? 'additionalData' : 'prependData'
+  scssLoader.options[name] = sassData
+  scssLoader.options.sassOptions = {
+    outputStyle: 'expanded'
+  }
+
+  sassLoader.options[name] = sassData
   sassLoader.options.sassOptions = {
+    outputStyle: 'expanded',
     indentedSyntax: true
   }
 }

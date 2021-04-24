@@ -1,4 +1,8 @@
 import {
+  TEMP_PATH
+} from '../constants'
+
+import {
   getStatusBarStyle
 } from '../util'
 
@@ -16,6 +20,11 @@ import {
   consumePlusMessage
 } from '../../framework/plus-message'
 
+import {
+  t,
+  getLocale
+} from 'uni-core/helpers/i18n'
+
 export const SCAN_ID = '__UNIAPP_SCAN'
 export const SCAN_PATH = '_www/__uniappscan.html'
 
@@ -23,16 +32,17 @@ const MESSAGE_TYPE = 'scanCode'
 
 export function scanCode ({
   onlyFromCamera = false,
-  scanType
+  scanType,
+  autoDecodeCharSet
 }, callbackId) {
   const barcode = plus.barcode
   const SCAN_TYPES = {
-    'qrCode': [
+    qrCode: [
       barcode.QR,
       barcode.AZTEC,
       barcode.MAXICODE
     ],
-    'barCode': [
+    barCode: [
       barcode.EAN13,
       barcode.EAN8,
       barcode.UPCA,
@@ -45,8 +55,8 @@ export function scanCode ({
       barcode.RSS14,
       barcode.RSSEXPANDED
     ],
-    'datamatrix': [barcode.DATAMATRIX],
-    'pdf417': [barcode.PDF417]
+    datamatrix: [barcode.DATAMATRIX],
+    pdf417: [barcode.PDF417]
   }
 
   const SCAN_MAPS = {
@@ -82,38 +92,43 @@ export function scanCode ({
     })
   }
   if (!filters.length) {
-    filters = filters.concat(SCAN_TYPES['qrCode']).concat(SCAN_TYPES['barCode']).concat(SCAN_TYPES['datamatrix']).concat(
-      SCAN_TYPES['pdf417'])
+    filters = filters.concat(SCAN_TYPES.qrCode).concat(SCAN_TYPES.barCode).concat(SCAN_TYPES.datamatrix).concat(
+      SCAN_TYPES.pdf417)
   }
 
   const buttons = []
   if (!onlyFromCamera) {
     buttons.push({
       float: 'right',
-      text: '相册',
+      text: t('uni.scanCode.album'),
       fontSize: '17px',
       width: '60px',
       onclick: function () {
         plus.gallery.pick(file => {
-          barcode.scan(file, (type, code) => {
+          barcode.scan(file, (type, code, path, charSet) => {
             if (isDark) {
-              plus.navigator.setStatusBarStyle('isDark')
+              plus.navigator.setStatusBarStyle('dark')
             }
             result = {
               type,
-              code
+              code,
+              charSet
             }
             webview.close('auto')
           }, () => {
-            plus.nativeUI.toast('识别失败')
-          }, filters)
+            plus.nativeUI.toast(t('uni.scanCode.fail'))
+          }, filters, autoDecodeCharSet)
         }, err => {
-          if (err.code !== 12) {
-            plus.nativeUI.toast('选择失败')
+          // iOS {"code":-2,"message":"用户取消,https://ask.dcloud.net.cn/article/282"}
+          // Android {"code":12,"message":"User cancelled"}
+          if (err.code !== (plus.os.name === 'Android' ? 12 : -2)) {
+            plus.nativeUI.toast(t('uni.scanCode.fail'))
           }
         }, {
           multiple: false,
-          system: false
+          system: false,
+          filename: TEMP_PATH + '/gallery/',
+          permissionAlert: true
         })
       }
     })
@@ -125,7 +140,7 @@ export function scanCode ({
       type: 'float',
       backgroundColor: 'rgba(0,0,0,0)',
       titleColor: '#ffffff',
-      titleText: '扫码',
+      titleText: t('uni.scanCode.title'),
       titleSize: '17px',
       buttons
     },
@@ -135,6 +150,8 @@ export function scanCode ({
     __uniapp_type: 'scan',
     __uniapp_dark: isDark,
     __uniapp_scan_type: filters,
+    __uniapp_auto_decode_char_set: autoDecodeCharSet,
+    __uniapp_locale: getLocale(),
     'uni-app': 'none'
   })
   const waiting = plus.nativeUI.showWaiting()
@@ -148,7 +165,7 @@ export function scanCode ({
       invoke(callbackId, {
         result: result.code,
         scanType: SCAN_MAPS[result.type] || '',
-        charSet: 'utf8',
+        charSet: result.charSet || 'utf8',
         path: '',
         errMsg: 'scanCode:ok'
       })

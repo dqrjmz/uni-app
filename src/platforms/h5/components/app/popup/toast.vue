@@ -2,29 +2,39 @@
   <transition name="uni-fade">
     <uni-toast
       v-if="visible"
-      :data-duration="duration">
+      :data-duration="duration"
+    >
       <div
         v-if="mask"
         class="uni-mask"
         style="background: transparent;"
-        @touchmove.prevent/>
+        @touchmove.prevent
+      />
       <div
         v-if="!image&&!iconClass"
-        class="uni-sample-toast">
-        <p class="uni-simple-toast__text">{{ title }}</p>
+        class="uni-sample-toast"
+      >
+        <p class="uni-simple-toast__text">
+          {{ title }}
+        </p>
       </div>
       <div
         v-else
-        class="uni-toast">
+        class="uni-toast"
+      >
         <img
           v-if="image"
           :src="image"
-          class="uni-toast__icon">
+          class="uni-toast__icon"
+        >
         <i
           v-else
           :class="iconClass"
-          class="uni-icon_toast"/>
-        <p class="uni-toast__content">{{ title }}</p>
+          class="uni-icon_toast"
+        />
+        <p class="uni-toast__content">
+          {{ title }}
+        </p>
       </div>
     </uni-toast>
   </transition>
@@ -70,6 +80,7 @@ export default {
       if (this.icon === 'loading') {
         return 'uni-loading'
       }
+      return ''
     }
   },
   beforeUpdate () {
@@ -93,6 +104,7 @@ uni-toast {
   display: block;
   box-sizing: border-box;
   pointer-events: none;
+  font-size: 16px;
 }
 
 uni-toast .uni-sample-toast {

@@ -1,4 +1,7 @@
-import { urlToFile } from 'uni-platform/helpers/file'
+import {
+  urlToFile,
+  blobToFile
+} from 'uni-platform/helpers/file'
 /**
  * 上传任务
  */
@@ -10,6 +13,7 @@ class UploadTask {
     this._xhr = xhr
     this._callbackId = callbackId
   }
+
   /**
    * 监听上传进度
    * @param callback 回调
@@ -20,12 +24,14 @@ class UploadTask {
     }
     this._callbacks.push(callback)
   }
+
   offProgressUpdate (callback) {
     const index = this._callbacks.indexOf(callback)
     if (index >= 0) {
       this._callbacks.splice(index, 1)
     }
   }
+
   /**
    * 中断上传任务
    */
@@ -45,25 +51,36 @@ class UploadTask {
  */
 export function uploadFile ({
   url,
+  file,
   filePath,
   name,
+  files,
   header,
-  formData
+  formData,
+  timeout = (__uniConfig.networkTimeout && __uniConfig.networkTimeout.uploadFile) || 60 * 1000
 }, callbackId) {
-  var timeout = (__uniConfig.networkTimeout && __uniConfig.networkTimeout.uploadFile) || 60 * 1000
   const {
     invokeCallbackHandler: invoke
   } = UniServiceJSBridge
   var uploadTask = new UploadTask(null, callbackId)
-
-  function upload (file) {
+  if (!Array.isArray(files) || !files.length) {
+    files = [{
+      name,
+      file,
+      uri: filePath
+    }]
+  }
+  function upload (realFiles) {
     var xhr = new XMLHttpRequest()
     var form = new FormData()
     var timer
     Object.keys(formData).forEach(key => {
       form.append(key, formData[key])
     })
-    form.append(name, file, file.name || `file-${Date.now()}`)
+    Object.values(files).forEach(({ name }, index) => {
+      const file = realFiles[index]
+      form.append(name || 'file', file, file.name || `file-${Date.now()}`)
+    })
     xhr.open('POST', url)
     Object.keys(header).forEach(key => {
       xhr.setRequestHeader(key, header[key])
@@ -94,7 +111,7 @@ export function uploadFile ({
     }
     xhr.onload = function () {
       clearTimeout(timer)
-      let statusCode = xhr.status
+      const statusCode = xhr.status
       invoke(callbackId, {
         errMsg: 'uploadFile:ok',
         statusCode,
@@ -118,13 +135,16 @@ export function uploadFile ({
     }
   }
 
-  urlToFile(filePath).then(upload).catch(() => {
-    setTimeout(() => {
-      invoke(callbackId, {
-        errMsg: 'uploadFile:fail file error'
-      })
-    }, 0)
-  })
+  Promise
+    .all(files.map(({ file, uri }) => file instanceof Blob ? Promise.resolve(blobToFile(file)) : urlToFile(uri)))
+    .then(upload)
+    .catch(() => {
+      setTimeout(() => {
+        invoke(callbackId, {
+          errMsg: 'uploadFile:fail file error'
+        })
+      }, 0)
+    })
 
   return uploadTask
 }

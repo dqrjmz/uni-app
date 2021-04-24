@@ -1,57 +1,66 @@
 <template>
-  <uni-input
-    @change.stop
-    v-on="$listeners">
+  <uni-input v-on="$listeners">
     <div
       ref="wrapper"
-      class="uni-input-wrapper">
+      class="uni-input-wrapper"
+    >
       <div
-        v-show="!(composing || inputValue.length)"
+        v-show="!(composing || valueSync.length || !valid)"
         ref="placeholder"
         :style="placeholderStyle"
         :class="placeholderClass"
         class="uni-input-placeholder"
-      >{{ placeholder }}</div>
+        v-text="placeholder"
+      />
       <input
+        v-if="!disabled || !fixColor"
         ref="input"
-        v-model="inputValue"
+        v-model="valueSync"
+        v-keyboard
+        v-field
         :disabled="disabled"
         :type="inputType"
         :maxlength="maxlength"
         :step="step"
+        :enterkeyhint="confirmType"
         class="uni-input-input"
         autocomplete="off"
+        @change.stop
         @focus="_onFocus"
         @blur="_onBlur"
         @input.stop="_onInput"
-        @compositionstart="_onComposition"
-        @compositionend="_onComposition"
-        @keyup.stop="_onKeyup"
+        @compositionstart.stop="_onComposition"
+        @compositionend.stop="_onComposition"
+        @keyup.enter.stop="_onKeyup"
+      >
+      <!-- fix: 禁止 readonly 状态获取焦点 -->
+      <input
+        v-if="disabled && fixColor"
+        ref="input"
+        :value="valueSync"
+        tabindex="-1"
+        :readonly="disabled"
+        :type="inputType"
+        :maxlength="maxlength"
+        :step="step"
+        class="uni-input-input"
+        @focus="($event) => $event.target.blur()"
       >
     </div>
   </uni-input>
 </template>
 <script>
 import {
-  emitter,
-  keyboard
+  field
 } from 'uni-mixins'
 const INPUT_TYPES = ['text', 'number', 'idcard', 'digit', 'password']
 const NUMBER_TYPES = ['number', 'digit']
 export default {
   name: 'Input',
-  mixins: [emitter, keyboard],
-  model: {
-    prop: 'value',
-    event: 'update:value'
-  },
+  mixins: [field],
   props: {
     name: {
       type: String,
-      default: ''
-    },
-    value: {
-      type: [String, Number],
       default: ''
     },
     type: {
@@ -72,7 +81,7 @@ export default {
     },
     placeholderClass: {
       type: String,
-      default: ''
+      default: 'input-placeholder'
     },
     disabled: {
       type: [Boolean, String],
@@ -82,10 +91,6 @@ export default {
       type: [Number, String],
       default: 140
     },
-    focus: {
-      type: [Boolean, String],
-      default: false
-    },
     confirmType: {
       type: String,
       default: 'done'
@@ -93,10 +98,12 @@ export default {
   },
   data () {
     return {
-      inputValue: this.value + '',
       composing: false,
+      valid: true,
       wrapperHeight: 0,
-      cachedValue: ''
+      cachedValue: '',
+      // Safari 14 以上修正禁用状态颜色
+      fixColor: String(navigator.vendor).indexOf('Apple') === 0 && CSS.supports('image-orientation:from-image')
     }
   },
   computed: {
@@ -125,18 +132,9 @@ export default {
     }
   },
   watch: {
-    focus (value) {
-      value && this._focusInput()
-    },
-    value (value) {
-      this.inputValue = value + ''
-    },
-    inputValue (value) {
-      this.$emit('update:value', value)
-    },
     maxlength (value) {
-      const realValue = this.inputValue.slice(0, parseInt(value, 10))
-      realValue !== this.inputValue && (this.inputValue = realValue)
+      const realValue = this.valueSync.slice(0, parseInt(value, 10))
+      realValue !== this.valueSync && (this.valueSync = realValue)
     }
   },
   created () {
@@ -165,10 +163,6 @@ export default {
       }
       $vm = $vm.$parent
     }
-
-    this.initKeyboard(this.$refs.input)
-
-    this.focus && this._focusInput()
   },
   beforeDestroy () {
     this.$dispatch('Form', 'uni-form-group-update', {
@@ -178,27 +172,30 @@ export default {
   },
   methods: {
     _onKeyup ($event) {
-      if ($event.keyCode === 13) {
-        this.$trigger('confirm', $event, {
-          value: $event.target.value
-        })
-      }
+      this.$trigger('confirm', $event, {
+        value: $event.target.value
+      })
     },
-    _onInput ($event) {
+    _onInput ($event, force) {
       if (this.composing) {
         return
       }
 
-      // 处理部分输入法可以输入其它字符的情况
       if (~NUMBER_TYPES.indexOf(this.type)) {
-        if (this.$refs.input.validity && !this.$refs.input.validity.valid) {
+        // 在输入 - 负号 的情况下，event.target.value没有值，但是会触发校验 false，因此做此处理
+        this.valid = this.$refs.input.validity && this.$refs.input.validity.valid
+        this.cachedValue = this.valueSync
+
+        // 处理部分输入法可以输入其它字符的情况
+        // 上一处理导致无法输入 - ，因此去除
+        /* if (this.$refs.input.validity && !this.$refs.input.validity.valid) {
           $event.target.value = this.cachedValue
-          this.inputValue = $event.target.value
+          this.valueSync = $event.target.value
           // 输入非法字符不触发 input 事件
           return
         } else {
-          this.cachedValue = this.inputValue
-        }
+          this.cachedValue = this.valueSync
+        } */
       }
 
       // type="number" 不支持 maxlength 属性，因此需要主动限制长度。
@@ -206,15 +203,14 @@ export default {
         const maxlength = parseInt(this.maxlength, 10)
         if (maxlength > 0 && $event.target.value.length > maxlength) {
           $event.target.value = $event.target.value.slice(0, maxlength)
-          this.inputValue = $event.target.value
+          this.valueSync = $event.target.value
           // 字符长度超出范围不触发 input 事件
           return
         }
       }
-
-      this.$trigger('input', $event, {
-        value: this.inputValue
-      })
+      this.$triggerInput($event, {
+        value: this.valueSync
+      }, force)
     },
     _onFocus ($event) {
       this.$trigger('focus', $event, {
@@ -222,33 +218,30 @@ export default {
       })
     },
     _onBlur ($event) {
+      // iOS 输入法 compositionend 事件可能晚于 blur
+      if (this.composing) {
+        this.composing = false
+        this._onInput($event, true)
+      }
       this.$trigger('blur', $event, {
         value: $event.target.value
       })
     },
-    _focusInput () {
-      setTimeout(() => {
-        this.$refs.input.focus()
-      }, 350)
-    },
-    _blurInput () {
-      setTimeout(() => {
-        this.$refs.input.blur()
-      }, 350)
-    },
     _onComposition ($event) {
       if ($event.type === 'compositionstart') {
         this.composing = true
-      } else {
+      } else if (this.composing) {
         this.composing = false
+        // 部分输入法 compositionend 事件可能晚于 input
+        this._onInput($event)
       }
     },
     _resetFormData () {
-      this.inputValue = ''
+      this.valueSync = ''
     },
     _getFormData () {
       return this.name ? {
-        value: this.inputValue,
+        value: this.valueSync,
         key: this.name
       } : {}
     }
@@ -291,7 +284,7 @@ uni-input[hidden] {
 }
 
 .uni-input-placeholder,
-.uni-input-input{
+.uni-input-input {
   width: 100%;
 }
 
@@ -309,12 +302,12 @@ uni-input[hidden] {
 }
 
 .uni-input-input {
+  position: relative;
   display: block;
   height: 100%;
   background: none;
   color: inherit;
   opacity: 1;
-  -webkit-text-fill-color: currentcolor;
   font: inherit;
   line-height: inherit;
   letter-spacing: inherit;
@@ -336,5 +329,10 @@ uni-input[hidden] {
 
 .uni-input-input[type="number"] {
   -moz-appearance: textfield;
+}
+
+.uni-input-input:disabled {
+  /* 用于重置iOS14以下禁用状态文字颜色 */
+  -webkit-text-fill-color: currentcolor;
 }
 </style>

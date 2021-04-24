@@ -2,17 +2,29 @@
   <uni-canvas
     :canvas-id="canvasId"
     :disable-scroll="disableScroll"
-    v-on="_listeners">
+    v-on="_listeners"
+  >
     <canvas
       ref="canvas"
       width="300"
-      height="150" />
-    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden;">
+      height="150"
+    />
+    <div
+      style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      "
+    >
       <slot />
     </div>
     <v-uni-resize-sensor
       ref="sensor"
-      @resize="_resize" />
+      @resize="_resize"
+    />
   </uni-canvas>
 </template>
 <script>
@@ -24,6 +36,9 @@ import {
   pixelRatio,
   wrapper
 } from 'uni-helpers/hidpi'
+
+import saveImage from 'uni-platform/helpers/save-image'
+import { getSameOriginUrl } from 'uni-platform/helpers/file'
 
 function resolveColor (color) {
   color = color.slice(0)
@@ -102,10 +117,7 @@ export default {
     this._images = {}
   },
   mounted () {
-    this._resize({
-      width: this.$refs.sensor.$el.offsetWidth,
-      height: this.$refs.sensor.$el.offsetHeight
-    })
+    this._resize()
   },
   beforeDestroy () {
     const canvas = this.$refs.canvas
@@ -122,7 +134,15 @@ export default {
       }
     },
     _resize () {
-      wrapper(this.$refs.canvas)
+      var canvas = this.$refs.canvas
+      if (canvas.width > 0 && canvas.height > 0) {
+        var context = canvas.getContext('2d')
+        var imageData = context.getImageData(0, 0, canvas.width, canvas.height)
+        wrapper(canvas)
+        context.putImageData(imageData, 0, 0)
+      } else {
+        wrapper(canvas)
+      }
     },
     _touchmove (event) {
       event.preventDefault()
@@ -154,36 +174,36 @@ export default {
       }
       this.preloadImage(actions)
       for (let index = 0; index < actions.length; index++) {
-        let action = actions[index]
+        const action = actions[index]
         let method = action.method
-        let data = action.data
+        const data = action.data
         if (/^set/.test(method) && method !== 'setTransform') {
-          let method1 = method[3].toLowerCase() + method.slice(4)
+          const method1 = method[3].toLowerCase() + method.slice(4)
           let color
           if (method1 === 'fillStyle' || method1 === 'strokeStyle') {
             if (data[0] === 'normal') {
               color = resolveColor(data[1])
             } else if (data[0] === 'linear') {
-              let LinearGradient = c2d.createLinearGradient(...data[1])
+              const LinearGradient = c2d.createLinearGradient(...data[1])
               data[2].forEach(function (data2) {
-                let offset = data2[0]
-                let color = resolveColor(data2[1])
+                const offset = data2[0]
+                const color = resolveColor(data2[1])
                 LinearGradient.addColorStop(offset, color)
               })
               color = LinearGradient
             } else if (data[0] === 'radial') {
-              let x = data[1][0]
-              let y = data[1][1]
-              let r = data[1][2]
-              let LinearGradient = c2d.createRadialGradient(x, y, 0, x, y, r)
+              const x = data[1][0]
+              const y = data[1][1]
+              const r = data[1][2]
+              const LinearGradient = c2d.createRadialGradient(x, y, 0, x, y, r)
               data[2].forEach(function (data2) {
-                let offset = data2[0]
-                let color = resolveColor(data2[1])
+                const offset = data2[0]
+                const color = resolveColor(data2[1])
                 LinearGradient.addColorStop(offset, color)
               })
               color = LinearGradient
             } else if (data[0] === 'pattern') {
-              let loaded = this.checkImageLoaded(data[1], actions.slice(index + 1), callbackId,
+              const loaded = this.checkImageLoaded(data[1], actions.slice(index + 1), callbackId,
                 function (image) {
                   if (image) {
                     c2d[method1] = c2d.createPattern(image, data[2])
@@ -202,24 +222,21 @@ export default {
             data.forEach(function (color_, method_) {
               c2d[_[method_]] = _[method_] === 'shadowColor' ? resolveColor(color_) : color_
             })
-          } else {
-            if (method1 === 'fontSize') {
-              c2d.font = c2d.font.replace(/\d+\.?\d*px/, data[0] + 'px')
-            } else {
-              if (method1 === 'lineDash') {
-                c2d.setLineDash(data[0])
-                c2d.lineDashOffset = data[1] || 0
-              } else {
-                if (method1 === 'textBaseline') {
-                  if (data[0] === 'normal') {
-                    data[0] = 'alphabetic'
-                  }
-                  c2d[method1] = data[0]
-                } else {
-                  c2d[method1] = data[0]
-                }
-              }
+          } else if (method1 === 'fontSize') {
+            const font = c2d.__font__ || c2d.font
+            c2d.__font__ = c2d.font = font.replace(/\d+\.?\d*px/, data[0] + 'px')
+          } else if (method1 === 'lineDash') {
+            c2d.setLineDash(data[0])
+            c2d.lineDashOffset = data[1] || 0
+          } else if (method1 === 'textBaseline') {
+            if (data[0] === 'normal') {
+              data[0] = 'alphabetic'
             }
+            c2d[method1] = data[0]
+          } else if (method1 === 'font') {
+            c2d.__font__ = c2d.font = data[0]
+          } else {
+            c2d[method1] = data[0]
           }
         } else if (method === 'fillPath' || method === 'strokePath') {
           method = method.replace(/Path/, '')
@@ -259,7 +276,7 @@ export default {
         }
       }
       if (!this.actionsWaiting && callbackId) {
-        UniViewJSBridge.publishHandler('onDrawCanvas', {
+        UniViewJSBridge.publishHandler('onCanvasMethodCallback', {
           callbackId,
           data: {
             errMsg: 'drawCanvas:ok'
@@ -268,95 +285,45 @@ export default {
       }
     },
     preloadImage: function (actions) {
-      var sefl = this
+      var self = this
       actions.forEach(function (action) {
         var method = action.method
         var data = action.data
         var src = ''
         if (method === 'drawImage') {
           src = data[0]
-          src = sefl.$getRealPath(src)
+          src = self.$getRealPath(src)
           data[0] = src
         } else if (method === 'setFillStyle' && data[0] === 'pattern') {
           src = data[1]
-          src = sefl.$getRealPath(src)
+          src = self.$getRealPath(src)
           data[1] = src
         }
-        if (src && !sefl._images[src]) {
+        if (src && !self._images[src]) {
           loadImage()
         }
         /**
          * 加载图像
          */
         function loadImage () {
-          sefl._images[src] = new Image()
-          sefl._images[src].onload = function () {
-            sefl._images[src].ready = true
-          }
-          /**
-           * 从Blob加载
-           * @param {Blob} blob
-           */
-          function loadBlob (blob) {
-            sefl._images[src].src = (window.URL || window.webkitURL).createObjectURL(blob)
-          }
-          /**
-           * 从本地文件加载
-           * @param {string} path 文件路径
-           */
-          function loadFile (path) {
-            var bitmap = new plus.nativeObj.Bitmap('bitmap' + Date.now())
-            bitmap.load(path, function () {
-              sefl._images[src].src = bitmap.toBase64Data()
-              bitmap.clear()
-            }, function () {
-              bitmap.clear()
-              console.error('preloadImage error')
-            })
-          }
-          /**
-           * 从网络加载
-           * @param {string} url 文件地址
-           */
-          function loadUrl (url) {
-            function plusDownload () {
-              plus.downloader.createDownload(url, {
-                filename: '_doc/uniapp_temp/download/'
-              }, function (d, status) {
-                if (status === 200) {
-                  loadFile(d.filename)
-                } else {
-                  sefl._images[src].src = src
-                }
-              }).start()
-            }
-            var xhr = new XMLHttpRequest()
-            xhr.open('GET', url, true)
-            xhr.responseType = 'blob'
-            xhr.onload = function () {
-              if (this.status === 200) {
-                loadBlob(this.response)
-              }
-            }
-            xhr.onerror = window.plus ? plusDownload : function () {
-              sefl._images[src].src = src
-            }
-            xhr.send()
+          const image = self._images[src] = new Image()
+          image.onload = function () {
+            image.ready = true
           }
 
-          if (window.plus && (!window.webkit || !window.webkit.messageHandlers)) {
-            sefl._images[src].src = src
-          } else {
-            // 解决 PLUS-APP（wkwebview）以及 H5 图像跨域问题（H5图像响应头需包含access-control-allow-origin）
-            if (window.plus && src.indexOf('http://') !== 0 && src.indexOf('https://') !==
-              0) {
-              loadFile(src)
-            } else if (/^data:.*,.*/.test(src)) {
-              sefl._images[src].src = src
-            } else {
-              loadUrl(src)
+          // 安卓 WebView 除本地路径无跨域问题
+          if (__PLATFORM__ === 'app-plus' && navigator.vendor === 'Google Inc.') {
+            if (src.indexOf('file://') === 0) {
+              image.crossOrigin = 'anonymous'
             }
+            image.src = src
+            return
           }
+          getSameOriginUrl(src).then(src => {
+            image.src = src
+          }).catch(() => {
+            image.src = src
+          })
         }
       })
     },
@@ -395,64 +362,75 @@ export default {
       destWidth,
       destHeight,
       hidpi = true,
+      dataType,
+      qualit = 1,
+      type = 'png',
       callbackId
     }) {
-      var imgData
-      var canvas = this.$refs.canvas
-      if (!width) {
-        width = canvas.offsetWidth - x
+      const canvas = this.$refs.canvas
+      let data
+      const maxWidth = canvas.offsetWidth - x
+      width = width ? Math.min(width, maxWidth) : maxWidth
+      const maxHeight = canvas.offsetHeight - y
+      height = height ? Math.min(height, maxHeight) : maxHeight
+      if (!hidpi) {
+        if (!destWidth && !destHeight) {
+          destWidth = Math.round(width * pixelRatio)
+          destHeight = Math.round(height * pixelRatio)
+        } else if (!destWidth) {
+          destWidth = Math.round(width / height * destHeight)
+        } else if (!destHeight) {
+          destHeight = Math.round(height / width * destWidth)
+        }
+      } else {
+        destWidth = width
+        destHeight = height
       }
-      if (!height) {
-        height = canvas.offsetHeight - y
+      const newCanvas = getTempCanvas(destWidth, destHeight)
+      const context = newCanvas.getContext('2d')
+      if (type === 'jpeg' || type === 'jpg') {
+        type = 'jpeg'
+        context.fillStyle = '#fff'
+        context.fillRect(0, 0, destWidth, destHeight)
       }
+      context.__hidpi__ = true
+      context.drawImageByCanvas(canvas, x, y, width, height, 0, 0, destWidth, destHeight, false)
+      let result
       try {
-        if (!hidpi) {
-          if (!destWidth && !destHeight) {
-            destWidth = Math.round(width * pixelRatio)
-            destHeight = Math.round(height * pixelRatio)
-          } else if (!destWidth) {
-            destWidth = Math.round(width / height * destHeight)
-          } else if (!destHeight) {
-            destHeight = Math.round(height / width * destWidth)
-          }
+        let compressed
+        if (dataType === 'base64') {
+          data = newCanvas.toDataURL(`image/${type}`, qualit)
         } else {
-          destWidth = width
-          destHeight = height
-        }
-        const newCanvas = getTempCanvas(destWidth, destHeight)
-        const context = newCanvas.getContext('2d')
-        context.__hidpi__ = true
-        context.drawImageByCanvas(canvas, x, y, width, height, 0, 0, destWidth, destHeight, false)
-        imgData = context.getImageData(0, 0, destWidth, destHeight)
-        newCanvas.height = newCanvas.width = 0
-        context.__hidpi__ = false
-      } catch (error) {
-        if (!callbackId) {
-          return
-        }
-        UniViewJSBridge.publishHandler('onCanvasMethodCallback', {
-          callbackId,
-          data: {
-            errMsg: 'canvasGetImageData:fail'
+          const imgData = context.getImageData(0, 0, destWidth, destHeight)
+          if (__PLATFORM__ === 'app-plus') {
+            const pako = require('pako')
+            data = pako.deflateRaw(imgData.data, { to: 'string' })
+            compressed = true
+          } else {
+            // fix [...]展开TypedArray在低版本手机报错的问题，使用Array.prototype.slice
+            data = Array.prototype.slice.call(imgData.data)
           }
-        }, this.$page.id)
-        return
-      }
-      if (!callbackId) {
-        return {
-          data: [...imgData.data],
+        }
+        result = {
+          errMsg: 'canvasGetImageData:ok',
+          data,
+          compressed,
           width: destWidth,
           height: destHeight
         }
+      } catch (error) {
+        result = {
+          errMsg: `canvasGetImageData:fail ${error}`
+        }
+      }
+      newCanvas.height = newCanvas.width = 0
+      context.__hidpi__ = false
+      if (!callbackId) {
+        return result
       } else {
         UniViewJSBridge.publishHandler('onCanvasMethodCallback', {
           callbackId,
-          data: {
-            errMsg: 'canvasGetImageData:ok',
-            data: [...imgData.data],
-            width: destWidth,
-            height: destHeight
-          }
+          data: result
         }, this.$page.id)
       }
     },
@@ -462,6 +440,7 @@ export default {
       y,
       width,
       height,
+      compressed,
       callbackId
     }) {
       try {
@@ -470,6 +449,10 @@ export default {
         }
         const canvas = getTempCanvas(width, height)
         const context = canvas.getContext('2d')
+        if (__PLATFORM__ === 'app-plus' && compressed) {
+          const pako = require('pako')
+          data = pako.inflateRaw(data)
+        }
         context.putImageData(new ImageData(new Uint8ClampedArray(data), width, height), 0, 0)
         this.$refs.canvas.getContext('2d').drawImage(canvas, x, y, width, height)
         canvas.height = canvas.width = 0
@@ -489,74 +472,52 @@ export default {
         }
       }, this.$page.id)
     },
-    getDataUrl ({
+    toTempFilePath ({
       x = 0,
       y = 0,
       width,
       height,
       destWidth,
       destHeight,
-      hidpi = true,
       fileType,
       qualit,
+      dirname,
       callbackId
     }) {
-      let res = this.getImageData({
+      const res = this.getImageData({
         x,
         y,
         width,
         height,
         destWidth,
         destHeight,
-        hidpi
+        hidpi: false,
+        dataType: 'base64',
+        type: fileType,
+        qualit
       })
       if (!res.data || !res.data.length) {
         UniViewJSBridge.publishHandler('onCanvasMethodCallback', {
           callbackId,
           data: {
-            errMsg: 'canvasGetDataUrl:fail'
+            errMsg: res.errMsg.replace('canvasPutImageData', 'toTempFilePath')
           }
         }, this.$page.id)
         return
       }
-      let imgData
-      try {
-        imgData = new ImageData(new Uint8ClampedArray(res.data), res.width, res.height)
-      } catch (error) {
-        UniViewJSBridge.publishHandler('onCanvasMethodCallback', {
-          callbackId,
-          data: {
-            errMsg: 'canvasGetDataUrl:fail'
-          }
-        }, this.$page.id)
-        return
-      }
-      destWidth = res.width
-      destHeight = res.height
-      const canvas = getTempCanvas(destWidth, destHeight)
-      const c2d = canvas.getContext('2d')
-      c2d.putImageData(imgData, 0, 0)
-      let base64 = canvas.toDataURL('image/png')
-      canvas.height = canvas.width = 0
-      const img = new Image()
-      img.onload = () => {
-        const canvas = getTempCanvas(destWidth, destHeight)
-        if (fileType === 'jpeg') {
-          c2d.fillStyle = '#fff'
-          c2d.fillRect(0, 0, destWidth, destHeight)
+      saveImage(res.data, dirname, (error, tempFilePath) => {
+        let errMsg = `toTempFilePath:${error ? 'fail' : 'ok'}`
+        if (error) {
+          errMsg += ` ${error.message}`
         }
-        c2d.drawImage(img, 0, 0)
-        base64 = canvas.toDataURL(`image/${fileType}`, qualit)
-        canvas.height = canvas.width = 0
         UniViewJSBridge.publishHandler('onCanvasMethodCallback', {
           callbackId,
           data: {
-            errMsg: 'canvasGetDataUrl:ok',
-            base64: base64
+            errMsg,
+            tempFilePath: tempFilePath
           }
         }, this.$page.id)
-      }
-      img.src = base64
+      })
     }
   }
 }

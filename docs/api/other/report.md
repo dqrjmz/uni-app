@@ -2,7 +2,7 @@
 
 从uni-app 2.2.3起，支持uni统计。一张报表，掌握全端数据。业务介绍详见[https://tongji.dcloud.net.cn](https://tongji.dcloud.net.cn)
 
-自定义事件是统计中不可获取的功能。开发者可通过本API自定义上报统计数据，如统计登录、注册、点击某个按钮，我们都可以称之为自定义事件。
+自定义事件是统计中不可或缺的功能。开发者可通过本API自定义上报统计数据，如统计登录、注册、点击某个按钮，我们都可以称之为自定义事件。
 
 ##### uni.report( eventName , options)
 
@@ -92,7 +92,7 @@ uni.report('search',{
 ##### 百度小程序平台：
 - 数据分析：[swan.reportAnalytics](https://smartprogram.baidu.com/docs/develop/api/data/#swan-reportAnalytics/)
 
-##### 头条小程序平台：
+##### 字节跳动小程序平台：
 - [reportAnalytics](https://developer.toutiao.com/dev/cn/mini-app/develop/open-capacity/data-analysis/reportanalytics)
 
 ##### QQ小程序平台：

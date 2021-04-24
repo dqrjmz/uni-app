@@ -2,10 +2,6 @@ import Vue from 'vue'
 
 // 单例，IIFE
 const getEmitter = (function () {
-  if (typeof getUniEmitter === 'function') {
-    /* eslint-disable no-undef */
-    return getUniEmitter
-  }
   let Emitter
   return function getUniEmitter () {
     if (!Emitter) {

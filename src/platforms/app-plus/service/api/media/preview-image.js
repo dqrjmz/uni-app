@@ -6,7 +6,11 @@ import {
   publish
 } from '../../bridge'
 
-export function previewImage ({
+import {
+  t
+} from 'uni-core/helpers/i18n'
+
+export function previewImagePlus ({
   current = 0,
   background = '#000000',
   indicator = 'number',
@@ -33,9 +37,9 @@ export function previewImage ({
       let itemList = []
       let itemColor = ''
       let title = ''
-      let hasLongPressActions = longPressActions && longPressActions.callbackId
+      const hasLongPressActions = longPressActions && longPressActions.callbackId
       if (!hasLongPressActions) {
-        itemList = ['保存相册']
+        itemList = [t('uni.previewImage.button.save')]
         itemColor = '#000000'
         title = ''
       } else {
@@ -49,14 +53,11 @@ export function previewImage ({
           title: item,
           color: itemColor
         })),
-        cancel: '取消'
+        cancel: t('uni.previewImage.cancel')
       }
       if (title) {
         options.title = title
       }
-      // if (plus.os.name === 'iOS') {
-      //   options.cancel = '取消'
-      // }
       plus.nativeUI.actionSheet(options, (e) => {
         if (e.index > 0) {
           if (hasLongPressActions) {
@@ -68,7 +69,9 @@ export function previewImage ({
             return
           }
           plus.gallery.save(res.url, function (GallerySaveEvent) {
-            plus.nativeUI.toast('保存图片到相册成功')
+            plus.nativeUI.toast(t('uni.previewImage.save.success'))
+          }, function () {
+            plus.nativeUI.toast(t('uni.previewImage.save.fail'))
           })
         } else if (hasLongPressActions) {
           publish(longPressActions.callbackId, {

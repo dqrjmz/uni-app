@@ -27,6 +27,7 @@ import {
 import createApp from './wrapper/create-app'
 import createPage from './wrapper/create-page'
 import createComponent from './wrapper/create-component'
+import createSubpackageApp from './wrapper/create-subpackage-app'
 
 // 将todo api设置为false
 todos.forEach(todoApi => {
@@ -50,7 +51,7 @@ if (typeof Proxy !== 'undefined' && __PLATFORM__ !== 'app-plus') {
    */
   uni = new Proxy({}, {
     get (target, name) {
-      if (target[name]) {
+      if (hasOwn(target, name)) {
         return target[name]
       }
       if (baseApi[name]) {
@@ -97,6 +98,9 @@ if (typeof Proxy !== 'undefined' && __PLATFORM__ !== 'app-plus') {
     })
   }
 
+  /**
+   * 添加观察者模式的api
+   */
   Object.keys(eventApi).forEach(name => {
     uni[name] = eventApi[name]
   })
@@ -123,11 +127,13 @@ if (__PLATFORM__ === 'app-plus') {
 __GLOBAL__.createApp = createApp
 __GLOBAL__.createPage = createPage
 __GLOBAL__.createComponent = createComponent
+__GLOBAL__.createSubpackageApp = createSubpackageApp
 
 export {
   createApp,
   createPage,
-  createComponent
+  createComponent,
+  createSubpackageApp
 }
 
 export default uni

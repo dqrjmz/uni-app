@@ -7,7 +7,7 @@
 |:-|:-|:-|:-|:-|
 |nodes|Array / String|[]|节点列表 / HTML String||
 |[space](https://developers.weixin.qq.com/miniprogram/dev/component/rich-text.html)|string||显示连续空格|微信基础库2.4.1+、QQ小程序|
-|selectable|Boolean|false|富文本是否可以长按选中，可用于复制，粘贴等场景|百度APP 11.10+|
+|selectable|Boolean|false|富文本是否可以长按选中，可用于复制，粘贴等场景|百度小程序（真机）|
 
 **注意**
 
@@ -89,8 +89,11 @@
 |tr||
 |ul|&nbsp;|
 
-**示例** [查看演示](https://uniapp.dcloud.io/h5/pages/component/rich-text/rich-text)
+**示例** [查看演示](https://hellouniapp.dcloud.net.cn/pages/component/rich-text/rich-text)
+
+以下示例代码，来自于[hello uni-app项目](https://github.com/dcloudio/hello-uniapp)，推荐使用HBuilderX，新建uni-app项目，选择hello uni-app模板，可直接体验完整示例。
 ```html
+<!-- 本示例未包含完整css，获取外链css请参考上文，在hello uni-app项目中查看 -->
 <template>
 	<view class="content">
 		<page-head :title="title"></page-head>
@@ -128,17 +131,18 @@ export default {
                     text: 'Hello&nbsp;uni-app!'
                 }]
             }],
-            strings: '<div style="text-align:center;"><img src="https://img-cdn-qiniu.dcloud.net.cn/uniapp/images/uni@2x.png"/></div>'
+            strings: '<div style="text-align:center;"><img src="https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/d8590190-4f28-11eb-b680-7980c8a877b8.png"/></div>'
         }
     }
 }
 ```
-![uniapp](https://img-cdn-qiniu.dcloud.net.cn/uniapp/doc/img/rich-text.png)
+
+![uniapp](https://bjetxgzv.cdn.bspapp.com/VKCEYUGU-uni-app-doc/ef5ba530-4f2f-11eb-bdc1-8bd33eb6adaa.png)
 
 **Tips**
 
 - nodes 不推荐使用 String 类型，性能会有所下降。
-- rich-text 组件内屏蔽所有节点的事件。所以如果内容中有链接、图片需要点击，则不能使用rich-text，此时可在[uni-app插件市场](https://ext.dcloud.net.cn/)搜索uparse插件使用。app-nvue的rich-text组件支持链接图片点击，且nvue下不能使用uparse等插件。
+- rich-text 组件内屏蔽所有节点的事件。所以如果内容中有链接、图片需要点击，则不能使用rich-text，此时可在[uni-app插件市场](https://ext.dcloud.net.cn/search?q=parse)搜索parse插件使用。app-nvue的rich-text组件支持链接图片点击。
 - attrs 属性不支持 id ，支持 class 。
 - name 属性大小写不敏感。
 - 如果使用了不受信任的HTML节点，该节点及其所有子节点将会被移除。

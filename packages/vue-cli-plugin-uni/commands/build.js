@@ -1,7 +1,8 @@
 const path = require('path')
 
 const {
-  runByHBuilderX
+  runByHBuilderX,
+  isInHBuilderX
 } = require('@dcloudio/uni-cli-shared')
 
 const defaults = {
@@ -17,14 +18,21 @@ const modifyConfig = (config, fn) => {
     fn(config)
   }
 }
-
+/**
+ * 
+ * @param {*} api PluginApi 
+ * @param {*} options vue.config.js 
+ */
 module.exports = (api, options) => {
   api.registerCommand('uni-build', {
     description: 'build for production',
     usage: 'vue-cli-service uni-build [options]',
     options: {
-      '--watch': `watch for changes`,
-      '--minimize': `Tell webpack to minimize the bundle using the TerserPlugin.`
+      '--watch': 'watch for changes',
+      '--minimize': 'Tell webpack to minimize the bundle using the TerserPlugin.',
+      '--auto-host': 'specify automator host',
+      '--auto-port': 'specify automator port',
+      '--subpackage': 'specify subpackage'
     }
   }, async (args) => {
     for (const key in defaults) {
@@ -32,6 +40,13 @@ module.exports = (api, options) => {
         args[key] = defaults[key]
       }
     }
+
+    const platforms = ['mp-weixin', 'mp-qq', 'mp-baidu', 'mp-alipay', 'mp-toutiao']
+    if (args.subpackage && platforms.includes(process.env.UNI_PLATFORM)) {
+      process.env.UNI_SUBPACKGE = args.subpackage
+    }
+
+    require('./util').initAutomator(args)
 
     args.entry = args.entry || args._[0]
 
@@ -64,6 +79,9 @@ function getWebpackConfig (api, args, options) {
     })
   } else {
     modifyConfig(webpackConfig, config => {
+      if (!config.optimization) {
+        config.optimization = {}
+      }
       config.optimization.namedModules = false
     })
   }
@@ -80,8 +98,8 @@ function getWebpackConfigs (api, args, options) {
   }
   options.publicPath = '/'
   const serviceWebpackConfig = getWebpackConfig(api, args, options)
-  delete pluginOptions['uni-app-plus']['service']
-  pluginOptions['uni-app-plus']['view'] = true
+  delete pluginOptions['uni-app-plus'].service
+  pluginOptions['uni-app-plus'].view = true
   options.publicPath = './'
   const viewWebpackConfig = getWebpackConfig(api, args, options)
   return [serviceWebpackConfig, viewWebpackConfig]
@@ -104,7 +122,7 @@ async function build (args, api, options) {
   log()
 
   if (!runByHBuilderX && !runByAliIde) {
-    logWithSpinner(`开始编译当前项目至 ${process.env.UNI_PLATFORM} 平台...`)
+    logWithSpinner(`开始编译当前项目至 ${process.env.UNI_SUB_PLATFORM || process.env.UNI_PLATFORM} 平台...`)
   }
 
   const targetDir = api.resolve(options.outputDir)
@@ -121,11 +139,15 @@ async function build (args, api, options) {
     await fs.emptyDir(targetDir)
   }
 
-  if (process.env.UNI_USING_NATIVE) {
+  if (process.env.UNI_USING_NATIVE || process.env.UNI_USING_V3_NATIVE) {
     webpackConfigs.length = 0
   }
 
-  if (process.env.UNI_USING_NATIVE || (process.UNI_NVUE_ENTRY && Object.keys(process.UNI_NVUE_ENTRY).length)) {
+  if (
+    process.env.UNI_USING_NATIVE ||
+    process.env.UNI_USING_V3_NATIVE ||
+    (process.UNI_NVUE_ENTRY && Object.keys(process.UNI_NVUE_ENTRY).length)
+  ) {
     webpackConfigs.push(require('@dcloudio/vue-cli-plugin-hbuilderx/build/webpack.nvue.conf.js')(process.UNI_NVUE_ENTRY))
   }
 
@@ -140,10 +162,10 @@ async function build (args, api, options) {
 
       if (stats.hasErrors()) {
         /* eslint-disable prefer-promise-reject-errors */
-        return reject(`Build failed with errors.`)
+        return reject('Build failed with errors.')
       }
 
-      if (!args.silent && process.env.UNI_PLATFORM !== 'app-plus') {
+      if (!args.silent && (process.env.UNI_PLATFORM !== 'app-plus' || process.env.UNI_AUTOMATOR_WS_ENDPOINT)) {
         const targetDirShort = path.relative(
           api.service.context,
           process.env.UNI_OUTPUT_DIR
@@ -153,6 +175,12 @@ async function build (args, api, options) {
           const dirMsg = runByHBuilderX ? ''
             : `The ${chalk.cyan(targetDirShort)} directory is ready to be deployed.`
           done(`Build complete. ${dirMsg}`)
+
+          if (process.env.UNI_PLATFORM === 'h5' && !isInHBuilderX) {
+            console.log()
+            console.log('欢迎将H5站部署到uniCloud前端网页托管平台，高速、免费、安全、省心，详见：')
+            console.log('https://uniapp.dcloud.io/uniCloud/hosting')
+          }
         } else {
           const dirMsg = runByHBuilderX ? '' : `The ${chalk.cyan(targetDirShort)} directory is ready. `
           done(`Build complete. ${dirMsg}Watching for changes...`)

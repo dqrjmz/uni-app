@@ -6,13 +6,15 @@
     @touchend="_hoverTouchEnd"
     @touchcancel="_hoverTouchCancel"
     @click="_onClick"
-    v-on="$listeners">
+    v-on="$listeners"
+  >
     <slot />
   </uni-navigator>
   <uni-navigator
     v-else
     @click="_onClick"
-    v-on="$listeners">
+    v-on="$listeners"
+  >
     <slot />
   </uni-navigator>
 </template>
@@ -53,13 +55,18 @@ export default {
     hoverStayTime: {
       type: [Number, String],
       default: 600
+    },
+    exists: {
+      type: String,
+      default: ''
     }
   },
 
   methods: {
     _onClick ($event) {
       if (this.openType !== 'navigateBack' && !this.url) {
-        console.error(`<navigator/> should have url attribute when using navigateTo, redirectTo, reLaunch or switchTab`)
+        console.error(
+          '<navigator/> should have url attribute when using navigateTo, redirectTo, reLaunch or switchTab')
         return
       }
 
@@ -71,7 +78,8 @@ export default {
           break
         case 'redirect':
           uni.redirectTo({
-            url: this.url
+            url: this.url,
+            exists: this.exists
           })
           break
         case 'switchTab':
@@ -97,18 +105,19 @@ export default {
 }
 </script>
 <style>
-  .navigator-hover {
-    background-color: rgba(0, 0, 0, 0.1);
-    opacity: 0.7;
-  }
-
   uni-navigator {
     height: auto;
     width: auto;
     display: block;
+    cursor: pointer;
   }
 
   uni-navigator[hidden] {
     display: none;
+  }
+
+  .navigator-hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    opacity: 0.7;
   }
 </style>

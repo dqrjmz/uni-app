@@ -1,7 +1,6 @@
 export default [
   'saveImageToPhotosAlbum',
   'getRecorderManager',
-  'getBackgroundAudioManager',
   'saveVideoToPhotosAlbum',
   'createCameraContext',
   'createLivePlayerContext',
@@ -9,7 +8,6 @@ export default [
   'getSavedFileList',
   'getSavedFileInfo',
   'removeSavedFileInfo',
-  'getFileInfo',
   'onMemoryWarning',
   'onGyroscopeChange',
   'startGyroscope',

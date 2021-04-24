@@ -17,14 +17,14 @@ const {
 
 const appVuePath = path.resolve(process.env.UNI_INPUT_DIR, 'App.vue')
 
-function genStyleRequest(style, i, stringifyRequest) {
+function genStyleRequest (style, i, stringifyRequest) {
   const src = style.src || normalizePath(appVuePath)
   const attrsQuery = attrsToQuery(style.attrs, 'css')
   const query = `?vue&type=style&index=${i}${attrsQuery}`
   return stringifyRequest(src + query)
 }
 
-function getAppStyleCode(stringifyRequest) {
+function getAppStyleCode (stringifyRequest) {
   if (!process.env.UNI_USING_NVUE_COMPILER) {
     return ''
   }
@@ -37,17 +37,17 @@ function getAppStyleCode(stringifyRequest) {
   } catch (e) {}
   styles.forEach((style, index) => {
     code = code +
-      `Vue.prototype.__merge_style && Vue.prototype.__merge_style(require(${genStyleRequest(style,index,stringifyRequest)}).default,Vue.prototype.__$appStyle__)\n`
+      `Vue.prototype.__merge_style && Vue.prototype.__merge_style(require(${genStyleRequest(style, index, stringifyRequest)}).default,Vue.prototype.__$appStyle__)\n`
   })
   return code
 }
 
-module.exports = function(content) {
+module.exports = function (content, map) {
   this.cacheable && this.cacheable()
 
   const loaderContext = this
 
-  const statCode = process.env.UNI_USING_STAT ? `import '@dcloudio/uni-stat';` : ''
+  const statCode = process.env.UNI_USING_STAT ? 'import \'@dcloudio/uni-stat\';' : ''
 
   if (this.resourceQuery) {
     const params = loaderUtils.parseQuery(this.resourceQuery)
@@ -59,6 +59,20 @@ module.exports = function(content) {
         ${statCode}
         import 'uni-app-style'
         import App from './${normalizePath(params.page)}.nvue?mpType=page'
+        if (typeof Promise !== 'undefined' && !Promise.prototype.finally) {
+          Promise.prototype.finally = function(callback) {
+            var promise = this.constructor
+            return this.then(function(value) {
+              return promise.resolve(callback()).then(function() {
+                return value
+              })
+            }, function(reason) {
+              return promise.resolve(callback()).then(function() {
+                throw reason
+              })
+            })
+          }
+        }
         App.mpType = 'page'
         App.route = '${params.page}'
         App.el = '#root'
@@ -69,7 +83,8 @@ module.exports = function(content) {
         return `${getAppStyleCode(stringifyRequest)}`
       }
     }
-
   }
-  return statCode + content
+  const automatorCode = process.env.UNI_AUTOMATOR_WS_ENDPOINT ? 'import \'@dcloudio/uni-app-plus/dist/automator\';'
+    : ''
+  return automatorCode + statCode + content
 }

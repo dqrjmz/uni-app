@@ -2,7 +2,8 @@
   <uni-video v-on="$listeners">
     <div
       ref="container"
-      class="uni-video-container" />
+      class="uni-video-container"
+    />
     <div class="uni-video-slot">
       <slot />
     </div>
@@ -17,6 +18,7 @@ import native from '../../mixins/native'
 const methods = [
   'play',
   'pause',
+  'stop',
   'seek',
   'sendDanmu',
   'playbackRate',
@@ -30,6 +32,7 @@ const events = [
   'ended',
   'timeupdate',
   'fullscreenchange',
+  'fullscreenclick',
   'waiting',
   'error'
 ]
@@ -53,7 +56,11 @@ const attrs = [
   'pageGesture',
   'enableProgressGesture',
   'showPlayBtn',
-  'showCenterPlayBtn'
+  'showCenterPlayBtn',
+  'showLoading',
+  'codec',
+  'httpCache',
+  'playStrategy'
 ]
 
 export default {
@@ -141,6 +148,22 @@ export default {
     showCenterPlayBtn: {
       type: [Boolean, String],
       default: true
+    },
+    showLoading: {
+      type: [Boolean, String],
+      default: true
+    },
+    codec: {
+      type: String,
+      default: 'hardware'
+    },
+    httpCache: {
+      type: [Boolean, String],
+      default: false
+    },
+    playStrategy: {
+      type: [Number, String],
+      default: 0
     }
   },
   computed: {
@@ -167,11 +190,18 @@ export default {
       this.video && this.video.setStyles(this.position)
     }, { deep: true })
     this.$watch('hidden', (val) => {
-      this.video && this.video[val ? 'hide' : 'show']()
+      const video = this.video
+      if (video) {
+        video[val ? 'hide' : 'show']()
+        // iOS 隐藏状态设置 setStyles 不生效
+        if (!val) {
+          video.setStyles(this.position)
+        }
+      }
     })
     events.forEach(key => {
-      video.addEventListener(key, (data = {}) => {
-        this.$trigger(key, {}, data)
+      video.addEventListener(key, (e) => {
+        this.$trigger(key, {}, { ...e.detail })
       })
     })
   },

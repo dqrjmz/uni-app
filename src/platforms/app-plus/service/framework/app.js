@@ -5,8 +5,14 @@ import {
 import initOn from 'uni-core/service/bridge/on'
 
 import {
-  NETWORK_TYPES
+  NETWORK_TYPES,
+  TEMP_PATH,
+  TEMP_PATH_BASE
 } from '../api/constants'
+
+import {
+  initEntryPage
+} from './config'
 
 import {
   getCurrentPages
@@ -19,7 +25,8 @@ import {
 import tabBar from './tab-bar'
 
 import {
-  publish
+  publish,
+  requireNativePlugin
 } from '../bridge'
 
 import {
@@ -50,17 +57,25 @@ export function getApp ({
     return defaultApp
   }
   console.error(
-    '[warn]: getApp() 操作失败，v3模式加速了首页 nvue 的启动速度，当在首页 nvue 中使用 getApp() 不一定可以获取真正的 App 对象。详情请参考：https://uniapp.dcloud.io/collocation/frame/window?id=getapp'
+    '[warn]: getApp() failed. Learn more: https://uniapp.dcloud.io/collocation/frame/window?id=getapp.'
   )
 }
 
 function initGlobalListeners () {
+  const globalEvent = requireNativePlugin('globalEvent')
   const emit = UniServiceJSBridge.emit
 
-  // splashclosed 时开始监听 backbutton
-  plus.globalEvent.addEventListener('splashclosed', () => {
+  if (weex.config.preload) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[uni-app] preload.addEventListener.backbutton')
+    }
     plus.key.addEventListener('backbutton', backbuttonListener)
-  })
+  } else {
+    // splashclosed 时开始监听 backbutton
+    plus.globalEvent.addEventListener('splashclosed', () => {
+      plus.key.addEventListener('backbutton', backbuttonListener)
+    })
+  }
 
   plus.globalEvent.addEventListener('pause', () => {
     emit('onAppEnterBackground')
@@ -71,7 +86,7 @@ function initGlobalListeners () {
   })
 
   plus.globalEvent.addEventListener('netchange', () => {
-    const networkType = NETWORK_TYPES[plus.networkinfo.getCurrentType()]
+    const networkType = NETWORK_TYPES[plus.networkinfo.getCurrentType()] || 'unknown'
     publish('onNetworkStatusChange', {
       isConnected: networkType !== 'none',
       networkType
@@ -82,6 +97,24 @@ function initGlobalListeners () {
     publish('onKeyboardHeightChange', {
       height: event.height
     })
+  })
+
+  globalEvent.addEventListener('uistylechange', function (event) {
+    const args = {
+      theme: event.uistyle
+    }
+
+    callAppHook(appCtx, 'onThemeChange', args)
+    publish('onThemeChange', args)
+
+    // 兼容旧版本 API
+    publish('onUIStyleChange', {
+      style: event.uistyle
+    })
+  })
+
+  globalEvent.addEventListener('uniMPNativeEvent', function (event) {
+    publish('uniMPNativeEvent', event)
   })
 
   plus.globalEvent.addEventListener('plusMessage', onPlusMessage)
@@ -112,17 +145,13 @@ function initAppLaunch (appVm) {
 }
 
 function initTabBar () {
-  if (!__uniConfig.tabBar || !__uniConfig.tabBar.list.length) {
+  if (!__uniConfig.tabBar || !__uniConfig.tabBar.list || !__uniConfig.tabBar.list.length) {
     return
   }
 
   __uniConfig.tabBar.selected = 0
 
   const selected = __uniConfig.tabBar.list.findIndex(page => page.pagePath === __uniConfig.entryPagePath)
-  if (selected !== -1) {
-    // 取当前 tab 索引值
-    __uniConfig.tabBar.selected = selected
-  }
 
   tabBar.init(__uniConfig.tabBar, (item, index) => {
     uni.switchTab({
@@ -138,49 +167,45 @@ function initTabBar () {
       }
     })
   })
+
+  if (selected !== -1) {
+    // 取当前 tab 索引值
+    __uniConfig.tabBar.selected = selected
+    selected !== 0 && tabBar.switchTab(__uniConfig.entryPagePath)
+  }
 }
 
-function initEntryPage () {
-  const argsJsonStr = plus.runtime.arguments
-  if (!argsJsonStr) {
-    return
+export function clearTempFile () {
+  // 统一处理路径
+  function getPath (path) {
+    path = path.replace(/\/$/, '')
+    return path.indexOf('_') === 0 ? plus.io.convertLocalFileSystemURL(path) : path
   }
-
-  let entryPagePath
-  let entryPageQuery
-
-  try {
-    const args = JSON.parse(argsJsonStr)
-    entryPagePath = args.path || args.pathName
-    entryPageQuery = (args.query ? ('?' + args.query) : '')
-  } catch (e) {}
-  if (!entryPagePath || entryPagePath === __uniConfig.entryPagePath) {
-    return
-  }
-
-  const entryRoute = '/' + entryPagePath
-  const routeOptions = __uniRoutes.find(route => route.path === entryRoute)
-  if (!routeOptions) {
-    return
-  }
-
-  if (!routeOptions.meta.isTabBar) {
-    __uniConfig.realEntryPagePath = __uniConfig.realEntryPagePath || __uniConfig.entryPagePath
-  }
-
-  __uniConfig.entryPagePath = entryPagePath
-  __uniConfig.entryPageQuery = entryPageQuery
-
-  if (process.env.NODE_ENV !== 'production') {
-    console.log(`[uni-app] entryPagePath(${entryPagePath + entryPageQuery})`)
-  }
+  var basePath = getPath(TEMP_PATH_BASE)
+  var tempPath = getPath(TEMP_PATH)
+  // 获取父目录
+  var dirPath = tempPath.split('/')
+  dirPath.pop()
+  dirPath = dirPath.join('/')
+  plus.io.resolveLocalFileSystemURL(plus.io.convertAbsoluteFileSystem(dirPath), entry => {
+    var reader = entry.createReader()
+    reader.readEntries(function (entries) {
+      if (entries && entries.length) {
+        entries.forEach(function (entry) {
+          if (entry.isDirectory && entry.fullPath.indexOf(basePath) === 0 && entry.fullPath
+            .indexOf(tempPath) !== 0) {
+            entry.removeRecursively()
+          }
+        })
+      }
+    })
+  })
 }
 
 export function registerApp (appVm) {
   if (process.env.NODE_ENV !== 'production') {
-    console.log(`[uni-app] registerApp`)
+    console.log('[uni-app] registerApp')
   }
-
   appCtx = appVm
   appCtx.$vm = appVm
 
@@ -204,6 +229,9 @@ export function registerApp (appVm) {
   initSubscribeHandlers()
 
   initAppLaunch(appVm)
+
+  // 10s后清理临时文件
+  setTimeout(clearTempFile, 10000)
 
   __uniConfig.ready = true
 

@@ -3,7 +3,7 @@
 
 **平台差异说明**
 
-|App|H5|微信小程序|支付宝小程序|百度小程序|头条小程序|QQ小程序|
+|App|H5|微信小程序|支付宝小程序|百度小程序|字节跳动小程序|QQ小程序|
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 |√|x|√|x|√|√|√|
 
@@ -12,8 +12,8 @@
 |方法|参数|说明|平台差异说明|
 |:-|:-|:-|:-|
 |start|options|开始录音||
-|pause||暂停录音||
-|resume||继续录音||
+|pause||暂停录音|App 暂不支持|
+|resume||继续录音|App 暂不支持|
 |stop||停止录音||
 |onStart|callback|录音开始事件||
 |onPause|callback|录音暂停事件||
@@ -29,7 +29,7 @@
 |sampleRate|Number|否|采样率，有效值 8000/16000/44100|
 |numberOfChannels|Number|否|录音通道数，有效值 1/2|
 |encodeBitRate|Number|否|编码码率，有效值见下表格|
-|format|String|否|音频格式，有效值 aac/mp3|
+|format|String|否|音频格式，有效值 aac/mp3/wav/PCM|
 |frameSize|String|否|指定帧大小，单位 KB。传入 frameSize 后，每录制指定帧大小的内容后，会回调录制的文件内容，不指定则不会回调。暂仅支持 mp3 格式。|
 
 其中，采样率和码率有一定要求，具体有效值如下：
@@ -89,9 +89,11 @@ const innerAudioContext = uni.createInnerAudioContext();
 innerAudioContext.autoplay = true;
 
 export default {
-	data: {
-		text: 'uni-app',
-		voicePath: ''
+	data() {
+		return {
+			text: 'uni-app',
+			voicePath: ''
+		}
 	},
 	onLoad() {
 		let self = this;

@@ -127,12 +127,15 @@ function processMemberProperty (node, state) {
     if (t.isNumericLiteral(property)) {
       node.property = t.identifier('__$n' + property.value)
     } else if (!t.isStringLiteral(property)) {
-      if (!state.options.hasOwnProperty('__m__')) {
+      if (!hasOwn(state.options, '__m__')) {
         state.options.__m__ = 0
         state.options.replaceCodes = {}
       }
       const identifier = '__$m' + (state.options.__m__++) + '__'
       state.options.replaceCodes[identifier] = `'+${genCode(property, true)}+'`
+      if (state.computedProperty) {
+        state.computedProperty[identifier] = property
+      }
       node.property = t.identifier(identifier)
     }
     node.computed = false
@@ -173,10 +176,14 @@ function processMemberExpression (element, state) {
 }
 
 function hasOwn (obj, key) {
-  return hasOwnProperty.call(obj, key)
+  return Object.prototype.hasOwnProperty.call(obj, key)
 }
 
-const tags = require('../../uni-cli-shared/lib/tags')
+const tags = require('@dcloudio/uni-cli-shared/lib/tags')
+
+const {
+  isBuiltInComponent
+} = require('@dcloudio/uni-cli-shared/lib/pages')
 
 const {
   getTagName
@@ -193,7 +200,7 @@ function isComponent (tagName) {
   }
   // mp-weixin 底层支持 page-meta,navigation-bar
   if (process.env.UNI_PLATFORM === 'mp-weixin') {
-    if (tagName === 'page-meta' || tagName === 'navigation-bar') {
+    if (isBuiltInComponent(tagName)) {
       return false
     }
   }
@@ -210,7 +217,21 @@ function makeMap (str, expectsLowerCase) {
     ? val => map[val.toLowerCase()]
     : val => map[val]
 }
+
+/**
+ * 微信、QQ小程序模板支持的简单类型
+ * @param {*} node
+ */
+function isSimpleObjectExpression (node) {
+  return t.isObjectExpression(node) && node.properties.length && !node.properties.find(({
+    key,
+    value
+  }) => !t.isIdentifier(key) || !(t.isIdentifier(value) || t.isStringLiteral(value) || t.isBooleanLiteral(value) ||
+    t.isNumericLiteral(value) || t.isNullLiteral(value)))
+}
+
 module.exports = {
+  hasOwn,
   isUnaryTag: makeMap(
     'image,area,base,br,col,embed,frame,hr,img,input,isindex,keygen,' +
     'link,meta,param,source,track,wbr'
@@ -238,5 +259,6 @@ module.exports = {
     return str
   }),
   processMemberExpression,
-  getForIndexIdentifier
+  getForIndexIdentifier,
+  isSimpleObjectExpression
 }

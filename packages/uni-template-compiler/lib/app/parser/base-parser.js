@@ -1,6 +1,7 @@
 const {
   ID,
   C_IS,
+  C_REF,
   V_IF,
   V_FOR,
   V_ELSE_IF,
@@ -8,6 +9,12 @@ const {
 } = require('../util')
 
 const parseTextExpr = require('./text-parser')
+
+function parseRef (el, genVar) {
+  if (el.ref && isVar(el.ref)) {
+    el.ref = genVar(C_REF, el.ref)
+  }
+}
 
 function parseIs (el, genVar) {
   if (!el.component) {
@@ -18,6 +25,10 @@ function parseIs (el, genVar) {
   }
 }
 
+function isProcessed (exp) {
+  return String(exp).indexOf('_$') === 0
+}
+// 当根节点是由if,elseif,else组成，会调用多次parseIf来解析root
 function parseIf (el, createGenVar, isScopedSlot) {
   if (!el.if) {
     return
@@ -26,11 +37,13 @@ function parseIf (el, createGenVar, isScopedSlot) {
     isScopedSlot = false
   }
   el.ifConditions.forEach(con => {
-    if (isVar(con.exp)) {
+    if (!isProcessed(con.exp) && isVar(con.exp)) {
       con.exp = createGenVar(con.block.attrsMap[ID], isScopedSlot)(con.block.elseif ? V_ELSE_IF : V_IF, con.exp)
     }
   })
-  el.if = createGenVar(el.attrsMap[ID], isScopedSlot)(V_IF, el.if)
+  if (!isProcessed(el.if)) {
+    el.if = createGenVar(el.attrsMap[ID], isScopedSlot)(V_IF, el.if)
+  }
 }
 
 function parseFor (el, createGenVar, isScopedSlot, fill = false) {
@@ -92,6 +105,7 @@ function parseText (el, parent, state) {
 
 module.exports = {
   parseIs,
+  parseRef,
   parseIf,
   parseFor,
   parseText,

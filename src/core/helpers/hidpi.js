@@ -1,3 +1,8 @@
+import {
+  hasOwn
+}
+  from 'uni-shared'
+
 export const pixelRatio = (function () {
   const canvas = document.createElement('canvas')
   canvas.height = canvas.width = 0
@@ -12,29 +17,29 @@ export const pixelRatio = (function () {
 })()
 
 const forEach = function (obj, func) {
-  for (let key in obj) {
-    if (obj.hasOwnProperty(key)) {
+  for (const key in obj) {
+    if (hasOwn(obj, key)) {
       func(obj[key], key)
     }
   }
 }
 const ratioArgs = {
-  'fillRect': 'all',
-  'clearRect': 'all',
-  'strokeRect': 'all',
-  'moveTo': 'all',
-  'lineTo': 'all',
-  'arc': [0, 1, 2],
-  'arcTo': 'all',
-  'bezierCurveTo': 'all',
-  'isPointinPath': 'all',
-  'isPointinStroke': 'all',
-  'quadraticCurveTo': 'all',
-  'rect': 'all',
-  'translate': 'all',
-  'createRadialGradient': 'all',
-  'createLinearGradient': 'all',
-  'setTransform': [4, 5]
+  fillRect: 'all',
+  clearRect: 'all',
+  strokeRect: 'all',
+  moveTo: 'all',
+  lineTo: 'all',
+  arc: [0, 1, 2],
+  arcTo: 'all',
+  bezierCurveTo: 'all',
+  isPointinPath: 'all',
+  isPointinStroke: 'all',
+  quadraticCurveTo: 'all',
+  rect: 'all',
+  translate: 'all',
+  createRadialGradient: 'all',
+  createLinearGradient: 'all',
+  setTransform: [4, 5]
 }
 
 const proto = CanvasRenderingContext2D.prototype
@@ -101,8 +106,10 @@ if (pixelRatio !== 1) {
       args[1] *= pixelRatio
       args[2] *= pixelRatio
 
-      this.font = this.font.replace(
-        /(\d+)(px|em|rem|pt)/g,
+      // Safari 重新设置部分属性会导致其他值恢复默认，需获取原始值
+      var font = this.__font__ || this.font
+      this.font = font.replace(
+        /(\d+\.?\d*)(px|em|rem|pt)/g,
         function (w, m, u) {
           return (m * pixelRatio) + u
         }
@@ -110,12 +117,7 @@ if (pixelRatio !== 1) {
 
       _super.apply(this, args)
 
-      this.font = this.font.replace(
-        /(\d+)(px|em|rem|pt)/g,
-        function (w, m, u) {
-          return (m / pixelRatio) + u
-        }
-      )
+      this.font = font
     }
   })(proto.fillText)
 
@@ -129,21 +131,17 @@ if (pixelRatio !== 1) {
       args[1] *= pixelRatio // x
       args[2] *= pixelRatio // y
 
-      this.font = this.font.replace(
-        /(\d+)(px|em|rem|pt)/g,
+      // Safari 重新设置部分属性会导致其他值恢复默认，需获取原始值
+      var font = this.__font__ || this.font
+      this.font = font.replace(
+        /(\d+\.?\d*)(px|em|rem|pt)/g,
         function (w, m, u) {
           return (m * pixelRatio) + u
         }
       )
-
       _super.apply(this, args)
 
-      this.font = this.font.replace(
-        /(\d+)(px|em|rem|pt)/g,
-        function (w, m, u) {
-          return (m / pixelRatio) + u
-        }
-      )
+      this.font = font
     }
   })(proto.strokeText)
 
@@ -160,7 +158,11 @@ if (pixelRatio !== 1) {
 }
 
 export function wrapper (canvas) {
+  // canvas元素的宽，高 * 分辨率
   canvas.width = canvas.offsetWidth * pixelRatio
   canvas.height = canvas.offsetHeight * pixelRatio
-  canvas.getContext('2d').__hidpi__ = true
+  canvas.__hidpi__ = true
+  // 避免低版本安卓上 context 实例被回收
+  canvas.__context2d__ = canvas.getContext('2d')
+  canvas.__context2d__.__hidpi__ = true
 }

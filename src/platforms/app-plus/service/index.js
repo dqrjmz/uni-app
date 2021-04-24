@@ -3,12 +3,17 @@ import {
 } from 'uni-core/service/uni'
 
 import {
-  invokeCallbackHandler
+  invokeCallbackHandler,
+  removeCallbackHandler
 } from 'uni-helpers/api'
 
 import {
   publishHandler
 } from 'uni-platform/service/publish-handler'
+
+import {
+  wx
+} from './wx'
 
 import {
   definePage
@@ -26,8 +31,12 @@ import {
 
 import vuePlugin from './framework/plugins'
 
+// 挂靠在uni上，暂不做全局导出
+uni.__$wx__ = wx
+
 UniServiceJSBridge.publishHandler = publishHandler
 UniServiceJSBridge.invokeCallbackHandler = invokeCallbackHandler
+UniServiceJSBridge.removeCallbackHandler = removeCallbackHandler
 
 export default {
   __vuePlugin: vuePlugin,

@@ -8,9 +8,9 @@
 
 **平台差异说明**
 
-|App|H5|微信小程序|支付宝小程序|百度小程序|头条小程序|QQ小程序|
+|App|H5|微信小程序|支付宝小程序|百度小程序|字节跳动小程序|QQ小程序|
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-|√|√|√|√|√|x|x|
+|√|√|√|√|√|x|1.9.0+|
 
 mapContext
 
@@ -21,7 +21,7 @@ mapContext
 |方法|参数|说明|平台差异说明|最低版本|
 |:-|:-|:-|:-|:-|
 |getCenterLocation|OBJECT|获取当前地图中心的经纬度，返回的是 gcj02 坐标系，可以用于 [uni.openLocation](api/location/location?id=getlocation)|||
-|moveToLocation||将地图中心移动到当前定位点，需要配合map组件的show-location使用|||
+|moveToLocation|OBJECT|将地图中心移动到当前定位点，需要配合map组件的show-location使用|||
 |translateMarker|OBJECT|平移marker，带动画|app-nvue 2.1.5+、微信小程序带动画||
 |includePoints|OBJECT|缩放视野展示所有经纬度|app-nvue 2.1.5+||
 |getRegion|OBJECT|获取当前地图的视野范围|||
@@ -43,14 +43,26 @@ mapContext
 |fail|Function|否|接口调用失败的回调函数|
 |complete|Function|否|接口调用结束的回调函数（调用成功、失败都会执行）|
 
+
+**moveToLocation 的 OBJECT 参数列表**
+
+|参数			|类型			|必填	|说明																																	|
+|:-				|:-				|:-		|:-																																		|
+|longitude|Number		|否		|经度 ，App 2.6.8、H5、仅微信小程序 2.8.0+ 支持																			|
+|latitude	|Number		|否		|纬度 ，App 2.6.8、H5、仅微信小程序 2.8.0+ 支持																			|
+|success	|Function	|否		|接口调用成功的回调函数 ，res = { longitude: "经度", latitude: "纬度"}|
+|fail			|Function	|否		|接口调用失败的回调函数																								|
+|complete	|Function	|否		|接口调用结束的回调函数（调用成功、失败都会执行）											|
+
+
 **translateMarker 的 OBJECT 参数列表**
 
 |参数|类型|必填|说明|
 |:-|:-|:-|:-|
 |markerId|Number|是|指定 marker|
 |destination|Object|是|指定 marker 移动到的目标点|
-|autoRotate|Boolean|是|移动过程中是否自动旋转 marker|
-|rotate|Number|是|marker 的旋转角度|
+|autoRotate|Boolean|否|移动过程中是否自动旋转 marker|
+|rotate|Number|否|marker 的旋转角度|
 |duration|Number|否|动画持续时长，默认值1000ms，平移与旋转分别计算|
 |animationEnd|Function|否|	动画结束回调函数|
 |fail|Function|否|	接口调用失败的回调函数|
@@ -132,8 +144,8 @@ address|String|地址
 
 **Tips**
 
-- App端使用map，nvue比vue更强大。
-- App端vue页面默认为高德地图，也可以选择百度地图。但app-nvue只有高德地图，没有百度地图。以及地图选择api，只支持高德地图。
+- App端使用map，nvue比vue更强大，且没有层级问题。
+- App端vue页面默认为高德地图，也可以选择百度地图。但app-nvue只有高德地图，没有百度地图。以及地图选择api（mapSearch），只支持高德地图。
 - H5 端获取定位信息，需要部署在 **https** 服务上，本地预览（localhost）仍然可以使用 http 协议。
 - 无 GPS 模块的 PC 设备使用 Chrome 浏览器的时候，位置信息是连接谷歌服务器获取的，国内用户可能获取位置信息失败。
 - App 端使用地图组件需要向高德或百度等三方服务商申请SDK资质，获取AppKey，打包时需要在manifest的SDK配置中填写Appkey。在manifest可视化界面有详细申请指南，详见：[https://ask.dcloud.net.cn/article/29](https://ask.dcloud.net.cn/article/29)

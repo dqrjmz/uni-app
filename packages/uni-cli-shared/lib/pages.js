@@ -33,6 +33,7 @@ function getNVueMainEntry () {
   return nvueMainEntry
 }
 
+// 解析pages.json文件内容
 function getPagesJson () {
   return processPagesJson(getJson('pages.json', true))
 }
@@ -55,6 +56,7 @@ const pagesJsonJsFileName = 'pages.js'
 function processPagesJson (pagesJson, loader = {
   addDependency: function () {}
 }) {
+  // 获取page.js
   const pagesJsonJsPath = path.resolve(process.env.UNI_INPUT_DIR, pagesJsonJsFileName)
   if (fs.existsSync(pagesJsonJsPath)) {
     delete require.cache[pagesJsonJsPath]
@@ -67,6 +69,11 @@ function processPagesJson (pagesJson, loader = {
     } else {
       console.error(`${pagesJsonJsFileName} 必须导出 function`)
     }
+  }
+  // 将 subpackages 转换成 subPackages
+  if (pagesJson.subpackages && !pagesJson.subPackages) {
+    pagesJson.subPackages = pagesJson.subpackages
+    delete pagesJson.subpackages
   }
 
   let uniNVueEntryPagePath
@@ -106,8 +113,8 @@ function isNVuePage (page, root = '') {
 }
 
 function isValidPage (page, root = '') {
-  if (typeof page === 'string') { // 不合法的配置
-    console.warn(`${page} 配置错误, 已被忽略, 查看文档: https://uniapp.dcloud.io/collocation/pages?id=pages`)
+  if (typeof page === 'string' || !page.path) { // 不合法的配置
+    console.warn('pages.json 页面配置错误, 已被忽略, 查看文档: https://uniapp.dcloud.io/collocation/pages?id=pages')
     return false
   }
   let pagePath = page.path
@@ -122,21 +129,14 @@ function isValidPage (page, root = '') {
     process.env.UNI_PLATFORM === 'app-plus' &&
     page.style
   ) {
-    const subNVues = page.style.subNVues || (page.style['app-plus'] && page.style['app-plus']['subNVues'])
+    const subNVues = page.style.subNVues || (page.style['app-plus'] && page.style['app-plus'].subNVues)
     if (Array.isArray(subNVues)) {
       subNVues.forEach(subNVue => {
         let subNVuePath = subNVue.path
         if (subNVuePath) {
           subNVuePath = subNVue.path.split('?')[0]
           const subNVuePagePath = removeExt(path.join(root, subNVuePath))
-
-          // if (process.env.UNI_USING_NVUE_COMPILER) {
           process.UNI_NVUE_ENTRY[subNVuePagePath] = getNVueMainJsPath(subNVuePagePath)
-          // } else {
-          //   process.UNI_NVUE_ENTRY[subNVuePagePath] = path.resolve(process.env.UNI_INPUT_DIR,
-          //     subNVuePagePath +
-          //                   '.nvue') + '?entry'
-          // }
         }
       })
     }
@@ -150,13 +150,13 @@ function isValidPage (page, root = '') {
 
     process.UNI_NVUE_ENTRY[pagePath] = getNVueMainJsPath(pagePath)
 
-    if (process.env.UNI_USING_V3) { // 不移除
+    if (process.env.UNI_USING_V3 || process.env.UNI_USING_V3_NATIVE) { // 不移除
       page.nvue = true
       return true
     } else {
       uniNVuePages.push({
-        'path': pagePath + '.html',
-        'style': page.style || {}
+        path: pagePath + '.html',
+        style: page.style || {}
       })
       return false
     }
@@ -214,7 +214,7 @@ function parseEntry (pagesJson) {
 
   process.UNI_NVUE_ENTRY = {}
 
-  if (process.env.UNI_USING_NATIVE) {
+  if (process.env.UNI_USING_NATIVE || process.env.UNI_USING_V3_NATIVE) {
     process.UNI_NVUE_ENTRY['app-config'] = path.resolve(process.env.UNI_INPUT_DIR, 'pages.json')
     process.UNI_NVUE_ENTRY['app-service'] = path.resolve(process.env.UNI_INPUT_DIR, getMainEntry())
   }
@@ -334,21 +334,87 @@ let uniAutoImportComponents = []
 
 let uniAutoImportScanComponents = []
 
-function initAutoImportScanComponents () {
-  const componentsPath = path.resolve(process.env.UNI_INPUT_DIR, 'components')
+let uniQuickAppAutoImportScanComponents = false
+
+const isDirectory = source => fs.lstatSync(source).isDirectory()
+
+function getAutoComponentsByDir (componentsPath, absolute = false) {
   const components = {}
   try {
-    fs.readdirSync(componentsPath).forEach(name => {
-      if (fs.existsSync(path.resolve(componentsPath, name, name + '.vue'))) {
-        components[`^${name}$`] = `@/components/${name}/${name}.vue`
-      } else if (fs.existsSync(path.resolve(componentsPath, name, name + '.nvue'))) {
-        components[`^${name}$`] = `@/components/${name}/${name}.nvue`
+    if (fs.existsSync(componentsPath)) {
+      let importComponentsDir = '@/components'
+      const uniModulesDir = path.resolve(process.env.UNI_INPUT_DIR, 'uni_modules')
+      if (!absolute && componentsPath.includes(uniModulesDir)) {
+        importComponentsDir = `@/uni_modules/${path.basename(path.dirname(componentsPath))}/components`
       }
+      fs.readdirSync(componentsPath).forEach(name => {
+        const folder = path.resolve(componentsPath, name)
+        if (!isDirectory(folder)) {
+          return
+        }
+        const importDir = absolute ? normalizePath(folder) : `${importComponentsDir}/${name}`
+        // 读取文件夹文件列表，比对文件名（fs.existsSync在大小写不敏感的系统会匹配不准确）
+        const files = fs.readdirSync(folder)
+        if (files.includes(name + '.vue')) {
+          components[`^${name}$`] = `${importDir}/${name}.vue`
+        } else if (files.includes(name + '.nvue')) {
+          components[`^${name}$`] = `${importDir}/${name}.nvue`
+        }
+      })
+    }
+  } catch (e) {
+    console.log(e)
+  }
+  return components
+}
+
+function initAutoComponents () {
+  const allComponents = {}
+  const componentsDirs = [path.resolve(process.env.UNI_INPUT_DIR, 'components')]
+  global.uniModules.forEach(module => {
+    componentsDirs.push(path.resolve(process.env.UNI_INPUT_DIR, 'uni_modules', module, 'components'))
+  })
+  componentsDirs.forEach((componentsDir) => {
+    // 根目录 components 使用相对路径，uni_modules 使用绝对路径
+    const currentComponents = getAutoComponentsByDir(componentsDir, false)
+    Object.keys(currentComponents).forEach(name => {
+      (allComponents[name] || (allComponents[name] = [])).push(currentComponents[name])
     })
-  } catch (e) {}
+  })
+  const components = {}
+  const conflictFiles = []
+  Object.keys(allComponents).forEach(name => {
+    const files = allComponents[name]
+    components[name] = files[0]
+    if (files.length > 1) {
+      conflictFiles.push(files)
+    }
+  })
+  if (conflictFiles.length > 0) {
+    conflictFiles.forEach(files => {
+      console.warn('easycom组件冲突：[' + files.map((file, index) => {
+        return file
+      }).join(',') + ']')
+      console.log('\n')
+    })
+  }
+  return components
+}
+
+function initAutoImportScanComponents () {
+  const components = initAutoComponents()
+  if (process.env.UNI_PLATFORM === 'quickapp-native') {
+    if (!uniQuickAppAutoImportScanComponents) {
+      uniQuickAppAutoImportScanComponents = getAutoComponentsByDir(
+        path.resolve(require.resolve('@dcloudio/uni-quickapp-native'), '../../components'),
+        true
+      )
+    }
+    // 平台内置组件优先级高
+    Object.assign(components, uniQuickAppAutoImportScanComponents)
+  }
 
   uniAutoImportScanComponents = parseUsingAutoImportComponents(components)
-
   refreshAutoComponentMap()
 }
 
@@ -358,21 +424,25 @@ function isPlainObject (obj) {
   return _toString.call(obj) === '[object Object]'
 }
 
+function initBuiltInEasycom (components, usingAutoImportComponents) {
+  components.forEach(name => {
+    const easycomName = `^${name}$`
+    if (!usingAutoImportComponents[easycomName]) {
+      usingAutoImportComponents[easycomName] =
+        '@dcloudio/uni-cli-shared/components/' + name + '.vue'
+    }
+  })
+}
+
 function initAutoImportComponents (easycom = {}) {
   let usingAutoImportComponents = easycom.custom || easycom || {}
   if (!isPlainObject(usingAutoImportComponents)) {
     usingAutoImportComponents = {}
   }
+  initBuiltInEasycom(BUILT_IN_EASYCOMS, usingAutoImportComponents)
   // 目前仅 mp-weixin 内置支持 page-meta 等组件
   if (process.env.UNI_PLATFORM !== 'mp-weixin') {
-    if (!usingAutoImportComponents['^page-meta$']) {
-      usingAutoImportComponents['^page-meta$'] =
-        '@dcloudio/uni-cli-shared/components/page-meta.vue'
-    }
-    if (!usingAutoImportComponents['^navigation-bar$']) {
-      usingAutoImportComponents['^navigation-bar$'] =
-        '@dcloudio/uni-cli-shared/components/navigation-bar.vue'
-    }
+    initBuiltInEasycom(BUILT_IN_COMPONENTS, usingAutoImportComponents)
   }
 
   const newUsingAutoImportComponentsJson = JSON.stringify(usingAutoImportComponents)
@@ -436,7 +506,25 @@ function parseUsingAutoImportComponents (usingAutoImportComponents) {
   }
   return autoImportComponents
 }
+
+const BUILT_IN_COMPONENTS = ['page-meta', 'navigation-bar', 'uni-match-media']
+
+const BUILT_IN_EASYCOMS = ['unicloud-db']
+
+function isBuiltInComponent (name) { // uni-template-compiler/lib/util.js 识别微信内置组件
+  return BUILT_IN_COMPONENTS.includes(name)
+}
+
+function isBuiltInComponentPath (modulePath) { // 内置的 easycom 类组件
+  if (BUILT_IN_EASYCOMS.find(name => modulePath.includes(name))) {
+    return true
+  }
+  return !!BUILT_IN_COMPONENTS.find(name => modulePath.includes(name))
+}
+
 module.exports = {
+  isBuiltInComponent,
+  isBuiltInComponentPath,
   getMainEntry,
   getNVueMainEntry,
   parsePages,

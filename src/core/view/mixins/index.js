@@ -24,6 +24,11 @@ export {
   from './keyboard'
 
 export {
+  default as field
+}
+  from './field'
+
+export {
   default as interact
 }
   from './interact'

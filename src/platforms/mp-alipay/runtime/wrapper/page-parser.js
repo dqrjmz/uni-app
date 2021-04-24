@@ -1,6 +1,10 @@
 import Vue from 'vue'
 
 import {
+  stringifyQuery
+} from 'uni-shared/query'
+
+import {
   initData,
   initHooks,
   handleEvent,
@@ -13,6 +17,7 @@ import {
   handleRef,
   handleLink,
   initBehavior,
+  triggerEvent,
   initChildVues,
   initSpecialMethods
 } from './util'
@@ -30,12 +35,12 @@ const hooks = [
 hooks.push(...PAGE_EVENT_HOOKS)
 
 export default function parsePage (vuePageOptions) {
-  let [VueComponent, vueOptions] = initVueComponent(Vue, vuePageOptions)
+  const [VueComponent, vueOptions] = initVueComponent(Vue, vuePageOptions)
 
   const pageOptions = {
     mixins: initBehaviors(vueOptions, initBehavior),
     data: initData(vueOptions, Vue.prototype),
-    onLoad (args) {
+    onLoad (query) {
       const properties = this.props
 
       const options = {
@@ -52,8 +57,16 @@ export default function parsePage (vuePageOptions) {
       // 触发首次 setData
       this.$vm.$mount()
 
-      this.$vm.$mp.query = args // 兼容 mpvue
-      this.$vm.__call_hook('onLoad', args)
+      const copyQuery = Object.assign({}, query)
+      delete copyQuery.__id__
+
+      this.$page = {
+        fullPath: '/' + this.route + stringifyQuery(copyQuery)
+      }
+
+      this.options = query
+      this.$vm.$mp.query = query // 兼容 mpvue
+      this.$vm.__call_hook('onLoad', query)
     },
     onReady () {
       initChildVues(this)
@@ -73,10 +86,19 @@ export default function parsePage (vuePageOptions) {
     },
     __r: handleRef,
     __e: handleEvent,
-    __l: handleLink
+    __l: handleLink,
+    triggerEvent
   }
 
   initHooks(pageOptions, hooks, vuePageOptions)
+
+  if (Array.isArray(vueOptions.wxsCallMethods)) {
+    vueOptions.wxsCallMethods.forEach(callMethod => {
+      pageOptions[callMethod] = function (args) {
+        return this.$vm[callMethod](args)
+      }
+    })
+  }
 
   return pageOptions
 }

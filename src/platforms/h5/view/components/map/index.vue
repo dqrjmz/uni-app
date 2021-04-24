@@ -1,10 +1,12 @@
 <template>
   <uni-map
     :id="id"
-    v-on="$listeners">
+    v-on="$listeners"
+  >
     <div
       ref="map"
-      style="width: 100%; height: 100%; position: relative; overflow: hidden;" />
+      style="width: 100%; height: 100%; position: relative; overflow: hidden;"
+    />
     <div style="position: absolute; top: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none;">
       <slot />
     </div>
@@ -20,7 +22,119 @@ import {
   hasOwn
 } from 'uni-shared'
 
-var maps
+let maps
+let callbacks
+function loadMap (callback) {
+  if (maps) {
+    callback()
+  } else if (window.qq && window.qq.maps) {
+    maps = window.qq.maps
+    callback()
+  } else if (callbacks) {
+    callbacks.push(callback)
+  } else {
+    callbacks = [callback]
+    const key = __uniConfig.qqMapKey
+    const callbackName = '_callback' + Date.now()
+    window[callbackName] = function () {
+      delete window[callbackName]
+      maps = window.qq.maps
+      var Callout = maps.Callout = function (option = {}) {
+        this.option = option
+        var map = option.map
+        this.position = option.position
+        this.index = 1
+        this.visible = this.alwaysVisible = option.display === 'ALWAYS'
+        this.init()
+        Object.defineProperty(this, 'onclick', {
+          setter (callback) {
+            this.div.onclick = callback
+          },
+          getter () {
+            return this.div.onclick
+          }
+        })
+        if (map) {
+          this.setMap(map)
+        }
+      }
+      Callout.prototype = new maps.Overlay()
+      Callout.prototype.init = function () {
+        var option = this.option
+        var div = this.div = document.createElement('div')
+        var divStyle = div.style
+        divStyle.position = 'absolute'
+        divStyle.whiteSpace = 'nowrap'
+        divStyle.transform = 'translateX(-50%) translateY(-100%)'
+        divStyle.zIndex = 1
+        divStyle.boxShadow = option.boxShadow || 'none'
+        divStyle.display = this.visible ? 'block' : 'none'
+        var triangle = this.triangle = document.createElement('div')
+        triangle.setAttribute('style',
+          'position: absolute;white-space: nowrap;border-width: 4px;border-style: solid;border-color: #fff transparent transparent;border-image: initial;font-size: 12px;padding: 0px;background-color: transparent;width: 0px;height: 0px;transform: translate(-50%, 100%);left: 50%;bottom: 0;'
+        )
+        this.setStyle(option)
+        this.changed = function (key) {
+          divStyle.display = this.visible ? 'block' : 'none'
+        }
+        div.appendChild(triangle)
+      }
+      Callout.prototype.construct = function () {
+        var div = this.div
+        var panes = this.getPanes()
+        panes.floatPane.appendChild(div)
+      }
+      Callout.prototype.draw = function () {
+        var overlayProjection = this.getProjection()
+        if (!this.position || !this.div || !overlayProjection) {
+          return
+        }
+        var pixel = overlayProjection.fromLatLngToDivPixel(this.position)
+        var divStyle = this.div.style
+        divStyle.left = pixel.x + 'px'
+        divStyle.top = pixel.y + 'px'
+      }
+      Callout.prototype.destroy = function () {
+        this.div.parentNode.removeChild(this.div)
+        this.div = null
+        this.triangle = null
+      }
+      Callout.prototype.setOption = function (option) {
+        this.option = option
+        this.setPosition(option.position)
+        if (option.display === 'ALWAYS') {
+          this.alwaysVisible = this.visible = true
+        } else {
+          this.alwaysVisible = false
+        }
+        this.setStyle(option)
+      }
+      Callout.prototype.setStyle = function (option) {
+        var div = this.div
+        var divStyle = div.style
+        div.innerText = option.content
+        divStyle.lineHeight = (option.fontSize || 14) + 'px'
+        divStyle.fontSize = (option.fontSize || 14) + 'px'
+        divStyle.padding = (option.padding || 8) + 'px'
+        divStyle.color = option.color || '#000'
+        divStyle.borderRadius = (option.borderRadius || 0) + 'px'
+        divStyle.backgroundColor = option.bgColor || '#fff'
+        divStyle.marginTop = '-' + (option.top + 5) + 'px'
+        this.triangle.style.borderColor = `${option.bgColor || '#fff'} transparent transparent`
+      }
+      Callout.prototype.setPosition = function (position) {
+        this.position = position
+        this.draw()
+      }
+      callbacks.forEach(callback => callback())
+      callbacks = null
+    }
+    const script = document.createElement('script')
+    script.src = `https://map.qq.com/api/js?v=2.exp&key=${key}&callback=${callbackName}&libraries=geometry`
+    document.body.appendChild(script)
+  }
+}
+
 export default {
   name: 'Map',
   mixins: [subscriber],
@@ -193,7 +307,7 @@ export default {
     }
   },
   mounted () {
-    this.loadMap(() => {
+    loadMap(() => {
       this.init()
     })
   },
@@ -237,9 +351,13 @@ export default {
           })
           break
         case 'moveToLocation':
-          var locationPosition = this._locationPosition
-          if (locationPosition) {
-            this._map.setCenter(locationPosition)
+          {
+            const { latitude, longitude } = data
+            var locationPosition = (latitude && longitude) ? new maps.LatLng(latitude, longitude) : this._locationPosition
+            if (locationPosition) {
+              this._map.setCenter(locationPosition)
+              callback({})
+            }
           }
           break
         case 'translateMarker':
@@ -322,7 +440,7 @@ export default {
         case 'getScale':
           this.mapReady(() => {
             callback({
-              scale: Number(this.scale)
+              scale: this._map.getZoom()
             })
           })
           break
@@ -333,11 +451,12 @@ export default {
       var map = this._map = new maps.Map(this.$refs.map, {
         center,
         zoom: Number(this.scale),
-        scrollwheel: false,
+        // scrollwheel: false,
         disableDoubleClickZoom: true,
         mapTypeControl: false,
         zoomControl: false,
         scaleControl: false,
+        panControl: false,
         minZoom: 5,
         maxZoom: 18,
         draggable: true
@@ -353,16 +472,32 @@ export default {
       })
       maps.event.addListener(map, 'dragstart', () => {
         this.$trigger('regionchange', {}, {
-          type: 'begin'
+          type: 'begin',
+          causedBy: 'gesture'
         })
       })
+      function getMapInfo () {
+        var center = map.getCenter()
+        return {
+          scale: map.getZoom(),
+          centerLocation: {
+            latitude: center.getLat(),
+            longitude: center.getLng()
+          }
+        }
+      }
       maps.event.addListener(map, 'dragend', () => {
-        this.$trigger('regionchange', {}, {
-          type: 'end'
-        })
+        this.$trigger('regionchange', {}, Object.assign({
+          type: 'end',
+          causedBy: 'drag'
+        }, getMapInfo()))
       })
       maps.event.addListener(map, 'zoom_changed', () => {
         this.$emit('update:scale', map.getZoom())
+        this.$trigger('regionchange', {}, Object.assign({
+          type: 'end',
+          causedBy: 'scale'
+        }, getMapInfo()))
       })
       maps.event.addListener(map, 'center_changed', () => {
         var latitude
@@ -702,9 +837,10 @@ export default {
           })
           this._location = location
           refreshLocation()
-          uni.onCompassChange(function (res) {
+          this.__onCompassChange = function (res) {
             location.setRotation(res.direction)
-          })
+          }
+          uni.onCompassChange(this.__onCompassChange)
         },
         fail: e => {
           console.error(e)
@@ -730,7 +866,7 @@ export default {
               refreshLocation()
             }
           })
-        }, 1000)
+        }, 30000)
       }
     },
     removeLocation () {
@@ -739,7 +875,7 @@ export default {
         location.setMap(null)
         this._location = null
         this._locationPosition = null
-        uni.stopCompass()
+        uni.offCompassChange(this.__onCompassChange)
       }
     },
     fitBounds (points, cb) {
@@ -785,112 +921,7 @@ export default {
           return element
         }
       }
-    },
-    loadMap (callback) {
-      if (maps) {
-        callback()
-      } else if (window.qq && window.qq.maps) {
-        maps = window.qq.maps
-        callback()
-      } else {
-        let key = __uniConfig.qqMapKey
-        let callbackName = '_callback' + Date.now()
-        window[callbackName] = function () {
-          delete window[callbackName]
-          maps = window.qq.maps
-          var Callout = maps.Callout = function (option = {}) {
-            this.option = option
-            var map = option.map
-            this.position = option.position
-            this.index = 1
-            this.visible = this.alwaysVisible = option.display === 'ALWAYS'
-            this.init()
-            Object.defineProperty(this, 'onclick', {
-              setter (callback) {
-                this.div.onclick = callback
-              },
-              getter () {
-                return this.div.onclick
-              }
-            })
-            if (map) {
-              this.setMap(map)
-            }
-          }
-          Callout.prototype = new maps.Overlay()
-          Callout.prototype.init = function () {
-            var option = this.option
-            var div = this.div = document.createElement('div')
-            var divStyle = div.style
-            divStyle.position = 'absolute'
-            divStyle.whiteSpace = 'nowrap'
-            divStyle.transform = 'translateX(-50%) translateY(-100%)'
-            divStyle.zIndex = 1
-            divStyle.boxShadow = option.boxShadow || 'none'
-            divStyle.display = this.visible ? 'block' : 'none'
-            var triangle = this.triangle = document.createElement('div')
-            triangle.setAttribute('style',
-              'position: absolute;white-space: nowrap;border-width: 4px;border-style: solid;border-color: #fff transparent transparent;border-image: initial;font-size: 12px;padding: 0px;background-color: transparent;width: 0px;height: 0px;transform: translate(-50%, 100%);left: 50%;bottom: 0;'
-            )
-            this.setStyle(option)
-            this.changed = function (key) {
-              divStyle.display = this.visible ? 'block' : 'none'
-            }
-            div.appendChild(triangle)
-          }
-          Callout.prototype.construct = function () {
-            var div = this.div
-            var panes = this.getPanes()
-            panes.floatPane.appendChild(div)
-          }
-          Callout.prototype.draw = function () {
-            var overlayProjection = this.getProjection()
-            if (!this.position || !this.div || !overlayProjection) {
-              return
-            }
-            var pixel = overlayProjection.fromLatLngToDivPixel(this.position)
-            var divStyle = this.div.style
-            divStyle.left = pixel.x + 'px'
-            divStyle.top = pixel.y + 'px'
-          }
-          Callout.prototype.destroy = function () {
-            this.div.parentNode.removeChild(this.div)
-            this.div = null
-            this.triangle = null
-          }
-          Callout.prototype.setOption = function (option) {
-            this.option = option
-            this.setPosition(option.position)
-            if (option.display === 'ALWAYS') {
-              this.alwaysVisible = this.visible = true
-            } else {
-              this.alwaysVisible = false
-            }
-            this.setStyle(option)
-          }
-          Callout.prototype.setStyle = function (option) {
-            var div = this.div
-            var divStyle = div.style
-            div.innerText = option.content
-            divStyle.lineHeight = (option.fontSize || 14) + 'px'
-            divStyle.fontSize = (option.fontSize || 14) + 'px'
-            divStyle.padding = (option.padding || 8) + 'px'
-            divStyle.color = option.color || '#000'
-            divStyle.borderRadius = (option.borderRadius || 0) + 'px'
-            divStyle.backgroundColor = option.bgColor || '#fff'
-            divStyle.marginTop = '-' + (option.top + 5) + 'px'
-            this.triangle.style.borderColor = `${option.bgColor || '#fff'} transparent transparent`
-          }
-          Callout.prototype.setPosition = function (position) {
-            this.position = position
-            this.draw()
-          }
-          callback()
-        }
-        let script = document.createElement('script')
-        script.src = `https://map.qq.com/api/js?v=2.exp&key=${key}&callback=${callbackName}&libraries=geometry`
-        document.body.appendChild(script)
-      }
+      throw new Error('translateMarker: fail cannot find marker with id ' + id)
     }
   }
 }

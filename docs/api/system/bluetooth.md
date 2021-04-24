@@ -1,6 +1,6 @@
 **蓝牙 API 平台差异说明**
 
-|App|H5|微信小程序|支付宝小程序|百度小程序|头条小程序|QQ小程序|
+|App|H5|微信小程序|支付宝小程序|百度小程序|字节跳动小程序|QQ小程序|
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 |√|x|√|√|x|x|x|
 
@@ -81,7 +81,7 @@ uni.openBluetoothAdapter({
 
 **注意：** 
 
-* App 端目前仅支持发现ble蓝牙设备，更多蓝牙设备发现需使用 Native.js，参考：[https://ask.dcloud.net.cn/article/114](https://ask.dcloud.net.cn/article/114)。
+* App 端目前仅支持发现ble蓝牙设备，更多蓝牙设备发现，可以使用 Native.js，参考：[https://ask.dcloud.net.cn/article/114](https://ask.dcloud.net.cn/article/114)。也可以在插件市场获取[原生插件](https://ext.dcloud.net.cn/search?q=%E8%93%9D%E7%89%99&cat1=5&cat2=51&orderBy=UpdatedDate)
 
 
 **示例代码**

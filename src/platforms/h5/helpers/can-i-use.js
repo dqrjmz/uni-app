@@ -1,5 +1,5 @@
 function cssSupports (css) {
-  return window.CSS && window.CSS.supports && window.CSS.supports(css)
+  return window.CSS && CSS.supports && (CSS.supports(css) || CSS.supports.apply(CSS, css.split(':')))
 }
 
 export default {

@@ -17,29 +17,31 @@
 
 <pre v-pre="" data-lang="">
 	<code class="lang-" style="padding:0">
-┌─components            uni-app组件目录
+┌─uniCloud              云空间目录，阿里云为uniCloud-aliyun,腾讯云为uniCloud-tcb（详见<a href="https://uniapp.dcloud.io/uniCloud/quickstart?id=%e7%9b%ae%e5%bd%95%e7%bb%93%e6%9e%84">uniCloud</a>）
+│─components            符合vue组件规范的uni-app组件目录
 │  └─comp-a.vue         可复用的a组件
-├─hybrid                存放本地网页的目录，<a href="/component/web-view">详见</a>
+├─hybrid                App端存放本地html文件的目录，<a href="/component/web-view">详见</a>
 ├─platforms             存放各平台专用页面的目录，<a href="/platform?id=%E6%95%B4%E4%BD%93%E7%9B%AE%E5%BD%95%E6%9D%A1%E4%BB%B6%E7%BC%96%E8%AF%91">详见</a>
 ├─pages                 业务页面文件存放的目录
 │  ├─index
 │  │  └─index.vue       index页面
 │  └─list
 │     └─list.vue        list页面
-├─static                存放应用引用静态资源（如图片、视频等）的目录，<b>注意：</b>静态资源只能存放于此
+├─static                存放应用引用的本地静态资源（如图片、视频等）的目录，<b>注意：</b>静态资源只能存放于此
+├─uni_modules           存放[uni_module](/uni_modules)规范的插件。
 ├─wxcomponents          存放小程序组件的目录，<a href="/frame?id=%E5%B0%8F%E7%A8%8B%E5%BA%8F%E7%BB%84%E4%BB%B6%E6%94%AF%E6%8C%81">详见</a>
 ├─main.js               Vue初始化入口文件
-├─App.vue               应用配置，用来配置App全局样式以及监听 <a href="/frame?id=应用生命周期">应用生命周期</a>
+├─App.vue               应用配置，用来配置App全局样式以及监听 <a href="/collocation/frame/lifecycle?id=应用生命周期">应用生命周期</a>
 ├─manifest.json         配置应用名称、appid、logo、版本等打包信息，<a href="/collocation/manifest">详见</a>
 └─pages.json            配置页面路由、导航条、选项卡等页面类信息，<a href="/collocation/pages">详见</a>
 	</code>
 </pre>
 
 **Tips**
-
+- 编译到任意平台时，`static` 目录下的文件均会被完整打包进去，且不会编译。非 `static` 目录下的文件（vue、js、css 等）只有被引用到才会被打包编译进去。
 - `static` 目录下的 `js` 文件不会被编译，如果里面有 `es6` 的代码，不经过转换直接运行，在手机设备上会报错。
-- `css`、`less/scss` 等资源同样不要放在 `static` 目录下，建议这些公用的资源放在 `common` 目录下。
-- HbuilderX 1.9.0+ 支持在根目录创建 `ext.json` `sitemap.json` 文件。  
+- `css`、`less/scss` 等资源不要放在 `static` 目录下，建议这些公用的资源放在自建的 `common` 目录下。
+- HbuilderX 1.9.0+ 支持在根目录创建 `ext.json`、`sitemap.json` 等小程序需要的文件。
 
 |有效目录|说明|
 |:-:|:-:|
@@ -49,93 +51,90 @@
 |mp-alipay|支付宝小程序|
 |mp-baidu|百度小程序|
 
+## 资源路径说明
+
+
+
+### 模板内引入静态资源
+
+> `template`内引入静态资源，如`image`、`video`等标签的`src`属性时，可以使用相对路径或者绝对路径，形式如下
+
+```html
+<!-- 绝对路径，/static指根目录下的static目录，在cli项目中/static指src目录下的static目录 -->
+<image class="logo" src="/static/logo.png"></image>
+<image class="logo" src="@/static/logo.png"></image>
+<!-- 相对路径 -->
+<image class="logo" src="../../static/logo.png"></image>
+```
+
+**注意**
+
+- `@`开头的绝对路径以及相对路径会经过base64转换规则校验
+- 引入的静态资源在非h5平台，均不转为base64。
+- H5平台，小于4kb的资源会被转换成base64，其余不转。
+- 自`HBuilderX 2.6.6`起`template`内支持`@`开头路径引入静态资源，旧版本不支持此方式
+- App平台自`HBuilderX 2.6.9`起`template`节点中引用静态资源文件时（如：图片），调整查找策略为【基于当前文件的路径搜索】，与其他平台保持一致
+- 支付宝小程序组件内 image 标签不可使用相对路径
+
+### js文件引入
+
+> `js`文件或`script`标签内（包括renderjs等）引入`js`文件时，可以使用相对路径和绝对路径，形式如下
+
+```js
+// 绝对路径，@指向项目根目录，在cli项目中@指向src目录
+import add from '@/common/add.js'
+// 相对路径
+import add from '../../common/add.js'
+```
+
+**注意**
+
+- js文件不支持使用`/`开头的方式引入
+
+### css引入静态资源
+
+> `css`文件或`style标签`内引入`css`文件时（scss、less文件同理），可以使用相对路径或绝对路径（`HBuilderX 2.6.6`）
+
+```css
+/* 绝对路径 */
+@import url('/common/uni.css');
+@import url('@/common/uni.css');
+/* 相对路径 */
+@import url('../../common/uni.css');
+```
+
+**注意**
+
+- 自`HBuilderX 2.6.6`起支持绝对路径引入静态资源，旧版本不支持此方式
+
+> `css`文件或`style标签`内引用的图片路径可以使用相对路径也可以使用绝对路径，需要注意的是，有些小程序端css文件不允许引用本地文件（请看注意事项）。
+
+```css
+/* 绝对路径 */
+background-image: url(/static/logo.png);
+background-image: url(@/static/logo.png);
+/* 相对路径 */
+background-image: url(../../static/logo.png);
+```
+
+**Tips**
+
+- 引入字体图标请参考，[字体图标](frame?id=字体图标)
+- `@`开头的绝对路径以及相对路径会经过base64转换规则校验
+- 不支持本地图片的平台，小于40kb，一定会转base64。（共四个平台mp-weixin, mp-qq, mp-toutiao, app v2）
+- h5平台，小于4kb会转base64，超出4kb时不转。
+- 其余平台不会转base64
+
 ## 生命周期
 
 
 ### 应用生命周期
 
-``uni-app`` 支持如下应用生命周期函数：
-
-|函数名|说明|
-|:-|:-|
-|onLaunch|当``uni-app`` 初始化完成时触发（全局只触发一次）|
-|onShow|当 ``uni-app`` 启动，或从后台进入前台显示|
-|onHide|当 ``uni-app`` 从前台进入后台|
-|onError|当 `uni-app` 报错时触发	|
-|onUniNViewMessage|对 ``nvue`` 页面发送的数据进行监听，可参考 [nvue 向 vue 通讯](/use-weex?id=nvue-向-vue-通讯)|
-
-**注意**
-
-- 应用生命周期仅可在``App.vue``中监听，在其它页面监听无效。
-- onlaunch里进行页面跳转，如遇白屏报错，请参考[https://ask.dcloud.net.cn/article/35942](https://ask.dcloud.net.cn/article/35942)
+``uni-app`` 支持 onLaunch、onShow、onHide 等应用生命周期函数，详情请参考[应用生命周期](/collocation/frame/lifecycle?id=应用生命周期)
 
 ### 页面生命周期
 
-``uni-app`` 支持如下页面生命周期函数：
-
-|函数名|说明|平台差异说明|最低版本|
-|:-|:-|:-|:-|
-|onLoad|监听页面加载，其参数为上个页面传递的数据，参数类型为Object（用于页面传参），参考[示例](/api/router?id=navigateto)|||
-|onShow|监听页面显示。页面每次出现在屏幕上都触发，包括从下级页面点返回露出当前页面|||
-|onReady|监听页面初次渲染完成。注意如果渲染速度快，会在页面进入动画完成前触发|||
-|onHide|监听页面隐藏|||
-|onUnload|监听页面卸载|||
-|onResize|监听窗口尺寸变化|App、微信小程序||
-|onPullDownRefresh|监听用户下拉动作，一般用于下拉刷新，参考[示例](api/ui/pulldown)|||
-|onReachBottom|页面上拉触底事件的处理函数|||
-|onTabItemTap|点击 tab 时触发，参数为Object，具体见下方注意事项|微信小程序、百度小程序、H5、App（自定义组件模式）||
-|onShareAppMessage|用户点击右上角分享|微信小程序、百度小程序、头条小程序、支付宝小程序||
-|onPageScroll|监听页面滚动，参数为Object|||
-|onNavigationBarButtonTap|监听原生标题栏按钮点击事件，参数为Object|5+ App、H5||
-|onBackPress|监听页面返回，返回 event = {from:backbutton、 navigateBack} ，backbutton 表示来源是左上角返回按钮或 android 返回键；navigateBack表示来源是 uni.navigateBack ；详细说明及使用：[onBackPress 详解](http://ask.dcloud.net.cn/article/35120)|App、H5||
-|onNavigationBarSearchInputChanged|监听原生标题栏搜索输入框输入内容变化事件|App、H5|1.6.0|
-|onNavigationBarSearchInputConfirmed|监听原生标题栏搜索输入框搜索事件，用户点击软键盘上的“搜索”按钮时触发。|App、H5|1.6.0|
-|onNavigationBarSearchInputClicked|监听原生标题栏搜索输入框点击事件|App、H5|1.6.0|
-
-``onPageScroll`` 参数说明：
-
-|属性|类型|说明|
-|---|---|---|
-|scrollTop|Number|页面在垂直方向已滚动的距离（单位px）|
-
-``onTabItemTap`` 参数说明：
-
-|属性|类型|说明|
-|---|---|---|
-|index|String|被点击tabItem的序号，从0开始|
-|pagePath|String|被点击tabItem的页面路径|
-|text|String|被点击tabItem的按钮文字|
-
-**注意**
-- onTabItemTap常用于点击当前tabitem，滚动或刷新当前页面。如果是点击不同的tabitem，一定会触发页面切换。
-- 如果想在App端实现点击某个tabitem不跳转页面，不能使用onTabItemTap，可以使用[plus.nativeObj.view](http://www.html5plus.org/doc/zh_cn/nativeobj.html)放一个区块盖住原先的tabitem，并拦截点击事件。
-- onTabItemTap在App端，从HBuilderX 1.9 的自定义组件编译模式开始支持。
-
-``onNavigationBarButtonTap`` 参数说明：
-
-|属性|类型|说明|
-|---|---|---|
-|index|Number|原生标题栏按钮数组的下标|
-
-`onBackPress` 回调参数对象说明：
-
-|属性|类型|说明|
-|---|---|---|
-|from|String|触发返回行为的来源：'backbutton'——左上角导航栏按钮及安卓返回键；'navigateBack'——uni.navigateBack() 方法。|
-```javascript
-export default {
-	data() {
-		return {};
-	},
-	onBackPress(options) {
-		console.log('from:' + options.from)
-	}
-}
-```
-
-**注意**
-
-- nvue 页面支持的生命周期参考：[nvue 生命周期介绍](/use-weex?id=生命周期)。
+``uni-app`` 支持 onLoad、onShow、onReady 等生命周期函数，详情请参考[页面生命周期](/collocation/frame/lifecycle?id=页面生命周期)
 
 ## 路由
 
@@ -227,15 +226,21 @@ switch(uni.getSystemInfoSync().platform){
 
 ## 页面样式与布局
 
+uni-app的css与web的css基本一致。本文没有讲解css的用法。在你了解web的css的基础之上，本文讲述一些样式相关的注意事项。
+
+uni-app有vue页面和nvue页面。vue页面是webview渲染的、app端的nvue页面是原生渲染的。在nvue页面里样式比web会限制更多，另见[nvue样式专项文档](/nvue-css)
+
+本文重点介绍vue页面的样式注意事项。
+
 ### 尺寸单位
 
 `uni-app` 支持的通用 css 单位包括 px、rpx
 
 - px 即屏幕像素
-- rpx 即响应式px，一种根据屏幕宽度自适应的动态单位。以750宽的屏幕为基准，750rpx恰好为屏幕宽度。屏幕变宽，rpx 实际显示效果会等比放大。
+- rpx 即响应式px，一种根据屏幕宽度自适应的动态单位。以750宽的屏幕为基准，750rpx恰好为屏幕宽度。屏幕变宽，rpx 实际显示效果会等比放大，但在 App 端和 H5 端屏幕宽度达到 960px 时，默认将按照 375px 的屏幕宽度进行计算，具体配置参考：[rpx计算配置](https://uniapp.dcloud.io/collocation/pages?id=globalstyle) 。
 
-vue页面支持普通H5单位，但在nvue里不支持：
-- rem 默认根字体大小为 屏幕宽度/20（微信小程序、头条小程序、App、H5）<span style="display:none">百度小程序16px、支付宝小程序50px</span>
+vue页面支持下面这些普通H5单位，但在nvue里不支持：
+- rem 根字体大小可以通过 [page-meta](/component/page-meta?id=page-meta) 配置<span style="display:none">字节跳动小程序：屏幕宽度/20、百度小程序：16px、支付宝小程序：50px</span>
 - vh viewpoint height，视窗高度，1vh等于视窗高度的1%
 - vw viewpoint width，视窗宽度，1vw等于视窗宽度的1%
 
@@ -257,7 +262,7 @@ nvue中，uni-app 模式（[nvue 不同编译模式介绍](https://ask.dcloud.ne
 
 而且主要是宽度变形。高度一般因为有滚动条，不容易出问题。由此，引发了较强的动态宽度单位需求。
 
-微信小程序设计了 rpx 解决这个问题，`uni-app` 在 App 端、H5 端都支持了 `rpx`。
+微信小程序设计了 rpx 解决这个问题。`uni-app` 在 App 端、H5 端都支持了 `rpx`，并且可以配置不同屏幕宽度的计算方式，具体参考：[rpx计算配置](https://uniapp.dcloud.io/collocation/pages?id=globalstyle)。
 
 rpx 是相对于基准宽度的单位，可以根据屏幕宽度进行自适应。```uni-app``` 规定屏幕基准宽度 750rpx。
 
@@ -324,18 +329,20 @@ rpx 是相对于基准宽度的单位，可以根据屏幕宽度进行自适应�
 |#id|#firstname|选择拥有 id="firstname" 的组件|
 |element|view|选择所有 view 组件|
 |element, element|view, checkbox|选择所有文档的 view 组件和所有的 checkbox 组件|
-|::after|view::after|在 view 组件后边插入内容，**仅微信小程序和App生效**|
-|::before|view::before|在 view 组件前边插入内容，**仅微信小程序和App生效**|
+|::after|view::after|在 view 组件后边插入内容，**仅 vue 页面生效**|
+|::before|view::before|在 view 组件前边插入内容，**仅 vue 页面生效**|
 
 **注意：** 
 - 在 ```uni-app``` 中不能使用 ```*``` 选择器。
+- 微信小程序自定义组件中仅支持 class 选择器
 - ```page``` 相当于 ```body``` 节点，例如：
-```css
-<!-- 设置页面背景颜色 -->
-page {
-	background-color:#ccc;
-}
-```
+
+  ```css
+  <!-- 设置页面背景颜色，使用 scoped 会导致失效 -->
+  page {
+    background-color:#ccc;
+  }
+  ```
 
 
 ### 全局样式与局部样式
@@ -371,6 +378,10 @@ uni-app 提供内置 CSS 变量
 
 ```html
 <template>
+    <!-- HBuilderX 2.6.3+ 新增 page-meta, 详情：https://uniapp.dcloud.io/component/page-meta -->
+    <page-meta>
+        <navigation-bar />
+    </page-meta>
 	<view>
 		<view class="status_bar">
 			<!-- 这里是状态栏 -->
@@ -467,6 +478,7 @@ uni-app 提供内置 CSS 变量
 - 小程序不支持在css中使用本地文件，包括本地的背景图和字体文件。需以base64方式方可使用。App端在v3模式以前，也有相同限制。v3编译模式起支持直接使用本地背景图和字体。
 - 网络路径必须加协议头 ``https``。
 - 从 [http://www.iconfont.cn](http://www.iconfont.cn) 上拷贝的代码，默认是没加协议头的。 
+- 从 [http://www.iconfont.cn](http://www.iconfont.cn) 上下载的字体文件，都是同名字体（字体名都叫iconfont，安装字体文件时可以看到），在nvue内使用时需要注意，此字体名重复可能会显示不正常，可以使用工具修改。
 - 使用本地路径图标字体需注意：
     1. 为方便开发者，在字体文件小于 40kb 时，``uni-app`` 会自动将其转化为 base64 格式；
     2. 字体文件大于等于 40kb，仍转换为 base64 方式使用的话可能有性能问题，如开发者必须使用，则需自己将其转换为 base64 格式使用，或将其挪到服务器上，从网络地址引用；
@@ -477,6 +489,16 @@ uni-app 提供内置 CSS 变量
             src: url('~@/static/iconfont.ttf');
         }
    ```
+
+`nvue`中不可直接使用css的方式引入字体文件，需要使用以下方式在js内引入。nvue内不支持本地路径引入字体，请使用网络链接或者`base64`形式。**`src`字段的`url`的括号内一定要使用单引号。**
+
+```js
+var domModule = weex.requireModule('dom');
+domModule.addRule('fontFace', {
+  'fontFamily': "fontFamilyName",
+  'src': "url('https://...')"
+})
+```
 
 
 **示例：**
@@ -503,11 +525,14 @@ uni-app 提供内置 CSS 变量
 </style>
 ```
 
+
 ## ``<template/>`` 和 ``<block/>`` @template-block
 
-``uni-app`` 支持在 template 模板中嵌套 ``<template/>`` 和 ``<block/>``，用来进行 [列表渲染](/use?id=列表渲染) 和 [条件渲染](/use?id=条件渲染)。
+``uni-app`` 支持在 template 模板中嵌套 ``<template/>`` 和 ``<block/>``，用来进行 [列表渲染](/vue-basics?id=列表渲染) 和 [条件渲染](/vue-basics?id=条件渲染)。
 
  ``<template/>`` 和 ``<block/>`` 并不是一个组件，它们仅仅是一个包装元素，不会在页面中做任何渲染，只接受控制属性。
+ 
+ ``<block/>`` 在不同的平台表现存在一定差异，推荐统一使用 ``<template/>``。
  
 **代码示例**
  
@@ -545,7 +570,7 @@ ES6 API 的支持，详见如下表格部分（`x` 表示不支持，无特殊�
 * 微信小程序[详见](https://developers.weixin.qq.com/miniprogram/dev/framework/runtime/js-support.html#%E5%AE%A2%E6%88%B7%E7%AB%AF%20ES6%20API%20%E6%94%AF%E6%8C%81%E6%83%85%E5%86%B5)
 * 阿里小程序[详见](https://docs.alipay.com/mini/framework/implementation-detail)
 * 百度小程序[详见](https://smartprogram.baidu.com/docs/develop/framework/operating-environment/)
-* 头条小程序[详见](https://developer.toutiao.com/dev/cn/mini-app/develop/framework/mini-app-runtime/javascript-support)
+* 字节跳动小程序[详见](https://developer.toutiao.com/dev/cn/mini-app/develop/framework/mini-app-runtime/javascript-support)
 * QQ小程序[详见](https://q.qq.com/wiki/develop/miniprogram/frame/useful/useful_env.html#es6%E6%94%AF%E6%8C%81%E6%83%85%E5%86%B5)
 
 |String|iOS8|iOS9|iOS10|Android|
@@ -665,6 +690,9 @@ const package = require('packageName')
 ## TypeScript 支持
 在 uni-app 中使用 ts 开发，请参考 [Vue.js TypeScript 支持](https://cn.vuejs.org/v2/guide/typescript.html) 说明。
 
+
+类型定义文件由 @dcloudio/types 模块提供，安装后请注意配置 tsconfig.json 文件中的 compilerOptions > types 部分，如需其他小程序平台类型定义也可以安装，如：miniprogram-api-typings、mini-types。对于缺少或者错误的类型定义，可以自行在本地新增或修改并同时报告给官方请求更新。
+
 ### 注意事项
 在 uni-app 中使用 ts 需要注意以下事项。
 #### 在 vue 文件的 script 节点声明 lang="ts"@vue-ts
@@ -730,9 +758,11 @@ const package = require('packageName')
 	});
 </script>
 ```
-## 小程序组件支持
+## 小程序自定义组件支持
 
 ``uni-app`` 支持在 App 和 小程序 中使用**小程序自定义组件**，从HBuilderX2.4.7起，H5端也可以运行微信小程序组件。
+
+小程序组件不是vue组件，并且每家小程序都有自己的组件规范，比如微信小程序的组件是wxml格式。
 
 **平台差异说明**
 
@@ -743,7 +773,7 @@ const package = require('packageName')
 |微信小程序|支持微信小程序组件|wxcomponents|
 |支付宝小程序|支持支付宝小程序组件|mycomponents|
 |百度小程序|支持百度小程序组件|swancomponents|
-|头条小程序|支持头条小程序组件|ttcomponents|
+|字节跳动小程序|支持字节跳动小程序组件|ttcomponents|
 |QQ小程序|支持QQ小程序组件|wxcomponents|
 
 此文档要求开发者对各端小程序的**自定义组件**有一定了解，没接触过小程序**自定义组件**的可以参考：
@@ -751,7 +781,7 @@ const package = require('packageName')
 - [微信小程序自定义组件](https://developers.weixin.qq.com/miniprogram/dev/framework/custom-component/)
 - [百度小程序自定义组件](https://smartprogram.baidu.com/docs/develop/framework/custom-component/)
 - [支付宝小程序自定义组件](https://docs.alipay.com/mini/framework/custom-component-overview)
-- [头条小程序自定义组件](https://developer.toutiao.com/docs/framework/custom_component_intro.html)
+- [字节跳动小程序自定义组件](https://developer.toutiao.com/docs/framework/custom_component_intro.html)
 - [QQ小程序自定义组件](https://q.qq.com/wiki/develop/miniprogram/frame/diy_components/)
 
 **目录结构**
@@ -769,13 +799,13 @@ const package = require('packageName')
 │		├─index.js
 │		├─index.axml
 │		├─index.json
-│		└─index.wxss
+│		└─index.acss
 ├─swancomponents                百度小程序自定义组件存放目录
 │   └──custom                   百度小程序自定义组件
 │		├─index.js
 │		├─index.swan
 │		├─index.json
-│		└─index.wxss
+│		└─index.css
 ├─pages
 │  └─index
 │		└─index.vue
@@ -794,25 +824,29 @@ const package = require('packageName')
 
 ```javascript
 {
-    "pages": [
-        {
-        	"path": "index/index",
-        	"style": {
-        		"usingComponents": {
-        			// #ifdef APP-PLUS || MP-WEIXIN || MP-QQ
-        			 "custom": "/wxcomponents/custom/index"
-        			// #endif
-        			// #ifdef MP-BAIDU
-        			 "custom": "/swancomponents/custom/index"
-        			// #endif
-        			// #ifdef MP-ALIPAY
-        			 "custom": "/mycomponents/custom/index"
-        			// #endif
-        		}
-        	}
-        }
-    ]
+	"pages": [{
+		"path": "index/index",
+		"style": {
+			// #ifdef APP-PLUS || H5 || MP-WEIXIN || MP-QQ
+			"usingComponents": {
+				"custom": "/wxcomponents/custom/index"
+			},
+			// #endif
+			// #ifdef MP-BAIDU
+			"usingComponents": {
+				"custom": "/swancomponents/custom/index"
+			},
+			// #endif
+			// #ifdef MP-ALIPAY
+			"usingComponents": {
+				"custom": "/mycomponents/custom/index"
+			},
+			// #endif
+			"navigationBarTitleText": "uni-app"
+		}
+	}]
 }
+
 ```
 
 在页面中使用
@@ -949,13 +983,12 @@ slide-view.vue
 * 小程序组件需要放在项目特殊文件夹 ``wxcomponents``（或 mycomponents、swancomponents）。HBuilderX 建立的工程 ``wxcomponents`` 文件夹在 项目根目录下。vue-cli 建立的工程 ``wxcomponents`` 文件夹在 ``src`` 目录下。可以在 vue.config.js 中自定义其他目录
 * 小程序组件的性能，不如vue组件。使用小程序组件，需要自己手动setData，很难自动管理差量数据更新。而使用vue组件会自动diff更新差量数据。所以如无明显必要，建议使用vue组件而不是小程序组件。比如某些小程序ui组件，完全可以用更高性能的uni ui替代。
 * 当需要在 `vue` 组件中使用小程序组件时，注意在 `pages.json` 的 `globalStyle` 中配置 `usingComponents`，而不是页面级配置。
-* 注意数据和事件绑定的差异，使用时应按照 `vue` 的数据和事件绑定方式
+* 注意数据和事件绑定的差异，组件使用时应按照 `vue` 的数据和事件绑定方式
 	- 属性绑定从 `attr="{{ a }}"`，改为 `:attr="a"`；从 `title="复选框{{ item }}"` 改为 `:title="'复选框' + item"`
-	- 事件绑定从 `bind:click="toggleActionSheet1"` 改为 `@click="toggleActionSheet1"`
+	- 事件绑定从 `bind:click="toggleActionSheet1"` 改为 `@click="toggleActionSheet1"`，目前支付宝小程序不支持 `vue` 的事件绑定方式，具体参考：[支付宝小程序组件事件监听示例](https://github.com/dcloudio/uni-app/issues/917#issuecomment-653329693)
 	- 阻止事件冒泡 从 `catch:tap="xx"` 改为 `@tap.native.stop="xx"`
 	- `wx:if` 改为 `v-if`
 	- `wx:for="{{ list }}" wx:key="{{ index }}"` 改为`v-for="(item,index) in list"`
-	- 原事件命名以短横线分隔的需要手动修改小程序组件源码为驼峰命名，比如：`this.$emit('left-click')` 修改为 `this.$emit('leftClick')`（HBuilderX 1.9.0+ 不再需要修改此项）
 
 详细的小程序转uni-app语法差异可参考文档[https://ask.dcloud.net.cn/article/35786](https://ask.dcloud.net.cn/article/35786)。
 
@@ -971,7 +1004,7 @@ uni-app可以将wxs代码编译到微信小程序、QQ小程序、app-vue、H5�
 
 **平台差异说明**
 
-|App|H5|微信小程序|支付宝小程序|百度小程序|头条小程序|QQ小程序|
+|App|H5|微信小程序|支付宝小程序|百度小程序|字节跳动小程序|QQ小程序|
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 |√(不支持nvue)|√|√|SJS|Filter|x|√|
 
@@ -1189,11 +1222,9 @@ export default {
 
 **平台差异说明**
 
-|App|H5|微信小程序|支付宝小程序|百度小程序|头条小程序|QQ小程序|
+|App|H5|微信小程序|支付宝小程序|百度小程序|字节跳动小程序|QQ小程序|
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 |√(2.5.5+，仅支持vue，并要求v3编译器)|√|x|x|x|x|x|
-
-renderjs，以 vue 组件的写法运行在 view 层。
 
 ### 使用方式
 
@@ -1236,12 +1267,14 @@ renderjs，以 vue 组件的写法运行在 view 层。
 
 ### 注意事项
 
-* 可以使用 dom、bom API 不可直接访问逻辑层数据
-* 视图层和逻辑层通讯方式与 [WXS](?id=wxs) 一致
-* 观测更新的数据在 view 层可以直接访问到
-* 不要直接引用大型类库，推荐通过动态创建 script 方式引用
-* view 层的页面引用资源的路径相对于根目录计算，例如：./static/test.js
-* 目前仅支持内联使用
+* 目前仅支持内联使用。
+* 不要直接引用大型类库，推荐通过动态创建 script 方式引用。
+* 可以使用 vue 组件的生命周期不可以使用 App、Page 的生命周期
+* 视图层和逻辑层通讯方式与 [WXS](frame?id=wxs) 一致，另外可以通过 this.$ownerInstance 获取当前组件的 ComponentDescriptor 实例。
+* 观测更新的数据在视图层可以直接访问到。
+* APP 端视图层的页面引用资源的路径相对于根目录计算，例如：./static/test.js。
+* APP 端可以使用 dom、bom API，不可直接访问逻辑层数据，不可以使用 uni 相关接口（如：uni.request）
+* H5 端逻辑层和视图层实际运行在同一个环境中，相当于使用 mixin 方式，可以直接访问逻辑层数据。
 
 
 ## 致谢

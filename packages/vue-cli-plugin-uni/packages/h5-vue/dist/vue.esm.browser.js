@@ -1,6 +1,6 @@
 /*!
  * Vue.js v2.6.11
- * (c) 2014-2020 Evan You
+ * (c) 2014-2021 Evan You
  * Released under the MIT License.
  */
 /*  */
@@ -638,6 +638,9 @@ let formatComponentName = (noop);
 
   formatComponentName = (vm, includeFile) => {
     if (vm.$root === vm) {
+      if (vm.$options && vm.$options.__file) { // fixed by xxxxxx
+        return ('at ') + vm.$options.__file
+      }
       return '<Root>'
     }
     const options = typeof vm === 'function' && vm.cid != null
@@ -672,7 +675,7 @@ let formatComponentName = (noop);
     if (vm._isVue && vm.$parent) {
       const tree = [];
       let currentRecursiveSequence = 0;
-      while (vm) {
+      while (vm && vm.$options.name !== 'PageBody') {
         if (tree.length > 0) {
           const last = tree[tree.length - 1];
           if (last.constructor === vm.constructor) {
@@ -684,7 +687,7 @@ let formatComponentName = (noop);
             currentRecursiveSequence = 0;
           }
         }
-        tree.push(vm);
+        !vm.$options.isReserved && tree.push(vm);
         vm = vm.$parent;
       }
       return '\n\nfound in\n\n' + tree
@@ -716,13 +719,7 @@ class Dep {
   
 
   constructor () {
-    // fixed by xxxxxx (nvue vuex)
-    /* eslint-disable no-undef */
-    if(typeof SharedObject !== 'undefined'){
-      this.id = SharedObject.uid++;
-    } else {
-      this.id = uid++;
-    }
+    this.id = uid++;
     this.subs = [];
   }
 
@@ -760,18 +757,20 @@ class Dep {
 // can be evaluated at a time.
 // fixed by xxxxxx (nvue shared vuex)
 /* eslint-disable no-undef */
-Dep.SharedObject = typeof SharedObject !== 'undefined' ? SharedObject : {};
+Dep.SharedObject = {};
 Dep.SharedObject.target = null;
 Dep.SharedObject.targetStack = [];
 
 function pushTarget (target) {
   Dep.SharedObject.targetStack.push(target);
   Dep.SharedObject.target = target;
+  Dep.target = target;
 }
 
 function popTarget () {
   Dep.SharedObject.targetStack.pop();
   Dep.SharedObject.target = Dep.SharedObject.targetStack[Dep.SharedObject.targetStack.length - 1];
+  Dep.target = Dep.SharedObject.target;
 }
 
 /*  */
@@ -2721,7 +2720,7 @@ function renderList (
       const iterator = val[Symbol.iterator]();
       let result = iterator.next();
       while (!result.done) {
-        ret.push(render(result.value, ret.length, i++, i)); // fixed by xxxxxx
+        ret.push(render(result.value, ret.length, i, i++)); // fixed by xxxxxx
         result = iterator.next();
       }
     } else {
@@ -5090,10 +5089,10 @@ function initMixin (Vue) {
     initEvents(vm);
     initRender(vm);
     callHook(vm, 'beforeCreate');
-    vm.mpHost !== 'mp-toutiao' && initInjections(vm); // resolve injections before data/props  
+    !vm._$fallback && initInjections(vm); // resolve injections before data/props  
     initState(vm);
-    vm.mpHost !== 'mp-toutiao' && initProvide(vm); // resolve provide after data/props
-    vm.mpHost !== 'mp-toutiao' && callHook(vm, 'created');      
+    !vm._$fallback && initProvide(vm); // resolve provide after data/props
+    !vm._$fallback && callHook(vm, 'created');      
 
     /* istanbul ignore if */
     if (config.performance && mark) {
@@ -7512,7 +7511,7 @@ function model (
       );
     }
   }
-
+  
   if (el.component) {
     genComponentModel(el, value, modifiers);
     // component v-model doesn't need extra runtime
@@ -7958,7 +7957,7 @@ const cssVarRE = /^--/;
 const importantRE = /\s*!important$/;
 
 // upx,rpx 正则匹配
-const unitRE = /([+-]?\d+(\.\d+)?)[r|u]px/g;
+const unitRE = /\b([+-]?\d+(\.\d+)?)[r|u]px\b/g;
 
 const transformUnit = (val) => {
   if (typeof val === 'string') {
@@ -7970,11 +7969,12 @@ const transformUnit = (val) => {
   return val
 };
 
-const urlRE = /url\(\s*'?"?([a-zA-Z0-9\.\-\_\/]+\.(jpg|gif|png))"?'?\s*\)/;
+const urlRE1 = /url\(\s*['"](.+?\.(jpg|gif|png))['"]\s*\)/;
+const urlRE2 = /url\(\s*([a-zA-Z0-9\.\-\_\/]+?\.(jpg|gif|png))\s*\)/;
 
 const transformUrl = (val, ctx) => {
   if (typeof val === 'string' && val.indexOf('url(') !== -1) {
-    const matches = val.match(urlRE);
+    const matches = val.match(urlRE1) || val.match(urlRE2);
     if (matches && matches.length === 3) {
         val = val.replace(matches[1], ctx._$getRealPath(matches[1]));
     }
@@ -10721,7 +10721,7 @@ function preTransformNode (el, options) {
       return
     }
 
-    if(process.env.UNI_PLATFORM !== 'h5'){ // fixed by xxxxxx  非 h5 平台 type 不会是 checkbox,radio
+    if (process.env.UNI_PLATFORM !== 'h5') { // fixed by xxxxxx  非 h5 平台 type 不会是 checkbox,radio
       return
     }
 

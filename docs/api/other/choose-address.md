@@ -4,7 +4,7 @@
  
 **平台差异说明**
 
-|App|H5|微信小程序|支付宝小程序|百度小程序|头条小程序|QQ小程序|
+|App|H5|微信小程序|支付宝小程序|百度小程序|字节跳动小程序|QQ小程序|
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 |x|x|√|√|√|√|x|
  
@@ -24,7 +24,8 @@
 | userName | string | 收货人姓名 ||
 | postalCode | string | 邮编 ||
 | provinceName | string | 国标收货地址第一级地址 ||
-| cityName | string | 国标收货地址第一级地址 ||
+| cityName | string | 国标收货地址第二级地址 ||
+| countyName | string | 国标收货地址第三级地址 ||
 | detailInfo | string | 详细收货地址信息 ||
 | nationalCode | string | 收货地址国家码 ||
 | telNumber | string | 收货人手机号码 ||
