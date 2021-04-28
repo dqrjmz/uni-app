@@ -30,7 +30,6 @@ export default function initVue (Vue) {
     }
   }
 
-
   const oldIsReservedTag = Vue.config.isReservedTag
   Vue.config.isReservedTag = function (tag) {
     return tags.indexOf(tag) !== -1 || oldIsReservedTag(tag)
