@@ -261,6 +261,120 @@ vue 是单页面应用，使页面局部刷新，不用每次跳转页面都要�
 
 {{msg}}里的内容将会被替代为对应数据对象上msg的值。无论何时，绑定的数据对象上msg发生了改变，插值处的内容都会更新。
 
+
+
+
+#### 使用 JavaScript 表达式
+
+
+迄今为止，在我们的模板中，我们一直都只绑定简单的 `property` 键值。但实际上，对于所有的数据绑定，Vue.js 都提供了完全的 `JavaScript` 表达式支持。
+
+```html
+<template>
+    <view>
+      <view>{{ number + 1 }}</view>
+      <view>{{ ok ? 'YES' : 'NO' }}</view>
+      <!-- 把一个字符串分割成字符串数组,颠倒其元素的顺序,把数组中的所有元素放入一个字符串 -->
+      <view>{{ message.split('').reverse().join('') }}</view>
+    </view>
+</template>
+<script>
+  export default {
+    data() {
+      return {
+        number:1,
+        ok:true,
+        message: 'Hello Vue!'
+      }
+    }
+  }
+</script>
+```
+
+
+
+```html
+<template>
+  <view>
+      <view v-for="(item,index) in 10">
+      <!-- 通过%运算符求余数，实现隔行换色的效果 -->
+      <view :class="'list-' + index%2">{{index%2}}</view>
+    </view>
+  </view>
+</template>
+<script>
+  export default {
+    data() {
+      return { }
+    }
+  }
+</script>
+<style>
+  .list-0{
+    background-color: #aaaaff;
+  }
+  .list-1{
+    background-color: #ffaa7f;
+  }
+</style>
+```
+
+
+这些表达式会在所属 Vue 实例的数据作用域下作为 `JavaScript` 被解析。有个限制就是，每个绑定都只能包含单个表达式，所以下面的例子都不会生效。
+
+
+```html
+<template>
+  <view>
+    <!-- 这是语句，不是表达式 -->
+    <view>{{ var a = 1 }}</view>
+    <!-- 流控制也不会生效，请使用三元表达式 -->
+    <view>{{ if (ok) { return message } }}</view>
+  </view>
+</template>
+<script>
+  export default {
+    data() {
+      return {
+        ok:true,
+        message: 'Hello Vue!'
+      }
+    }
+  }
+</script>
+```
+
+
+> 模板表达式都被放在沙盒中，只能访问**全局变量的一个白名单**：
+> - `Infinity`
+> - `undefined`
+> - `NaN`
+> - `isFinite`
+> - `isNaN`
+> - `parseFloat`
+> - `parseInt`
+> - `decodeURI`
+> - `decodeURIComponent`
+> - `encodeURI`
+> - `encodeURIComponent`
+> - `Math`
+> - `Number`
+> - `Date`
+> - `Array`
+> - `Object`
+> - `Boolean`
+> - `String`
+> - `RegExp`
+> - `Map`
+> - `Set`
+> - `JSON`
+> - `Intl`
+> 
+> 你不应该在模板表达式中试图访问用户定义的全局变量。
+
+
+
+
 ### 指令
 
 
@@ -954,7 +1068,7 @@ v-for 指令可以实现基于一个数组来渲染一个列表。
 				warn(message, event) {
 					// 现在我们可以访问原生事件对象
 					if (event) {
-						event.preventDefault()
+						//可访问 event.target等原生事件对象
 					}
 					uni.showToast({
 						title: message
@@ -976,7 +1090,7 @@ v-for 指令可以实现基于一个数组来渲染一个列表。
 @事件（v-on）提供了事件修饰符:
 
 - `.stop`: 各平台均支持， 使用时会阻止事件冒泡，在非 H5 端同时也会阻止事件的默认行为
-- `.native`: 监听原生事件，仅在 H5 平台支持
+- `.native`: 监听原生事件，各平台均支持
 - `.prevent`: 仅在 H5 平台支持
 - `.capture`: 仅在 H5 平台支持
 - `.self`: 仅在 H5 平台支持
@@ -995,7 +1109,7 @@ v-for 指令可以实现基于一个数组来渲染一个列表。
 
 **注意**
 
-- 为兼容各端，事件需使用 **@** 的方式绑定，请勿使用小程序端的 `bind` 和 `catch` 进行事件绑定。
+- 为兼容各端，事件需使用 **@** 的方式绑定，请勿使用小程序端的 `bind` 和 `catch` 进行事件绑定；也不能在 JS 中使用`event.preventDefault()`和`event.stopPropagation()`方法；
 - 若需要禁止蒙版下的页面滚动，可使用 `@touchmove.stop.prevent="moveHandle"`，`moveHandle` 可以用来处理 `touchmove` 的事件，也可以是一个空函数。
 
 ```html

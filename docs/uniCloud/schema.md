@@ -1012,9 +1012,11 @@ permission的字段级控制，包括读写两种权限，分别称为：read、
 
 **注意**
 
+- `auth.xxx`均由uni-id提供，依赖于[uni-id公共模块](uniCloud/uni-id.md)
+- `doc.xxx`表示将要查询/修改/删除的每条数据，如果将要访问的数据不满足permission规则将会拒绝执行
 - `uni-id`的角色和权限，也即auth.role和auth.permission是不一样的概念。注意阅读[uni-id 角色权限](/uniCloud/uni-id?id=rbac)
 - 如果想支持使用多个`action`的用法，可以通过`"'actionRequired' in action"`的形式配置权限，限制客户端使用的action内必须包含名为`actionRequired`的action
-- doc是有客户端条件里面提取的变量，因此create权限内不可使用doc变量，建议使用forceDefaultValue或自定义校验函数实现插入数据的校验。
+- doc是由客户端条件里面提取的变量，可以理解为将要访问的数据，因此create权限内不可使用doc变量，建议使用forceDefaultValue或自定义校验函数实现插入数据的校验。
 
 **权限规则内可以使用的运算符**
 
@@ -1042,7 +1044,7 @@ permission的字段级控制，包括读写两种权限，分别称为：read、
   "permission": {
     "read": "doc.status==true", // 任何用户都可以读status字段的值为true的记录，其他记录不可读
     "create": false, // 禁止新增数据记录（admin权限用户不受限）
-    "update": false, // 禁止更新数据（admin权限用户不受限）
+    "update": "'updateuser' in auth.permission", // 权限标记为updateuser的用户，和admin管理员，可以更新数据，其他人无权更新数据
     "delete": false // 禁止删除数据（admin权限用户不受限）
   },
   "properties": {
@@ -1086,6 +1088,14 @@ permission的字段级控制，包括读写两种权限，分别称为：read、
 forceDefaultValue属于数据校验的范畴，在数据插入时生效，但是如果配置forceDefaultValue为`{"$env": "uid"}`也会进行用户身份的校验，未登录用户不可插入数据。
 
 例如在news表新增一条记录，权限需求是“未登录用户不能创建新闻”，其实不需要在news表的create权限里写`auth.uid != null`。只需把news表的uid字段的forceDefaultValue设为`"$env": "uid"`，create权限配置为true即可，未登录用户自然无法创建。当然实际使用时你可能需要更复杂的权限，直接使用true作为权限规则时务必注意
+
+**permission和role的使用注意**
+
+在schema中使用uni-id的permission和role，首先需要在uniCloud admin中创建好权限，然后创建角色并给该角色分配权限，最后创建用户并授权角色。
+
+这样用户登录后，uniCloud会自动分析它的permission和role，在schema里编写的关于permission和role的限制也可以一一对应上，进行有效管理。
+
+admin中创建权限、角色和用户授权，另见[文档](/uniCloud/admin?id=mutiladmin)
 
 **变量action的说明**
 

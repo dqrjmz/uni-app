@@ -28,8 +28,8 @@ import createApp from './wrapper/create-app'
 import createPage from './wrapper/create-page'
 import createComponent from './wrapper/create-component'
 import createSubpackageApp from './wrapper/create-subpackage-app'
+import createPlugin from './wrapper/create-plugin'
 
-// 将todo api设置为false
 todos.forEach(todoApi => {
   protocols[todoApi] = false
 })
@@ -37,7 +37,6 @@ todos.forEach(todoApi => {
 canIUses.forEach(canIUseApi => {
   const apiName = protocols[canIUseApi] && protocols[canIUseApi].name ? protocols[canIUseApi].name
     : canIUseApi
-  // 不能使用的api就是
   if (!__GLOBAL__.canIUse(apiName)) {
     protocols[canIUseApi] = false
   }
@@ -46,9 +45,6 @@ canIUses.forEach(canIUseApi => {
 let uni = {}
 
 if (typeof Proxy !== 'undefined' && __PLATFORM__ !== 'app-plus') {
-  /**
-   * 将api代理到uni全局对象上
-   */
   uni = new Proxy({}, {
     get (target, name) {
       if (hasOwn(target, name)) {
@@ -82,9 +78,6 @@ if (typeof Proxy !== 'undefined' && __PLATFORM__ !== 'app-plus') {
     }
   })
 } else {
-  /**
-   * 将api添加到uni全局对象上
-   */
   Object.keys(baseApi).forEach(name => {
     uni[name] = baseApi[name]
   })
@@ -98,9 +91,6 @@ if (typeof Proxy !== 'undefined' && __PLATFORM__ !== 'app-plus') {
     })
   }
 
-  /**
-   * 添加观察者模式的api
-   */
   Object.keys(eventApi).forEach(name => {
     uni[name] = eventApi[name]
   })
@@ -123,17 +113,18 @@ if (__PLATFORM__ === 'app-plus') {
   }
 }
 
-// wx
 __GLOBAL__.createApp = createApp
 __GLOBAL__.createPage = createPage
 __GLOBAL__.createComponent = createComponent
 __GLOBAL__.createSubpackageApp = createSubpackageApp
+__GLOBAL__.createPlugin = createPlugin
 
 export {
   createApp,
   createPage,
   createComponent,
-  createSubpackageApp
+  createSubpackageApp,
+  createPlugin
 }
 
 export default uni

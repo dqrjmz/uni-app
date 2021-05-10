@@ -117,6 +117,7 @@ websocket的实时特性导致serverless化比较复杂，目前曲线方案有�
 1. 使用clientDB可以减少遇到冷启动问题的概率
 2. 非高频访问的云函数，合并到高频云函数中。有的开发者使用纯单页方式编写云函数，即在一个云函数中通过路由处理实现了整个应用的所有后台逻辑。参考[插件](https://ext.dcloud.net.cn/search?q=%E8%B7%AF%E7%94%B1&cat1=7&orderBy=UpdatedDate)
 3. 非高频访问的云函数，可以通过定时任务持续运行它（注意腾讯云可以使用这个方式完全避开冷启动，而阿里云的定时任务最短周期大于资源回收周期）
+4. 配置云函数的单实例多并发
 
 ### uniCloud访问速度感觉不如传统服务器？@slow
 有开发者在一台单机上安装php或java，连接同电脑的mysql。然后与uniCloud比较速度，认为uniCloud偏慢。这里需要澄清如下差异：
@@ -294,3 +295,56 @@ exports.main = async function(event){
   ![设置授权服务空间](https://vkceyugu.cdn.bspapp.com/VKCEYUGU-f184e7c3-1912-41b2-b81f-435d1b37c7b4/b3c234a7-e514-4b14-b33d-e7322130bd7d.jpg)
 
 5. 点击第4步弹出界面的`保存按钮`以及第3步的`保存权限设置`按钮
+
+### 如何使用promise/async/await@promise
+
+uniCloud客户端callFunction及数据库相关接口会返回Promise类型结果，请参考以下写法使用：
+
+```html
+// index.vue
+<template>
+  <view class="content">
+    <button type="default" @click="testThen">promise+then</button>
+    <button type="default" @click="testAwait">async+await</button>
+  </view>
+</template>
+
+<script>
+  export default {
+    data() {
+      return {}
+    },
+    methods: {
+      testThen() {
+        uniCloud.callFunction({
+          name: 'test'
+        }).then(res => {
+          console.log(res)
+        }).catch(err => {
+          console.error(err)
+        })
+      },
+      async testAwait() {
+        const res = await uniCloud.callFunction({
+          name: 'test'
+        })
+        console.log(res)
+
+        // 如需捕获错误需使用如下写法
+        // try {
+        //   const res = await uniCloud.callFunction({
+        //     name: 'test'
+        //   })
+        //   console.log(res)
+        // } catch (err) {
+        //   console.error(err)
+        // }
+
+      }
+    }
+  }
+</script>
+
+<style>
+</style>
+```

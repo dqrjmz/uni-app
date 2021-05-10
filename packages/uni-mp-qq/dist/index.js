@@ -3,12 +3,10 @@ import Vue from 'vue';
 const _toString = Object.prototype.toString;
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
-// 是否是函数
 function isFn (fn) {
   return typeof fn === 'function'
 }
 
-// 是否是字符串
 function isStr (str) {
   return typeof str === 'string'
 }
@@ -17,24 +15,19 @@ function isPlainObject (obj) {
   return _toString.call(obj) === '[object Object]'
 }
 
-// 是否有自己属性
 function hasOwn (obj, key) {
   return hasOwnProperty.call(obj, key)
 }
 
-function noop () { }
+function noop () {}
 
 /**
  * Create a cached version of a pure function.
- * 使用闭包，缓存数据
  */
 function cached (fn) {
-  // 创建一个没有原型链的对象
   const cache = Object.create(null);
   return function cachedFn (str) {
-    // 获取当前属性的值
     const hit = cache[str];
-    // 值存在返回，不存在，进行添加
     return hit || (cache[str] = fn(str))
   }
 }
@@ -133,7 +126,6 @@ function wrapperHook (hook) {
 }
 
 function isPromise (obj) {
-  // 存在 函数或者对象 有then函数
   return !!obj && (typeof obj === 'object' || typeof obj === 'function') && typeof obj.then === 'function'
 }
 
@@ -177,21 +169,12 @@ function wrapperOptions (interceptor, options = {}) {
   return options
 }
 
-/**
- * 包裹返回值
- * @param {*} method 方法
- * @param {*} returnValue 返回值
- */
 function wrapperReturnValue (method, returnValue) {
   const returnValueHooks = [];
-  // 全局拦截器的返回值是数组
   if (Array.isArray(globalInterceptors.returnValue)) {
-    // 添加到返回值的hook中
     returnValueHooks.push(...globalInterceptors.returnValue);
   }
-  // 作用域下的拦截器
   const interceptor = scopedInterceptors[method];
-  // 存在 && 返回值为数组
   if (interceptor && Array.isArray(interceptor.returnValue)) {
     returnValueHooks.push(...interceptor.returnValue);
   }
@@ -272,21 +255,16 @@ function isCallbackApi (name) {
 }
 
 function handlePromise (promise) {
-  // 调用Promise ，格式化返回值
   return promise.then(data => {
     return [null, data]
   })
     .catch(err => [err])
 }
 
-// 不能promise化的api
 function shouldPromise (name) {
   if (
-    // 上下文api
     isContextApi(name) ||
-    // 同步api
     isSyncApi(name) ||
-    // 回调api
     isCallbackApi(name)
   ) {
     return false
@@ -307,22 +285,11 @@ if (!Promise.prototype.finally) {
   };
 }
 
-/**
- *
- * @param {*} name
- * @param {*} api
- */
 function promisify (name, api) {
-  // 是否可以Promise化
   if (!shouldPromise(name)) {
-    // 不能直接返回
     return api
   }
-  /**
-   *
-   */
   return function promiseApi (options = {}, ...params) {
-    // 成功 失败 完成 是函数
     if (isFn(options.success) || isFn(options.fail) || isFn(options.complete)) {
       return wrapperReturnValue(name, invokeApi(name, api, options, ...params))
     }
@@ -358,7 +325,6 @@ function upx2px (number, newDeviceWidth) {
     checkDeviceWidth();
   }
 
-  // 数据类型转换
   number = Number(number);
   if (number === 0) {
     return 0
@@ -726,12 +692,9 @@ function processReturnValue (methodName, res, returnValue, keepReturnValue = fal
 }
 
 function wrapper (methodName, method) {
-  // protocols 对象是否存在实例属性 methodName
   if (hasOwn(protocols, methodName)) {
-    // 获取这个实例属性
     const protocol = protocols[methodName];
-    // 暂不支持的 api
-    if (!protocol) {
+    if (!protocol) { // 暂不支持的 api
       return function () {
         console.error(`Platform 'QQ小程序' does not support '${methodName}'.`);
       }
@@ -742,7 +705,6 @@ function wrapper (methodName, method) {
         options = protocol(arg1);
       }
 
-      // 处理函数参数
       arg1 = processArgs(methodName, arg1, options.args, options.returnValue);
 
       const args = [arg1];
@@ -763,10 +725,6 @@ function wrapper (methodName, method) {
   }
   return method
 }
-
-/**
- * 待实现的api uni.xxx
- */
 
 const todoApis = Object.create(null);
 
@@ -792,9 +750,6 @@ function createTodoApi (name) {
   }
 }
 
-/**
- * 遍历api
- */
 TODOS.forEach(function (name) {
   todoApis[name] = createTodoApi(name);
 });
@@ -821,7 +776,6 @@ function getProvider ({
     };
     isFn(success) && success(res);
   } else {
-    // 在服务提供者那里找不到这个服务
     res = {
       errMsg: 'getProvider:fail service not found'
     };
@@ -835,7 +789,6 @@ var extraApi = /*#__PURE__*/Object.freeze({
   getProvider: getProvider
 });
 
-// 单例，IIFE
 const getEmitter = (function () {
   let Emitter;
   return function getUniEmitter () {
@@ -1575,11 +1528,63 @@ function initEventChannel$1 () {
   };
 }
 
+function initScopedSlotsParams () {
+  const center = {};
+  const parents = {};
+
+  Vue.prototype.$hasScopedSlotsParams = function (vueId) {
+    const has = center[vueId];
+    if (!has) {
+      parents[vueId] = this;
+      this.$on('hook:destory', () => {
+        delete parents[vueId];
+      });
+    }
+    return has
+  };
+
+  Vue.prototype.$getScopedSlotsParams = function (vueId, name, key) {
+    const data = center[vueId];
+    if (data) {
+      const object = data[name] || {};
+      return key ? object[key] : object
+    } else {
+      parents[vueId] = this;
+      this.$on('hook:destory', () => {
+        delete parents[vueId];
+      });
+    }
+  };
+
+  Vue.prototype.$setScopedSlotsParams = function (name, value) {
+    const vueId = this.$options.propsData.vueId;
+    const object = center[vueId] = center[vueId] || {};
+    object[name] = value;
+    if (parents[vueId]) {
+      parents[vueId].$forceUpdate();
+    }
+  };
+
+  Vue.mixin({
+    destroyed () {
+      const propsData = this.$options.propsData;
+      const vueId = propsData && propsData.vueId;
+      if (vueId) {
+        delete center[vueId];
+        delete parents[vueId];
+      }
+    }
+  });
+}
+
 function parseBaseApp (vm, {
   mocks,
   initRefs
 }) {
   initEventChannel$1();
+  {
+    initScopedSlotsParams();
+  }
   if (vm.$options.store) {
     Vue.prototype.$store = vm.$options.store;
   }
@@ -1603,7 +1608,7 @@ function parseBaseApp (vm, {
 
       delete this.$options.mpType;
       delete this.$options.mpInstance;
-      if (this.mpType === 'page') { // hack vue-i18n
+      if (this.mpType === 'page' && typeof getApp === 'function') { // hack vue-i18n
         const app = getApp();
         if (app.$vm && app.$vm.$i18n) {
           this._i18n = app.$vm.$i18n;
@@ -1622,7 +1627,7 @@ function parseBaseApp (vm, {
         return
       }
       {
-        if (!wx.canIUse('nextTick')) { // 事实 上2.2.3 即可，简单使用 2.3.0 的 nextTick 判断
+        if (wx.canIUse && !wx.canIUse('nextTick')) { // 事实 上2.2.3 即可，简单使用 2.3.0 的 nextTick 判断
           console.error('当前微信基础库版本过低，请将 微信开发者工具-详情-项目设置-调试基础库版本 更换为`2.3.0`以上');
         }
       }
@@ -1659,7 +1664,6 @@ function parseBaseApp (vm, {
   return appOptions
 }
 
-//
 const mocks = ['__route__', '__wxExparserNodeId__', '__wxWebviewId__'];
 
 function findVmByVueId (vm, vuePid) {
@@ -1756,57 +1760,45 @@ function createApp (vm) {
   return vm
 }
 
-// 编码预留的规则
 const encodeReserveRE = /[!'()*]/g;
-// 编码预留的替换
 const encodeReserveReplacer = c => '%' + c.charCodeAt(0).toString(16);
 const commaRE = /%2C/g;
 
 // fixed encodeURIComponent which is more conformant to RFC3986:
 // - escapes [!'()*]
 // - preserve commas
-// 给字符串进行编码
 const encode = str => encodeURIComponent(str)
   .replace(encodeReserveRE, encodeReserveReplacer)
   .replace(commaRE, ',');
 
-// 序列化查询字符串
 function stringifyQuery (obj, encodeStr = encode) {
-  // 获取对象的key，进行遍历
   const res = obj ? Object.keys(obj).map(key => {
     const val = obj[key];
-    // 对象的属性不存在返回
+
     if (val === undefined) {
       return ''
     }
 
-    // 对象的属性为null, 将key返回
     if (val === null) {
       return encodeStr(key)
     }
 
-    // 值为数组
     if (Array.isArray(val)) {
       const result = [];
-      // 遍历数组
       val.forEach(val2 => {
-        // 元素为空的返回
         if (val2 === undefined) {
           return
         }
-        // 元素为null的进行编码，添加到数组中
         if (val2 === null) {
           result.push(encodeStr(key));
         } else {
           result.push(encodeStr(key) + '=' + encodeStr(val2));
         }
       });
-      // 将数组使用&符号进行连接
       return result.join('&')
     }
-    // 编码key 和value
+
     return encodeStr(key) + '=' + encodeStr(val)
-    // 过滤掉长度为0 的编译过的
   }).filter(x => x.length > 0).join('&') : null;
   return res ? `?${res}` : ''
 }
@@ -2009,7 +2001,25 @@ function createSubpackageApp (vm) {
   return vm
 }
 
-// 将todo api设置为false
+function createPlugin (vm) {
+  const appOptions = parseApp$1(vm);
+  if (isFn(appOptions.onShow) && wx.onAppShow) {
+    wx.onAppShow((...args) => {
+      appOptions.onShow.apply(vm, args);
+    });
+  }
+  if (isFn(appOptions.onHide) && wx.onAppHide) {
+    wx.onAppHide((...args) => {
+      appOptions.onHide.apply(vm, args);
+    });
+  }
+  if (isFn(appOptions.onLaunch)) {
+    const args = wx.getLaunchOptionsSync && wx.getLaunchOptionsSync();
+    appOptions.onLaunch.call(vm, args);
+  }
+  return vm
+}
+
 todos.forEach(todoApi => {
   protocols[todoApi] = false;
 });
@@ -2017,7 +2027,6 @@ todos.forEach(todoApi => {
 canIUses.forEach(canIUseApi => {
   const apiName = protocols[canIUseApi] && protocols[canIUseApi].name ? protocols[canIUseApi].name
     : canIUseApi;
-  // 不能使用的api就是
   if (!wx.canIUse(apiName)) {
     protocols[canIUseApi] = false;
   }
@@ -2026,9 +2035,6 @@ canIUses.forEach(canIUseApi => {
 let uni = {};
 
 if (typeof Proxy !== 'undefined' && "mp-qq" !== 'app-plus') {
-  /**
-   * 将api代理到uni全局对象上
-   */
   uni = new Proxy({}, {
     get (target, name) {
       if (hasOwn(target, name)) {
@@ -2062,9 +2068,6 @@ if (typeof Proxy !== 'undefined' && "mp-qq" !== 'app-plus') {
     }
   });
 } else {
-  /**
-   * 将api添加到uni全局对象上
-   */
   Object.keys(baseApi).forEach(name => {
     uni[name] = baseApi[name];
   });
@@ -2078,9 +2081,6 @@ if (typeof Proxy !== 'undefined' && "mp-qq" !== 'app-plus') {
     });
   }
 
-  /**
-   * 添加观察者模式的api
-   */
   Object.keys(eventApi).forEach(name => {
     uni[name] = eventApi[name];
   });
@@ -2096,13 +2096,13 @@ if (typeof Proxy !== 'undefined' && "mp-qq" !== 'app-plus') {
   });
 }
 
-// wx
 wx.createApp = createApp;
 wx.createPage = createPage;
 wx.createComponent = createComponent;
 wx.createSubpackageApp = createSubpackageApp;
+wx.createPlugin = createPlugin;
 
 var uni$1 = uni;
 
 export default uni$1;
-export { createApp, createComponent, createPage, createSubpackageApp };
+export { createApp, createComponent, createPage, createPlugin, createSubpackageApp };

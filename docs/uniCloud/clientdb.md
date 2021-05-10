@@ -389,6 +389,8 @@ sql写法，对js工程师而言有学习成本，而且无法处理非关系型
 
 ### JQL联表查询@lookup
 
+> clientDB将于2021年4月26日优化联表查询策略，详情参考：[联表查询策略调整](https://ask.dcloud.net.cn/article/38966)
+
 `JQL`提供了更简单的联表查询方案。不需要学习join、lookup等复杂方法。
 
 只需在db schema中，将两个表的关联字段建立映射关系，就可以把2个表当做一个虚拟表来直接查询。
@@ -520,21 +522,51 @@ db.collection('order')
       book_id: '$book_id'
     },
     pipeline: $.pipeline()
-    // 此match方法内的条件会和book表对应的权限规则进行校验，{status: 'OnSell'}会参与校验，整个expr方法转化成一个不与任何条件产生交集的特别表达式。这里如果将dbCmd.and换成dbCmd.or会校验不通过
-    .match(dbCmd.expr(
+      .match(dbCmd.expr(
         $.eq(['$_id', '$$book_id'])
       ))
-    .done()
-    as: 'book'
+      .project({
+        title: true,
+        author: true
+      })
+      .done()
+    as: 'book_id'
   })
   .match({
     book: {
       title: '三国演义'
     }
   })
+  .project({
+    book_id: true,
+    quantity: true
+  })
+  .end()
+
+// 如果在云函数内还可以使用以下写法
+const db = uniCloud.database()
+const dbCmd = db.command
+const $ = dbCmd.aggregate
+db.collection('order')
+  .aggregate()
+  .lookup({
+    from: 'book',
+    localField: 'book_id',
+    foreignField: '_id',
+    as: 'book_id'
+  })
+  .match({
+    book: {
+      title: '三国演义'
+    }
+  })
+  .project({
+    'book_id.title': true,
+    'book_id.author': true,
+    quantity: true
+  })
   .end()
 ```
-
 
 上述查询会返回如下结果，可以看到书籍信息被嵌入到order表的book_id字段下，成为子节点。同时根据where条件设置，只返回书名为三国演义的订单记录。
 
@@ -563,18 +595,221 @@ db.collection('order')
 
 二维关系型数据库做不到这种设计。`jql`充分利用了json文档型数据库的特点，动态嵌套数据，实现了这个简化的联表查询方案。
 
-不止是2个表，3个、4个表也可以通过这种方式查询。
+不止是2个表，3个、4个表也可以通过这种方式查询，多表场景下只能使用副表与主表之间的关联关系（foreignKey），不可使用副表与副表之间的关联关系。
+
+不止js，`<unicloud-db>`组件也支持所有`jql`功能，包括联表查询。
+
+#### 手动指定使用的foreignKey@lookup-foreign-key
+
+如果存在多个foreignKey且只希望部分生效，可以使用foreignKey来指定要使用的foreignKey
+
+> 2021年4月28日10点前此方法仅用于兼容clientDB联表查询策略调整前后的写法，在此日期后更新的clientDB（上传schema、uni-id均会触发更新）才会有指定foreignKey的功能，关于此次调整请参考：[联表查询策略调整](https://ask.dcloud.net.cn/article/38966)
+
+```js
+db.collection('comment,user')
+.where('comment_id=="1-1"')
+.field('content,sender,receiver.name')
+.foreignKey('comment.receiver') // 仅使用comment表内receiver字段下的foreignKey进行主表和副表之间的关联
+.get()
+```
 
 **注意**
 
-- field参数字符串内没有冒号，{}为联表查询标志
+- field参数字符串内没有冒号
 - 联表查询时关联字段会被替换成被关联表的内容，因此不可在where内使用关联字段作为条件。举个例子，在上面的示例，`where({book_id:"1"})`，但是可以使用`where({'book_id._id':"1"})`
 - 上述示例中如果order表的`book_id`字段是数组形式存放多个book_id，也跟上述写法一致，clientDB会自动根据字段类型进行联表查询
 - 各个表的_id字段会默认带上，即使没有指定返回
 
+
+#### 副表foreignKey联查@st-foreign-key
+
+`2021年4月28日`之前的clientDB版本，只支持主表的foreignKey，把副本内容嵌入主表的foreignKey字段下面。不支持处理副本的foreignKey。（如果你觉得能用，其实是bug，查出来的数是乱的，别依赖这种写法）
+
+调整后，新版将正式支持副表foreignKey联查。将把副表的数据以数组的方式嵌入到主表中。
+
+例：
+
+数据库内schema及数据如下：
+
+
+```js
+// comment - 评论表
+
+// schema
+{
+  "bsonType": "object",
+  "required": [],
+  "permission": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "comment_id": {
+      "bsonType": "string"
+    },
+    "content": {
+      "bsonType": "string"
+    },
+    "article": {
+      "bsonType": "string",
+      "foreignKey": "article.article_id"
+    },
+    "sender": {
+      "bsonType": "string",
+      "foreignKey": "user.uid"
+    },
+    "receiver": {
+      "bsonType": "string",
+      "foreignKey": "user.uid"
+    }
+  }
+}
+
+// data
+{
+  "comment_id": "1-1",
+  "content": "comment1-1",
+  "article": "1",
+  "sender": "1",
+  "receiver": "2"
+}
+{
+  "comment_id": "1-2",
+  "content": "comment1-2",
+  "article": "1",
+  "sender": "2",
+  "receiver": "1"
+}
+{
+  "comment_id": "2-1",
+  "content": "comment2-1",
+  "article": "2",
+  "sender": "1",
+  "receiver": "2"
+}
+{
+  "comment_id": "2-2",
+  "content": "comment2-2",
+  "article": "2",
+  "sender": "2",
+  "receiver": "1"
+}
+```
+
+```js
+// article - 文章表
+
+// schema
+{
+  "bsonType": "object",
+  "required": [],
+  "permission": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "article_id": {
+      "bsonType": "string"
+    },
+    "title": {
+      "bsonType": "string"
+    },
+    "content": {
+      "bsonType": "string"
+    },
+    "author": {
+      "bsonType": "string",
+      "foreignKey": "user.uid"
+    }
+  }
+}
+
+// data
+{
+  "article_id": "1",
+  "title": "title1",
+  "content": "content1",
+  "author": "1"
+}
+{
+  "article_id": "2",
+  "title": "title2",
+  "content": "content2",
+  "author": "1"
+}
+{
+  "article_id": "3",
+  "title": "title3",
+  "content": "content3",
+  "author": "2"
+}
+```
+
+以下查询使用comment表的article字段对应的foreignKey进行关联查询
+
+```js
+db.collection('article,comment')
+.where('article_id=="1"')
+.field('content,article_id')
+.get()
+```
+
+查询结果如下：
+
+```js
+[{
+  "content": "content1",
+  "article_id": {
+    "comment": [{ // 逆向foreignKey查询时此处会自动插入一层副表表名
+      "comment_id": "1-1",
+      "content": "comment1-1",
+      "article": "1",
+      "sender": "1",
+      "receiver": "2"
+    },
+    {
+      "comment_id": "1-2",
+      "content": "comment1-2",
+      "article": "1",
+      "sender": "2",
+      "receiver": "1"
+    }]
+  }
+}]
+```
+
+如需对上述查询的副表字段进行过滤，需要注意多插入的一层副表表名
+
+```js
+// 过滤副表字段
+db.collection('article,comment')
+.where('article_id=="1"')
+.field('content,article_id{comment{content}}')
+.get()
+
+// 查询结果如下
+[{
+  "content": "content1",
+  "article_id": {
+    "comment": [{ 使用副本foreignKey联查时此处会自动插入一层副表表名
+      "content": "comment1-1"
+    },
+    {
+      "content": "comment1-2"
+    }]
+  }
+}]
+```
+
 ### 查询记录过滤，where条件@where
 
-jql对查询条件进行了简化，开发者可以使用`where('a==1||b==2')`来表示字段`a等于1或字段b等于2`。如果不适用jql语法，上述条件需要写成下面这种形式
+> 代码块`dbget`
+
+jql对查询条件进行了简化，开发者可以使用`where('a==1||b==2')`来表示字段`a等于1或字段b等于2`。如果不使用jql语法，上述条件需要写成下面这种形式
 
 ```js
 const db = uniCloud.database()
@@ -755,7 +990,6 @@ db.collection('book')
 field可以指定字符串，也可以指定一个对象。
 
 - 字符串写法：列出字段名称，多个字段以半角逗号做分隔符。比如`db.collection('book').field("title,author")`，查询结果会返回`_id`、`title`、`author`3个字段的数据。字符串写法，`_id`是一定会返回的
-- json写法：一般用于黑名单排除。比如`db.collection('book').field({ '_id': false })`，明确指定不返回`_id`。
 
 **复杂嵌套json数据过滤**
 
@@ -834,6 +1068,62 @@ db.collection('order,book')
 			"book_author": "罗贯中",
 			"book_title": "三国演义"
 		}],
+		"order_quantity": 333
+	}]
+}
+```
+
+**不使用`{}`过滤副表字段**
+
+> 此写法于2021年4月28日起支持
+
+field方法可以不使用`{}`进行副表字段过滤，以上面示例为例可以写为
+
+```js
+const db = uniCloud.database()
+db.collection('order,book')
+  .where('book_id.title == "三国演义"')
+  .field('book_id.title,book_id.author,quantity as order_quantity') // book_id.title、book_id.author为副表字段，使用别名时效果和上一个示例不同，请见下方说明
+  .orderBy('order_quantity desc') // 按照order_quantity降序排列
+  .get()
+  .then(res => {
+    console.log(res);
+  }).catch(err => {
+    console.error(err)
+  })
+```
+
+副表字段使用别名需要注意，如果写成`.field('book_id.title as book_id.book_title,book_id.author,quantity as order_quantity')` book_title将会是由book_id下每一项的title组成的数组，这点和mongoDB内数组表现一致
+
+```js
+const db = uniCloud.database()
+db.collection('order,book')
+  .where('book_id.title == "三国演义"')
+  .field('book_id.title as book_title,book_id.author as book_author,quantity as order_quantity') // book_id.title、book_id.author为副表字段，使用别名时效果和上一个示例不同，请见下方说明
+  .orderBy('order_quantity desc') // 按照order_quantity降序排列
+  .get()
+  .then(res => {
+    console.log(res);
+  }).catch(err => {
+    console.error(err)
+  })
+```
+
+返回结果如下
+
+```js
+{
+	"code": "",
+	"message": "",
+	"data": [{
+		"_id": "b8df3bd65f8f0d06018fdc250a5688bb",
+    book_title: ["三国演义"],
+    book_author: ["罗贯中"],
+		"order_quantity": 555
+	}, {
+		"_id": "b8df3bd65f8f0d06018fdc2315af05ec",
+    book_title: ["三国演义"],
+    book_author: ["罗贯中"],
 		"order_quantity": 333
 	}]
 }
@@ -1904,6 +2194,8 @@ const res = await db.collection('score')
 
 ### 新增数据记录add
 
+> 代码块`dbadd`
+
 获取到db的表对象后，通过`add`方法新增数据记录。
 
 方法：collection.add(data)
@@ -1987,6 +2279,9 @@ db.collection("user")
 
 
 ### 删除数据记录remove
+
+> 代码块`dbremove`
+
 获取到db的表对象，然后指定要删除的记录，通过remove方法删除。
 
 注意：如果是非admin账户删除数据，需要在数据库中待操作表的`db schema`中要配置permission权限，赋予delete为true。
@@ -2061,6 +2356,8 @@ db.collection("table1")
 ```
 
 ### 更新数据记录update
+
+> 代码块`dbupdate`
 
 获取到db的表对象，然后指定要更新的记录，通过update方法更新。
 
@@ -2573,7 +2870,7 @@ action支持一次使用多个，比如使用`db.action("action-a,action-b")`，
 
 action是一种特殊的云函数，它不占用服务空间的云函数数量。
 
-目前action还不支持本地运行。后续会支持。
+**目前action还不支持本地运行。后续会支持。**
 
 **新建action**
 
@@ -2832,6 +3129,50 @@ res = {
     }]
   }
 }
+```
+
+**注意**
+
+运算方法中仅数据库字段可以直接去除引号作为变量书写，其他字符串仍要写成字符串形式
+
+例：
+
+数据库内有以下数据：
+
+```js
+{
+  "_id": 1,
+  "sales": [ 1.32, 6.93, 2.48, 2.82, 5.74 ]
+}
+{
+  "_id": 2,
+  "sales": [ 2.97, 7.13, 1.58, 6.37, 3.69 ]
+}
+```
+
+云函数内对以下数据中的sales字段取整
+
+```js
+const db = uniCloud.database()
+const $ = db.command.aggregate
+let res = await db.collection('stats').aggregate()
+  .project({
+    truncated: $.map({
+      input: '$sales',
+      as: 'num',
+      in: $.trunc('$$num'),
+    })
+  })
+  .end()
+```
+
+clientDB JQL语法内同样功能的实现
+
+```js
+const db = uniCloud.database()
+const res = await db.collection('stats')
+.field('map(sales,"num",trunc("$$num")) as truncated')
+.get()
 ```
 
 ### 分组运算方法@accumulator
