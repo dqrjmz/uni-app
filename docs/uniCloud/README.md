@@ -181,7 +181,8 @@ uni云端一体生态的内容太多，让我们抽丝剥茧、归纳分类，�
 
 下面列举些常用的轮子
 
-1. 官方维护的插件
+**1. 官方维护的插件**
+
 - uni-id：不用再开发用户系统。用户注册、登录（含社交登录、短信验证码登录、App一键登录）、修改或重置密码、token管理、图形验证码、RBAC权限角色系统...所有与用户相关的，不管前端还是云端，代码都是现成的。[详见](https://uniapp.dcloud.net.cn/uniCloud/uni-id)
 - uniPay：不管微信还是支付宝，不管App、微信小程序、还是支付宝小程序，不管前端还是服务端，一切都现成的，拿来即用。[详见](https://uniapp.dcloud.net.cn/uniCloud/unipay)
 - uSearch：云端一体搜索。搜索页面、输入联想、搜索历史记录、热搜词分析提取...一应俱全。[详见](https://ext.dcloud.net.cn/plugin?id=3851)
@@ -189,7 +190,8 @@ uni云端一体生态的内容太多，让我们抽丝剥茧、归纳分类，�
 - uni-file-picker：前端直传uniCloud存储组件。[详见](https://ext.dcloud.net.cn/plugin?id=4079)
 - uni-captcha：云端一体图形验证码组件。[详见](https://ext.dcloud.net.cn/plugin?id=4048)
 
-2. 社区的优秀插件
+**2. 社区的优秀插件**
+
 - cms
 - 城市选择
 - banner管理
@@ -200,9 +202,11 @@ uni云端一体生态的内容太多，让我们抽丝剥茧、归纳分类，�
 - push
 - 图表统计
 
-3. 项目模板
+**3. 项目模板**
+
 上面的轮子，是与业务无关的通用轮子。除此之外，还有大量的云端一体的项目模板。
 使用这些现成的项目模板，那开发效率更是极大幅的提升。过去5、6人月的项目，现在几天就能搞定上线！
+
 |				|			|					|
 |--				|--			|--					|
 |电商			|博客		|排班				|
@@ -213,7 +217,7 @@ uni云端一体生态的内容太多，让我们抽丝剥茧、归纳分类，�
 |新闻			|考勤打卡	|红包封面			|
 
 
-在这里，我们还必须提到2个新概念：uni_module和datacom。
+在这里，我们还必须提到2个新概念：`uni_module`和`datacom`。
 - uni_module：云端一体组件最佳的承载方式。传统的npm无法处理云端一体的需求，把前端和云端的代码，一起打包到一个uni_module中，整体传播与发布，对云端一体组件的生态有重大的帮助。[详见](https://uniapp.dcloud.net.cn/uni_modules)
 - datacom：datacom是一种在前端绑定后端数据源的组件。[详见](https://uniapp.dcloud.net.cn/component/datacom)
 
