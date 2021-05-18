@@ -11,15 +11,10 @@ const requireComponents = [
 
 // 所有组件[{path: Component}]
 requireComponents.forEach((components, index) => {
-  // 组件的options key
   components.keys().forEach(fileName => {
-    // 获取组件模块
     const componentModule = components(fileName)
-
-    // cjsm 或者 esm
     const componentConfig = componentModule.default || componentModule
 
-    // 组件的混合属性
     componentConfig.mixins = componentConfig.mixins ? [].concat(baseMixin, componentConfig.mixins) : [baseMixin]
 
     // 每个组件添加动画mixins
