@@ -17,8 +17,9 @@
 
 ### 看视频，只需25分钟，快速入门uniCloud
 
-- [腾讯课堂视频教程](https://ke.qq.com/course/3416784?taid=11123338234831568&tuin=4025c735)
-
+<a target="_blank" href="https://www.bilibili.com/video/BV17p4y1a71x?p=9">
+    <img src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-f184e7c3-1912-41b2-b81f-435d1b37c7b4/707756af-e9a9-4d08-8db9-5d1f34b84ea6.jpg" alt="腾讯课堂uniCloud视频教程" style="width: 70%;">
+</a>
 
 ### uniCloud是什么和不是什么
 
@@ -138,7 +139,7 @@ uniCloud最吸引人的是，它将开发效率提升了10倍以上。
 
 开发效率提升10倍，并非某个杀手功能的功劳，而是庞大的生态共同的作用。本章节篇幅较长，请耐心阅读。
 
-![](https://vkceyugu.cdn.bspapp.com/VKCEYUGU-f184e7c3-1912-41b2-b81f-435d1b37c7b4/c50d2741-6a47-4dcd-a02c-fdd683fa4ea4.png)
+![](https://vkceyugu.cdn.bspapp.com/VKCEYUGU-f184e7c3-1912-41b2-b81f-435d1b37c7b4/80364c0b-2dd8-4629-b0f7-cbead0df7922.png)
 
 #### 一个故事
 2020年初，uniCloud刚发布，新冠肺炎突然来袭，各地涌现大量抗疫项目需求。
@@ -304,7 +305,7 @@ HBuilderX提升了uni-app的开发效率，自然也将提升uniCloud的开发�
 ![](https://vkceyugu.cdn.bspapp.com/VKCEYUGU-f184e7c3-1912-41b2-b81f-435d1b37c7b4/88f093d0-1abd-487d-bf24-e0627c471977.jpg)
 
 
-#### 第四层提效：语言统一的价值
+#### 第五层提效：语言统一的价值
 
 前端和云端都使用js编程语言，提高了沟通效率。
 
@@ -314,7 +315,7 @@ js和其他服务器语言，比如php或java，在过去需要Mock来翻译，�
 
 由于统一了技术栈，招聘效率、管理效率也会相应提升。。
 
-#### 第五层提效：测试效率的提升
+#### 第六层提效：测试效率的提升
 
 代码量的减少到原来的十分之一，这自然可以让code review效率和白盒测试的效率也提升了十倍。
 
@@ -322,7 +323,7 @@ js和其他服务器语言，比如php或java，在过去需要Mock来翻译，�
 
 现在，开发、测试都将变的更加轻松。
 
-#### 第六层提效：serverless让开发者专注于业务，无需分心运维
+#### 第七层提效：serverless让开发者专注于业务，无需分心运维
 
 因为serverless的免运维特点，开发商再也不用操心扩容、高并发、ddos攻击、安全漏洞补丁等一系列麻烦事。只需专注于自己的业务。
 

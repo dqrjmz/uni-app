@@ -15,13 +15,15 @@ module.exports = function getRenderSlot (path, state) {
       const newProperties = []
       propertiesPath.forEach(path => {
         const properties = path.get('key').isStringLiteral({ value: 'SLOT_DEFAULT' }) ? oldProperties : newProperties
-        properties.push(path.node)
+        properties.push(state.options.scopedSlotsCompiler === 'auto' ? path.node : t.cloneDeep(path.node))
       })
       if (!newProperties.length) {
         return
       }
       valueNode = t.objectExpression(newProperties)
-      arg2.replaceWith(t.objectExpression(oldProperties))
+      if (state.options.scopedSlotsCompiler !== 'auto') {
+        arg2.replaceWith(t.objectExpression(oldProperties))
+      }
     } else {
       valueNode = arg2.node
     }
@@ -30,5 +32,4 @@ module.exports = function getRenderSlot (path, state) {
     state.renderSlotStatementArray.push(t.expressionStatement(t.callExpression(t.identifier('$setScopedSlotsParams'), [t.stringLiteral(name.node.value), valueNode])))
   }
   // TODO 组件嵌套
-  path.skip()
 }

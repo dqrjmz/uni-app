@@ -1,14 +1,62 @@
 import Vue from 'vue';
 
+function b64DecodeUnicode (str) {
+  return decodeURIComponent(atob(str).split('').map(function (c) {
+    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+  }).join(''))
+}
+
+function getCurrentUserInfo () {
+  const token = ( tt).getStorageSync('uni_id_token') || '';
+  const tokenArr = token.split('.');
+  if (!token || tokenArr.length !== 3) {
+    return {
+      uid: null,
+      role: [],
+      permission: [],
+      tokenExpired: 0
+    }
+  }
+  let userInfo;
+  try {
+    userInfo = JSON.parse(b64DecodeUnicode(tokenArr[1]));
+  } catch (error) {
+    throw new Error('获取当前用户信息出错，详细错误信息为：' + error.message)
+  }
+  userInfo.tokenExpired = userInfo.exp * 1000;
+  delete userInfo.exp;
+  delete userInfo.iat;
+  return userInfo
+}
+
+function uniIdMixin (Vue) {
+  Vue.prototype.uniIDHasRole = function (roleId) {
+    const {
+      role
+    } = getCurrentUserInfo();
+    return role.indexOf(roleId) > -1
+  };
+  Vue.prototype.uniIDHasPermission = function (permissionId) {
+    const {
+      permission
+    } = getCurrentUserInfo();
+    return this.uniIDHasRole('admin') || permission.indexOf(permissionId) > -1
+  };
+  Vue.prototype.uniIDTokenValid = function () {
+    const {
+      tokenExpired
+    } = getCurrentUserInfo();
+    return tokenExpired > Date.now()
+  };
+}
+
 const _toString = Object.prototype.toString;
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
-// 是否是函数
 function isFn (fn) {
   return typeof fn === 'function'
 }
 
-// 是否是字符串
 function isStr (str) {
   return typeof str === 'string'
 }
@@ -17,24 +65,19 @@ function isPlainObject (obj) {
   return _toString.call(obj) === '[object Object]'
 }
 
-// 是否有自己属性
 function hasOwn (obj, key) {
   return hasOwnProperty.call(obj, key)
 }
 
-function noop () { }
+function noop () {}
 
 /**
  * Create a cached version of a pure function.
- * 使用闭包，缓存数据
  */
 function cached (fn) {
-  // 创建一个没有原型链的对象
   const cache = Object.create(null);
   return function cachedFn (str) {
-    // 获取当前属性的值
     const hit = cache[str];
-    // 值存在返回，不存在，进行添加
     return hit || (cache[str] = fn(str))
   }
 }
@@ -133,7 +176,6 @@ function wrapperHook (hook) {
 }
 
 function isPromise (obj) {
-  // 存在 函数或者对象 有then函数
   return !!obj && (typeof obj === 'object' || typeof obj === 'function') && typeof obj.then === 'function'
 }
 
@@ -177,21 +219,12 @@ function wrapperOptions (interceptor, options = {}) {
   return options
 }
 
-/**
- * 包裹返回值
- * @param {*} method 方法
- * @param {*} returnValue 返回值
- */
 function wrapperReturnValue (method, returnValue) {
   const returnValueHooks = [];
-  // 全局拦截器的返回值是数组
   if (Array.isArray(globalInterceptors.returnValue)) {
-    // 添加到返回值的hook中
     returnValueHooks.push(...globalInterceptors.returnValue);
   }
-  // 作用域下的拦截器
   const interceptor = scopedInterceptors[method];
-  // 存在 && 返回值为数组
   if (interceptor && Array.isArray(interceptor.returnValue)) {
     returnValueHooks.push(...interceptor.returnValue);
   }
@@ -272,21 +305,16 @@ function isCallbackApi (name) {
 }
 
 function handlePromise (promise) {
-  // 调用Promise ，格式化返回值
   return promise.then(data => {
     return [null, data]
   })
     .catch(err => [err])
 }
 
-// 不能promise化的api
 function shouldPromise (name) {
   if (
-    // 上下文api
     isContextApi(name) ||
-    // 同步api
     isSyncApi(name) ||
-    // 回调api
     isCallbackApi(name)
   ) {
     return false
@@ -307,22 +335,11 @@ if (!Promise.prototype.finally) {
   };
 }
 
-/**
- *
- * @param {*} name
- * @param {*} api
- */
 function promisify (name, api) {
-  // 是否可以Promise化
   if (!shouldPromise(name)) {
-    // 不能直接返回
     return api
   }
-  /**
-   *
-   */
   return function promiseApi (options = {}, ...params) {
-    // 成功 失败 完成 是函数
     if (isFn(options.success) || isFn(options.fail) || isFn(options.complete)) {
       return wrapperReturnValue(name, invokeApi(name, api, options, ...params))
     }
@@ -358,7 +375,6 @@ function upx2px (number, newDeviceWidth) {
     checkDeviceWidth();
   }
 
-  // 数据类型转换
   number = Number(number);
   if (number === 0) {
     return 0
@@ -594,6 +610,13 @@ var getSystemInfo = {
   }
 };
 
+const oName = 'getUserInfo';
+const nName = 'getUserProfile';
+
+var getUserProfile = {
+  name: tt.canIUse(nName) ? nName : oName
+};
+
 // 不支持的 API 列表
 const todos = [
   'preloadPage',
@@ -698,6 +721,7 @@ const protocols = {
   previewImage,
   getSystemInfo,
   getSystemInfoSync: getSystemInfo,
+  getUserProfile,
   connectSocket: {
     args: {
       method: false
@@ -818,12 +842,9 @@ function processReturnValue (methodName, res, returnValue, keepReturnValue = fal
 }
 
 function wrapper (methodName, method) {
-  // protocols 对象是否存在实例属性 methodName
   if (hasOwn(protocols, methodName)) {
-    // 获取这个实例属性
     const protocol = protocols[methodName];
-    // 暂不支持的 api
-    if (!protocol) {
+    if (!protocol) { // 暂不支持的 api
       return function () {
         console.error(`Platform '头条小程序' does not support '${methodName}'.`);
       }
@@ -834,7 +855,6 @@ function wrapper (methodName, method) {
         options = protocol(arg1);
       }
 
-      // 处理函数参数
       arg1 = processArgs(methodName, arg1, options.args, options.returnValue);
 
       const args = [arg1];
@@ -855,10 +875,6 @@ function wrapper (methodName, method) {
   }
   return method
 }
-
-/**
- * 待实现的api uni.xxx
- */
 
 const todoApis = Object.create(null);
 
@@ -884,9 +900,6 @@ function createTodoApi (name) {
   }
 }
 
-/**
- * 遍历api
- */
 TODOS.forEach(function (name) {
   todoApis[name] = createTodoApi(name);
 });
@@ -913,7 +926,6 @@ function getProvider ({
     };
     isFn(success) && success(res);
   } else {
-    // 在服务提供者那里找不到这个服务
     res = {
       errMsg: 'getProvider:fail service not found'
     };
@@ -927,7 +939,6 @@ var extraApi = /*#__PURE__*/Object.freeze({
   getProvider: getProvider
 });
 
-// 单例，IIFE
 const getEmitter = (function () {
   let Emitter;
   return function getUniEmitter () {
@@ -1313,6 +1324,11 @@ function initProperties (props, isBehavior = false, file = '') {
     properties.generic = {
       type: Object,
       value: null
+    };
+    // scopedSlotsCompiler auto
+    properties.scopedSlotsCompiler = {
+      type: String,
+      value: ''
     };
     properties.vueSlots = { // 小程序不能直接定义 $slots 的 props，所以通过 vueSlots 转换到 $slots
       type: null,
@@ -1727,6 +1743,7 @@ function parseBaseApp (vm, {
   if (vm.$options.store) {
     Vue.prototype.$store = vm.$options.store;
   }
+  uniIdMixin(Vue);
 
   Vue.prototype.mpHost = "mp-toutiao";
 
@@ -1797,8 +1814,6 @@ function parseBaseApp (vm, {
 
   return appOptions
 }
-
-//
 
 function findVmByVueId (vm, vuePid) {
   const $children = vm.$children;
@@ -1976,57 +1991,45 @@ function createApp (vm) {
   return vm
 }
 
-// 编码预留的规则
 const encodeReserveRE = /[!'()*]/g;
-// 编码预留的替换
 const encodeReserveReplacer = c => '%' + c.charCodeAt(0).toString(16);
 const commaRE = /%2C/g;
 
 // fixed encodeURIComponent which is more conformant to RFC3986:
 // - escapes [!'()*]
 // - preserve commas
-// 给字符串进行编码
 const encode = str => encodeURIComponent(str)
   .replace(encodeReserveRE, encodeReserveReplacer)
   .replace(commaRE, ',');
 
-// 序列化查询字符串
 function stringifyQuery (obj, encodeStr = encode) {
-  // 获取对象的key，进行遍历
   const res = obj ? Object.keys(obj).map(key => {
     const val = obj[key];
-    // 对象的属性不存在返回
+
     if (val === undefined) {
       return ''
     }
 
-    // 对象的属性为null, 将key返回
     if (val === null) {
       return encodeStr(key)
     }
 
-    // 值为数组
     if (Array.isArray(val)) {
       const result = [];
-      // 遍历数组
       val.forEach(val2 => {
-        // 元素为空的返回
         if (val2 === undefined) {
           return
         }
-        // 元素为null的进行编码，添加到数组中
         if (val2 === null) {
           result.push(encodeStr(key));
         } else {
           result.push(encodeStr(key) + '=' + encodeStr(val2));
         }
       });
-      // 将数组使用&符号进行连接
       return result.join('&')
     }
-    // 编码key 和value
+
     return encodeStr(key) + '=' + encodeStr(val)
-    // 过滤掉长度为0 的编译过的
   }).filter(x => x.length > 0).join('&') : null;
   return res ? `?${res}` : ''
 }
@@ -2123,34 +2126,50 @@ function parseBaseComponent (vueComponentOptions, {
   return [componentOptions, VueComponent]
 }
 
+const components = [];
+
 function parseComponent (vueOptions) {
   const [componentOptions, VueComponent] = parseBaseComponent(vueOptions);
 
+  // 基础库 2.0 以上 attached 顺序错乱，按照 created 顺序强制纠正
+  componentOptions.lifetimes.created = function created () {
+    components.push(this);
+  };
+
   componentOptions.lifetimes.attached = function attached () {
-    const properties = this.properties;
+    this.__lifetimes_attached = function () {
+      const properties = this.properties;
 
-    const options = {
-      mpType: isPage.call(this) ? 'page' : 'component',
-      mpInstance: this,
-      propsData: properties
+      const options = {
+        mpType: isPage.call(this) ? 'page' : 'component',
+        mpInstance: this,
+        propsData: properties
+      };
+
+      initVueIds(properties.vueId, this);
+
+      // 初始化 vue 实例
+      this.$vm = new VueComponent(options);
+
+      // 处理$slots,$scopedSlots（暂不支持动态变化$slots）
+      initSlots(this.$vm, properties.vueSlots);
+
+      // 处理父子关系
+      initRelation.call(this, {
+        vuePid: this._$vuePid,
+        mpInstance: this
+      });
+
+      // 触发首次 setData
+      this.$vm.$mount();
     };
-
-    initVueIds(properties.vueId, this);
-
-    // 初始化 vue 实例
-    this.$vm = new VueComponent(options);
-
-    // 处理$slots,$scopedSlots（暂不支持动态变化$slots）
-    initSlots(this.$vm, properties.vueSlots);
-
-    // 处理父子关系
-    initRelation.call(this, {
-      vuePid: this._$vuePid,
-      mpInstance: this
-    });
-
-    // 触发首次 setData
-    this.$vm.$mount();
+    let component = this;
+    while (component && component.__lifetimes_attached && components[0] && component === components[0]) {
+      components.shift();
+      component.__lifetimes_attached();
+      delete component.__lifetimes_attached;
+      component = components[0];
+    }
   };
 
   // ready 比 handleLink 还早，初始化逻辑放到 handleLink 中
