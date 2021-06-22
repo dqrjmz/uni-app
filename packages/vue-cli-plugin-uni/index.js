@@ -14,8 +14,8 @@ const initBuildCommand = require('./commands/build')
 const initServeCommand = require('./commands/serve')
 
 /**
- * 
- * @param {*} api PluginApi 
+ *
+ * @param {*} api PluginApi
  * @param {*} options vue.config.js
  */
 module.exports = (api, options) => {
