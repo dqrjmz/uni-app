@@ -102,6 +102,19 @@ exports.main = async (event, context) => {
 }
 ```
 
+### 获取云函数调用来源@context-source
+
+```js
+'use strict';
+exports.main = async (event, context) => {
+  let source = context.SOURCE // 当前云函数被何种方式调用
+  // client   客户端callFunction方式调用
+  // http     云函数url化方式调用
+  // timing   定时触发器调用
+  // server   由管理端调用，HBuilderX里上传并运行，仅阿里云支持，腾讯云这种方式调用也是client
+  // function 由其他云函数callFunction调用，仅阿里云支持，腾讯云这种方式调用也是client
+}
+```
 ### 其他客户端信息@client-info
 
 **以下四个属性只有使用uni-app以callFunction方式调用才能获取**
@@ -364,6 +377,7 @@ serverless默认是没有固定的服务器IP的，因为有很多服务器在�
 
 - 云函数内存使用量会随着并发量增大而增加
 - 如果并发的不同请求对全局变量同时进行读写会污染全局变量，可能会导致意想不到的后果，开启单实例多并发后请不要编写修改全局变量的代码，除非你熟悉这种技术带来的特殊应用，比如下文进阶部分提到的ip过滤。
+- 设置过大的单实例多并发可能会导致实例底层网络请求排队从而导致请求超时
 
 **适用场景**
 
